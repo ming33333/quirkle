@@ -1,0 +1,47 @@
+{
+    "quizzes": [
+        {
+            "title": "React ",
+            "questions": [
+                {
+                    "question": "CORS policy: Cross origin requests",
+                    "answer": "are requests made to a different domain than the one serving the page"
+                    
+                },
+                {
+                    "question": "What is the largest planet in our solar system?",
+                    "answer": "Jupiter"
+                },
+                {
+                    "question": "What is the chemical symbol for water?",
+                    "answer": "H2O"
+                },
+                {
+                    "question": "Who wrote 'To Kill a Mockingbird'?",
+                    "answer": "Harper Lee"
+                }
+            ]
+        },
+        {
+            "title": "Quiz 2",
+            "questions": [
+                {
+                    "question": "What is the capital of Japan?",
+                    "answer": "Tokyo"
+                },
+                {
+                    "question": "What is the smallest planet in our solar system?",
+                    "answer": "Mercury"
+                },
+                {
+                    "question": "What is the chemical symbol for gold?",
+                    "answer": "Au"
+                },
+                {
+                    "question": "Who wrote '1984'?",
+                    "answer": "George Orwell"
+                }
+            ]
+        }
+    ]
+}
