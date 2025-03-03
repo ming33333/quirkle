@@ -1,36 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const Sidebar = () => {
   const [width, setWidth] = useState(200); // Initial width of 200px
   const [isResizing, setIsResizing] = useState(false);
+  const [quizzes, setQuizzes] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+      const response = await require('../constants/data.json');
+      console.log(`waiting on the data`,response);
+      setQuizzes(response.quizzes);
+      } catch (error) {
+      console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (isResizing) {
+        setWidth(e.clientX);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
 
   const handleMouseDown = () => {
     setIsResizing(true);
-  };
-
-  const handleMouseMove = (e) => {
-    if (isResizing) {
-      setWidth(e.clientX);
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsResizing(false);
   };
 
   return (
     <div
       className="sidebar"
       style={{ width: `${width}px` }}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
     >
       <div className="resizer" onMouseDown={handleMouseDown}></div>
       <nav>
+      <h2>All of your quizzes</h2>
         <ul>
-          <li><a href="#home">Home</a></li>
-          <li><a href="#about">About</a></li>
-          <li><a href="#contact">Contact</a></li>
+          {quizzes.map((quiz, index) => (
+            <li key={index}><a href={`#quiz-${index}`}>{quiz.title}</a></li>
+          ))}
         </ul>
       </nav>
     </div>

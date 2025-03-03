@@ -29,6 +29,7 @@ body {
   left: 0;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start; /* Center content vertically */
 }
 
 .resizer {
@@ -42,7 +43,8 @@ body {
 }
 
 .sidebar nav {
-  margin-top: 1em;
+  margin-top: 75%; /* Push content 3/4 up from the bottom */
+  text-align: center; /* Center text horizontally */
 }
 
 .sidebar ul {
