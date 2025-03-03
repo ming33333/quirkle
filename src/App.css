@@ -1,5 +1,8 @@
 .App {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
 .App-logo {
@@ -11,6 +14,15 @@
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
   }
+}
+
+header, footer {
+  flex-shrink: 0;
+}
+
+main {
+  flex-grow: 1;
+  display: flex;
 }
 
 .App-header {

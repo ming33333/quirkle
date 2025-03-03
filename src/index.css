@@ -43,8 +43,9 @@ body {
 }
 
 .sidebar nav {
-  margin-top: 75%; /* Push content 3/4 up from the bottom */
+  flex-grow: 1; /* Push content to the bottom */
   text-align: center; /* Center text horizontally */
+  justify-content: flex-end; /* Align content to the bottom */
 }
 
 .sidebar ul {
@@ -63,6 +64,32 @@ body {
 .main-content {
   margin-left: 220px;
   padding: 1em;
+}
+
+.question-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center the buttons and question */
+}
+
+.question {
+  flex-grow: 1;
+  text-align: center;
+  margin: 0 1em; /* Add margin to space out the question from the buttons */
+}
+
+button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 0.5em 1em;
+  cursor: pointer;
+  margin: 0 0.5em; /* Add margin to bring buttons closer together */
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 
 code {

@@ -1,41 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { db } from './firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import React, { useState } from 'react';
 
-const MainContent = () => {
-  const [quizzes, setQuizzes] = useState([]);
-  const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
+const MainContent = ({ selectedQuiz }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchQuizzes = async () => {
-      console.log('Fetching quizzes...');
-      try {
-        console.log(`db: ${JSON.stringify(db.toJSON())}`);
-        const collectionVal = collection(db, 'quizzes');
-        console.log(`collectionVal: ${JSON.stringify(collectionVal)}`);
-        const querySnapshot = await getDocs(collectionVal);
-        console.log(`snapshot: ${JSON.stringify(querySnapshot)}`);
-        const quizzesData = querySnapshot.docs.map(doc => doc.data());
-        console.log(`quizzesData: ${JSON.stringify(quizzesData)}`);
-        setQuizzes(quizzesData);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching quizzes:', error);
-      }
-    };
-
-    fetchQuizzes();
-  }, []);
-
-  if (loading) {
-    return <div className="main-content">Loading...</div>;
+  if (!selectedQuiz) {
+    return <div className="main-content">Please select a quiz from the sidebar.</div>;
   }
-
-  const selectedQuiz = quizzes[currentQuizIndex];
-  const currentQuestion = selectedQuiz.questions[currentQuestionIndex];
 
   const handlePrevQuestion = () => {
     setCurrentQuestionIndex((prevIndex) => Math.max(prevIndex - 1, 0));
@@ -51,6 +22,9 @@ const MainContent = () => {
     setShowAnswer((prevShowAnswer) => !prevShowAnswer);
   };
 
+  const currentQuestion = selectedQuiz.questions[currentQuestionIndex];
+  const questionCount = selectedQuiz.questions.length;
+
   return (
     <div className="main-content">
       <h2>{selectedQuiz.title}</h2>
@@ -59,7 +33,7 @@ const MainContent = () => {
           &lt; Prev
         </button>
         <div className="question">
-          <strong>Q{currentQuestionIndex + 1}/{selectedQuiz.questions.length}:</strong> {currentQuestion.question}
+          <strong>Q{currentQuestionIndex + 1}/{questionCount}:</strong> {currentQuestion.question}
           <br />
           <button onClick={toggleAnswerVisibility}>
             {showAnswer ? 'Hide Answer' : 'Show Answer'}

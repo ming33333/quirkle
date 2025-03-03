@@ -2,6 +2,12 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## TODO
+- star questions and then only get starred questions
+- add in firebase (added must add more data and organize data accessing)
+- -  option to add more quizzes
+- [optional] make look pretty
+
 ## Available Scripts
 
 In the project directory, you can run:
@@ -28,6 +34,12 @@ The build is minified and the filenames include the hashes.\
 Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+
+### `npm run deploy`
+
+deploy to github pages, not this does add commit to main
+
+npm run deploy -- -m "adding layout"
 
 ### `npm run eject`
 
