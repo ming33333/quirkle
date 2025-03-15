@@ -7,12 +7,14 @@ import './App.css';
 
 function App() {
   const [selectedQuiz, setSelectedQuiz] = useState(null);
+  const [sidebarWidth, setSidebarWidth] = useState(200); // Initial width of 200px
+
 
   return (
     <div className="App">
       <Header />
-      <Sidebar setSelectedQuiz={setSelectedQuiz} />
-      <MainContent selectedQuiz={selectedQuiz} />
+      <Sidebar setSelectedQuiz={setSelectedQuiz} setSidebarWidth={setSidebarWidth} />
+      <MainContent selectedQuiz={selectedQuiz} sidebarWidth={sidebarWidth} />
       <Footer />
     </div>
   );

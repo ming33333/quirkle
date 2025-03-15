@@ -5,7 +5,11 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 ## TODO
 - star questions and then only get starred questions
 - add in firebase (added must add more data and organize data accessing)
+~~fix data access~~
 - -  option to add more quizzes
+- - change quiz based on selection
+- - have previous and nav buttons adjust to side bar size
+- - have button to click to change side bar size
 - [optional] make look pretty
 
 ## Available Scripts
