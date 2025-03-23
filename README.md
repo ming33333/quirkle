@@ -3,6 +3,7 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## TODO
+- make side bar on appear if clicked, default appear (this is on on lyf or desktip view)
 - star questions and then only get starred questions
 - add in firebase (added must add more data and organize data accessing)
 ~~fix data access~~
@@ -15,6 +16,14 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 ## Available Scripts
 
 In the project directory, you can run:
+
+### test on mobile phone 
+make sure phone and computer on same wifi
+turn on application
+run command: ipconfig getifaddr en0
+use that internal IP adresss and port on mobile ex. xxx.xxx.xxx.xx:3000
+
+can also be seen when you do "npm start" . should say "On your local network"
 
 ### `npm start`
 

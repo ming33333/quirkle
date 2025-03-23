@@ -34,6 +34,8 @@ const MainContent = () => {
     return <div className="main-content">Loading...</div>;
   }
 
+  console.log(`quizzes: ${JSON.stringify(quizzes)}`);
+  console.log((`index: ${currentQuizIndex}`));
   const selectedQuiz = quizzes[currentQuizIndex];
   const currentQuestion = selectedQuiz.questions[currentQuestionIndex];
 

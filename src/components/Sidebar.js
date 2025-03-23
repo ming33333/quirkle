@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const Sidebar = ({ setSelectedQuiz }) => {
+const Sidebar = ({ setSelectedQuiz, setSidebarWidth }) => {
   const [width, setWidth] = useState(200); // Initial width of 200px
   const [isResizing, setIsResizing] = useState(false);
   const [quizzes, setQuizzes] = useState([]);
@@ -8,10 +8,10 @@ const Sidebar = ({ setSelectedQuiz }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-      const response = await require('../constants/data.json'); //TODO switch to use firebase
-      setQuizzes(response.quizzes);
+        const response = await require('../constants/data.json'); //TODO switch to use firebase
+        setQuizzes(response.quizzes);
       } catch (error) {
-      console.error('Error fetching data:', error);
+        console.error('Error fetching data:', error);
       }
     };
 
@@ -21,7 +21,9 @@ const Sidebar = ({ setSelectedQuiz }) => {
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (isResizing) {
-        setWidth(e.clientX);
+        const newWidth = e.clientX;
+        setWidth(newWidth);
+        setSidebarWidth(newWidth); // Update the sidebar width in the parent component
       }
     };
 
@@ -36,7 +38,7 @@ const Sidebar = ({ setSelectedQuiz }) => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isResizing]);
+  }, [isResizing, setSidebarWidth]);
 
   const handleMouseDown = () => {
     setIsResizing(true);
