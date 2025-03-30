@@ -9,12 +9,11 @@ function App() {
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [sidebarWidth, setSidebarWidth] = useState(200); // Initial width of 200px
 
-
   return (
     <div className="App">
       <Header />
-      <Sidebar setSelectedQuiz={setSelectedQuiz} setSidebarWidth={setSidebarWidth} />
-      <MainContent selectedQuiz={selectedQuiz} sidebarWidth={sidebarWidth} />
+      {/* <Sidebar setSelectedQuiz={setSelectedQuiz} setSidebarWidth={setSidebarWidth} /> */}
+      <MainContent selectedQuiz={selectedQuiz} setSelectedQuiz={setSelectedQuiz} sidebarWidth={sidebarWidth} />
       <Footer />
     </div>
   );

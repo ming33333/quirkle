@@ -3,7 +3,7 @@ import { db } from './firebase';
 import QuizBoxes from './quizBoxes';
 import { collection, getDocs } from 'firebase/firestore';
 
-const MainContent = () => {
+const MainContent = ({ selectedQuiz, setSelectedQuiz }) => {
   const [quizzes, setQuizzes] = useState([]);
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -48,13 +48,30 @@ const MainContent = () => {
   //   setShowAnswer((prevShowAnswer) => !prevShowAnswer);
   // };
 
+  if (!selectedQuiz) {
+    return (
+      <div className="main-content">
+        <QuizBoxes quizzes={quizzes} setSelectedQuiz={setSelectedQuiz} />
+      </div>
+    );
+  }
+
   return (
     <div className="main-content">
-      <div>
-        <QuizBoxes quizzes={quizzes} />
-      </div>
+      <button onClick={() => setSelectedQuiz(null)} style={{ marginBottom: '1em' }}>
+        Back to Quiz List
+      </button>
+      <h2>{selectedQuiz.title}</h2>
+      <ul>
+        {selectedQuiz.questions.map((question, index) => (
+          <li key={index}>
+            <strong>Q{index + 1}:</strong> {question.question}
+          </li>
+        ))}
+      </ul>
     </div>
   );
+};
 
 //   return (
 //     <div className="main-content">
@@ -81,6 +98,5 @@ const MainContent = () => {
 //       </div>
 //     </div>
 //   );
-};
 
 export default MainContent;
