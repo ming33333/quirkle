@@ -19,9 +19,15 @@ const MainContent = ({ email, selectedQuiz, setSelectedQuiz }) => {
         const subcollectionRef = collection(docRef, 'quizCollection');
         const querySnapshot = await getDocs(subcollectionRef);
         console.log('QuerySnapshot:', querySnapshot);
-        const quizzesData = querySnapshot.docs.map(doc => doc.data());
+        // Convert querySnapshot into a Map
+        const quizzesData = {};
+        querySnapshot.forEach((doc) => {
+            quizzesData[doc.id] = doc.data();
+        });
         console.log('Quizzes:', JSON.stringify(quizzesData));
-        setQuizzes(quizzesData[0]);
+        setQuizzes(quizzesData);
+        setLoading(false);
+        setQuizzes(quizzesData);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching quizzes:', error);
@@ -57,7 +63,7 @@ const MainContent = ({ email, selectedQuiz, setSelectedQuiz }) => {
     );
   }
 
-  console.log('Selected Quiz:', JSON.stringify(selectedQuiz));
+  console.log('Selected Quiz:', JSON.stringify(selectedQuiz)); //[{"answer":"test","question":"tes"},{"question":"test","answer":"test"}]
   const currentQuestion = selectedQuiz[currentQuestionIndex];
   return (
     <div className="main-content">

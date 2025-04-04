@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
 
 const Login = ({ setUser }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate(); // Hook to navigate to different routes
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -23,6 +25,7 @@ const Login = ({ setUser }) => {
     try {
       const result = await signInWithPopup(auth, provider);
       setUser(result.user); // Set the logged-in user
+      navigate('/'); // Redirect to the main page
     } catch (err) {
       setError(err.message);
     }
@@ -31,7 +34,7 @@ const Login = ({ setUser }) => {
   return (
     <div>
       <h2>Login</h2>
-      <form onSubmit={handleLogin}>
+      {/* <form onSubmit={handleLogin}>
         <input
           type="email"
           placeholder="Email"
@@ -45,7 +48,7 @@ const Login = ({ setUser }) => {
           onChange={(e) => setPassword(e.target.value)}
         />
         <button type="submit">Login</button>
-      </form>
+      </form> */}
       <button onClick={handleGoogleSignIn} style={{ marginTop: '1em' }}>
         Sign in with Google
       </button>

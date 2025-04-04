@@ -17,7 +17,7 @@ const Header = ({ user }) => {
       <h1>Quiz App</h1>
       <nav>
         <a href="/">Home</a>
-        <a href="/add-questions" style={{ marginLeft: '1em' }}>Add Quiz</a>
+        {/* <a href="/add-questions" style={{ marginLeft: '1em' }}>Add Quiz</a> */}
       </nav>
       {user && (
         <div style={{ marginTop: '1em' }}>
