@@ -14,19 +14,20 @@ const Header = ({ user }) => {
 
   return (
     <header className="header">
-      <h1>Quiz App</h1>
+      <div className="header-content">
+        <h1 className="header-title">Quiz App</h1>
+        {user && (
+          <div className="header-user">
+            <p>Logged in as: {user.email}</p>
+            <button onClick={handleLogout} className="logout-button">
+              Logout
+            </button>
+          </div>
+        )}
+      </div>
       <nav>
         <a href="/">Home</a>
-        {/* <a href="/add-questions" style={{ marginLeft: '1em' }}>Add Quiz</a> */}
       </nav>
-      {user && (
-        <div style={{ marginTop: '1em' }}>
-          <p>Logged in as: {user.email}</p>
-          <button onClick={handleLogout} style={{ marginLeft: '1em' }}>
-            Logout
-          </button>
-        </div>
-      )}
     </header>
   );
 };

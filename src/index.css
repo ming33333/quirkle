@@ -1,18 +1,41 @@
+:root {
+  --primary-color: salmon;
+  --secondary-color: salmon;
+  --tertiary-color: #f9f3f3;
+  --font-family: Arial, sans-serif;
+  --header-padding: 1em;
+  --footer-height: 50px;
+}
 body {
   margin: 0;
   font-family: Arial, sans-serif;
 }
 
 .header {
-  background-color: #4CAF50;
-  color: white;
+  background-color: var(--primary-color);
+  color: var(--tertiary-color);
   text-align: center;
   padding: 1em;
 }
+.header-content {
+  display: flex;
+  justify-content: space-between; /* Push title to the left and user info to the right */
+  align-items: center; /* Vertically align items */
+}
 
+.header-title {
+  font-size: 1.5em;
+  margin: 0;
+}
+
+.header-user {
+  display: flex;
+  align-items: center; /* Vertically align the email and button */
+  gap: 1em; /* Add space between the email and the logout button */
+}
 .footer {
-  background-color: #4CAF50;
-  color: white;
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
   text-align: center;
   padding: 1em;
   position: fixed;
@@ -20,8 +43,8 @@ body {
   bottom: 0;
 }
 
-.sidebar {
-  background-color: #f4f4f4;
+/* .sidebar {
+  background-color: var(--secondary-color);
   padding: 1em;
   height: 100%;
   position: fixed;
@@ -29,13 +52,13 @@ body {
   left: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Center content vertically */
-  align-items: center; /* Center content horizontally */
+  justify-content: center; 
+  align-items: center; 
 }
 
 .resizer {
   width: 10px;
-  background-color: #ccc;
+  background-color: var(--secondary-color);
   cursor: ew-resize;
   position: absolute;
   top: 0;
@@ -44,8 +67,8 @@ body {
 }
 
 .sidebar nav {
-  width: 100%; /* Ensure nav takes full width */
-  text-align: center; /* Center text horizontally */
+  width: 100%; 
+  text-align: center; 
 }
 
 .sidebar ul {
@@ -60,10 +83,12 @@ body {
 
 .sidebar a {
   text-decoration: none;
-  color: black;
+  color: black; 
 }
+  */
 .main-content {
-  margin-left: 220px;
+  color: var(--secondary-color);
+  background-color: var(--secondary-color);
   padding: 1em;
   overflow: auto;
   flex-grow: 1;
@@ -82,8 +107,8 @@ body {
 }
 
 button {
-  background-color: #4CAF50;
-  color: white;
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
   border: none;
   padding: 0.5em 1em;
   cursor: pointer;
@@ -91,7 +116,7 @@ button {
 }
 
 button:disabled {
-  background-color: #ccc;
+  background-color: var(--secondary-color);
   cursor: not-allowed;
 }
 .quiz-boxes-container {

@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { collection, addDoc, updateDoc, doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from './firebaseDB';
+import { useNavigate } from 'react-router-dom';
+
 
 const AddQuiz = ({ email }) => {
+  const navigate = useNavigate(); // Hook to navigate to different routes
   const [title, setTitle] = useState('');
   const [questions, setQuestions] = useState([{ question: '', answer: '' }]);
 
@@ -18,7 +21,6 @@ const AddQuiz = ({ email }) => {
 
   const handleSubmit = async () => {
     console.log(JSON.stringify({ title, questions })); 
-    
     try {
       const docRef = doc(db, 'users', email);
       // Reference the 'questionsCollection' subcollection
@@ -41,23 +43,7 @@ const AddQuiz = ({ email }) => {
     } catch (error) {
       console.error('Error adding field:', error);
     }
-    // try {
-    //   // Reference the 'quizzes' collection
-    //   const quizzesCollectionRef = collection(db, 'quizzes');
-
-    //   // Reference the 'React' document in the 'quizzes' collection
-    //   const reactDocRef = doc(quizzesCollectionRef, 'React');
-
-    //   // Reference the 'questions' subcollection under the 'React' document
-    //   const collectionRef = collection(reactDocRef, 'questions');
-    //   const response = await addDoc(collectionRef, {
-    //     title: title,
-    //     questions: questions
-    //   });
-    //   console.log('Document added with ID:', response.id);
-    // } catch (error) {
-    //   console.error('Error adding document:', error);
-    // }
+    navigate('/'); // Redirect to the main page after submission
   };
 
   return (

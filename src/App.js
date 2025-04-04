@@ -45,7 +45,7 @@ function App() {
             element={user ? <AddQuestions email={user.email} /> : <Navigate to="/login" />}
           />
         </Routes>
-        <Footer />
+        {/* <Footer /> */}
       </div>
     </Router>
   );
