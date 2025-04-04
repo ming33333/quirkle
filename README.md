@@ -13,6 +13,19 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 - - have button to click to change side bar size
 - [optional] make look pretty
 
+## Firebase
+can deploy rules with this line: firebase deploy --only firestore:rules
+check ways to make db more secure here: https://www.youtube.com/watch?v=hQI_w4AZ92I
+
+## Firebase structure
+
+co
+quizzes | users | { questions: {}, profile: {} } |  
+
+
+system | admins |
+       | site   | 
+
 ## Available Scripts
 
 In the project directory, you can run:
@@ -50,7 +63,7 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 
 ### `npm run deploy`
 
-deploy to github pages, not this does add commit to main
+deploy to github pages, this does does add commit to main
 
 npm run deploy -- -m "adding layout"
 
