@@ -35,6 +35,10 @@ jobs:
           echo "REACT_APP_FIREBASE_APP_ID=${{ secrets.REACT_APP_FIREBASE_APP_ID }}" >> .env
           echo "REACT_APP_FIREBASE_MEASUREMENT_ID=${{ secrets.REACT_APP_FIREBASE_MEASUREMENT_ID }}" >> .env
 
+      # Debug .env file
+      - name: Debug .env file
+        run: cat .env
+
       # Step 5: Build the app
       - name: Build the app
         run: npm run build || echo "Build failed" && exit 1
