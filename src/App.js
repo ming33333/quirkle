@@ -31,7 +31,7 @@ function App() {
   }
 
   return (
-    <Router>
+    <Router basename="/quirkle">
       <div className="App">
         <Header user={user} />
         <Routes>

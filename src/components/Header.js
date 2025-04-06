@@ -32,7 +32,7 @@ const Header = ({ user }) => {
         )}
       </div>
       <nav>
-        <a href="/home" className="home-icon">
+        <a href="/quirkle/home" className="home-icon">
           <FontAwesomeIcon icon={faHome} size="lg" /> 
         </a>
       </nav>

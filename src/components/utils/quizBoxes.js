@@ -23,7 +23,7 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz }) => {
       {/* Add an empty box for "Add Questions" */}
       <div
         className="quiz-box add-quiz-box"
-        onClick={() => navigate('/add-questions')} // Navigate to the Add Questions route
+        onClick={() => navigate('/quirkle/add-questions')} // Navigate to the Add Questions route
         style={{
           cursor: 'pointer',
           backgroundColor: '#f0f0f0',

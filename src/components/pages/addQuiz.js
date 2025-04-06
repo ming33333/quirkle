@@ -43,7 +43,7 @@ const AddQuiz = ({ email }) => {
     } catch (error) {
       console.error('Error adding field:', error);
     }
-    navigate('/home'); // Redirect to the main page after submission
+    navigate('/quirkle/home'); // Redirect to the main page after submission
   };
 
   return (
