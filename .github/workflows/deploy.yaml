@@ -41,7 +41,7 @@ jobs:
 
       # Step 5: Build the app
       - name: Build the app
-        run: npm run build || echo "Build failed" && exit 1
+        run: CI='' npm run build
 
       # Step 6: Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
