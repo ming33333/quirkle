@@ -31,7 +31,7 @@ function App() {
   }
 
   return (
-    <Router basename="/quirkle">
+    <Router>
       <div className="App">
         <Header user={user} />
         <Routes>
@@ -43,10 +43,6 @@ function App() {
             element={user ? <MainContent email={user.email} selectedQuiz={selectedQuiz} setSelectedQuiz={setSelectedQuiz} /> : <Navigate to="/login" />}
           />
           <Route
-            path="/"
-            element={user ? <Navigate to="/home" /> : <Navigate to="/login" />}
-          />
-          <Route
             path="/add-questions"
             element={user ? <AddQuestions email={user.email} /> : <Navigate to="/login" />}
           />
@@ -55,7 +51,6 @@ function App() {
             element={user ? <StudyRoom email={user.email} /> : <Navigate to="/login" />}
           />
         </Routes>
-        {/* <Footer /> */}
       </div>
     </Router>
   );
