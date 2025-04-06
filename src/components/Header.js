@@ -2,8 +2,11 @@ import React from 'react';
 import { getAuth, signOut } from 'firebase/auth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHome } from '@fortawesome/free-solid-svg-icons';
+import { useNavigate } from 'react-router-dom';
+
 
 const Header = ({ user }) => {
+  const navigate = useNavigate(); // Hook to navigate to different routes
   const handleLogout = async () => {
     const auth = getAuth();
     try {
@@ -12,6 +15,7 @@ const Header = ({ user }) => {
     } catch (error) {
       console.error('Error logging out:', error);
     }
+    navigate('/login'); // Redirect to the main page
   };
 
   return (
@@ -28,7 +32,7 @@ const Header = ({ user }) => {
         )}
       </div>
       <nav>
-        <a href="/" className="home-icon">
+        <a href="/home" className="home-icon">
           <FontAwesomeIcon icon={faHome} size="lg" /> 
         </a>
       </nav>

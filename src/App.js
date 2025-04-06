@@ -39,7 +39,7 @@ function App() {
           <Route path="/login" element={<Login setUser={setUser} />} />
           {/* Protected Routes */}
           <Route
-            path="/quirkle"
+            path="/home"
             element={user ? <MainContent email={user.email} selectedQuiz={selectedQuiz} setSelectedQuiz={setSelectedQuiz} /> : <Navigate to="/login" />}
           />
           <Route

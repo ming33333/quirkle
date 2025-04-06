@@ -25,7 +25,7 @@ const Login = ({ setUser }) => {
     try {
       const result = await signInWithPopup(auth, provider);
       setUser(result.user); // Set the logged-in user
-      navigate('/'); // Redirect to the main page
+      navigate('/home'); // Redirect to the main page
     } catch (err) {
       setError(err.message);
     }

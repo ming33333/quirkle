@@ -43,7 +43,7 @@ const AddQuiz = ({ email }) => {
     } catch (error) {
       console.error('Error adding field:', error);
     }
-    navigate('/'); // Redirect to the main page after submission
+    navigate('/home'); // Redirect to the main page after submission
   };
 
   return (
