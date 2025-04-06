@@ -1,5 +1,7 @@
 import React from 'react';
 import { getAuth, signOut } from 'firebase/auth';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHome } from '@fortawesome/free-solid-svg-icons';
 
 const Header = ({ user }) => {
   const handleLogout = async () => {
@@ -15,7 +17,7 @@ const Header = ({ user }) => {
   return (
     <header className="header">
       <div className="header-content">
-        <h1 className="header-title">Quiz App</h1>
+        <h1 className="header-title" style={{ fontSize: '200%' }}>Quirkle</h1>
         {user && (
           <div className="header-user">
             <p>Logged in as: {user.email}</p>
@@ -26,7 +28,9 @@ const Header = ({ user }) => {
         )}
       </div>
       <nav>
-        <a href="/">Home</a>
+        <a href="/" className="home-icon">
+          <FontAwesomeIcon icon={faHome} size="lg" /> 
+        </a>
       </nav>
     </header>
   );

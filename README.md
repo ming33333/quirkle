@@ -12,7 +12,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 - - have previous and nav buttons adjust to side bar size
 - - have button to click to change side bar size
 - - hide login fire base temp site https://firebase.google.com/docs/auth/web/google-signin#expandable-4
-
+- - use the context folder
 - [optional] make look pretty
 
 ## Firebase

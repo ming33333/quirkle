@@ -31,6 +31,7 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz }) => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
+          fontFamily: 'Caveat',
         }}
       >
         <h3 style={{ color: '#888' }}>+ Add Quiz</h3>

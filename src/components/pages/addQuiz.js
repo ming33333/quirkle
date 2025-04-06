@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { collection, addDoc, updateDoc, doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from './firebaseDB';
+import { db } from '../utils/firebase/firebaseDB';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -47,32 +47,41 @@ const AddQuiz = ({ email }) => {
   };
 
   return (
-    <div>
-      <h2>Add New Quiz</h2>
-      <input
-        type="text"
-        placeholder="Quiz Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
-      {questions.map((q, index) => (
-        <div key={index}>
-          <input
-            type="text"
-            placeholder="Question"
-            value={q.question}
-            onChange={(e) => handleInputChange(index, 'question', e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Answer"
-            value={q.answer}
-            onChange={(e) => handleInputChange(index, 'answer', e.target.value)}
-          />
-        </div>
-      ))}
-      <button onClick={handleAddQuestion}>Add Another Question</button>
-      <button onClick={handleSubmit}>Submit Quiz</button>
+    <div className="main-content">
+      <div className="add-quiz-container">
+        <h2>Add New Quiz</h2>
+        <input
+          type="text"
+          placeholder="Quiz Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="quiz-input"
+        />
+        {questions.map((q, index) => (
+          <div key={index} className="question-container">
+            <input
+              type="text"
+              placeholder="Question"
+              value={q.question}
+              onChange={(e) => handleInputChange(index, 'question', e.target.value)}
+              className="quiz-input"
+            />
+            <input
+              type="text"
+              placeholder="Answer"
+              value={q.answer}
+              onChange={(e) => handleInputChange(index, 'answer', e.target.value)}
+              className="quiz-input"
+            />
+          </div>
+        ))}
+        <button onClick={handleAddQuestion} className="quiz-button add-question-button">
+          Add Another Question
+        </button>
+        <button onClick={handleSubmit} className="quiz-button submit-button">
+          Submit Quiz
+        </button>
+      </div>
     </div>
   );
 };

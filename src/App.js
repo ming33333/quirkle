@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './components/firebaseAuthentication'; // Import the auth object
+import { auth } from './components/utils/firebase/firebaseAuthentication'; // Import the auth object
 import Header from './components/Header';
 import Footer from './components/Footer';
 import MainContent from './components/MainContent';
-import AddQuestions from './components/addQuiz';
-import Login from './components/Login';
-import './App.css';
+import AddQuestions from './components/pages/addQuiz';
+import Login from './components/pages/login';
+import StudyRoom from './components/pages/StudyRoom.js';
+
+import './styles/App.css';
 
 function App() {
   const [user, setUser] = useState(null); // Store the logged-in user
@@ -43,6 +45,10 @@ function App() {
           <Route
             path="/add-questions"
             element={user ? <AddQuestions email={user.email} /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/studyroom"
+            element={user ? <StudyRoom email={user.email} /> : <Navigate to="/login" />}
           />
         </Routes>
         {/* <Footer /> */}

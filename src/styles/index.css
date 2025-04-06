@@ -1,7 +1,7 @@
 :root {
   --primary-color: salmon;
   --secondary-color: salmon;
-  --tertiary-color: #f9f3f3;
+  --tertiary-color: #f3f2f2;
   --font-family: Arial, sans-serif;
   --header-padding: 1em;
   --footer-height: 50px;
@@ -15,7 +15,7 @@ body {
   background-color: var(--primary-color);
   color: var(--tertiary-color);
   text-align: center;
-  padding: 1em;
+  padding: 3em;
 }
 .header-content {
   display: flex;
@@ -30,8 +30,27 @@ body {
 
 .header-user {
   display: flex;
-  align-items: center; /* Vertically align the email and button */
-  gap: 1em; /* Add space between the email and the logout button */
+  flex-direction: column; /* Stack the title and user info vertically */
+  align-items: flex-start; /* Align text to the left */
+}
+
+.home-icon {
+  text-decoration: none;
+  color: var(--tertiary-color); /* Use your existing color variable */
+  font-size: 1.5em;
+}
+
+.home-icon:hover {
+  color: var(--secondary-color); /* Change color on hover */
+}
+
+.logout-button {
+  color: var(--tertiary-color);
+  border: none;
+  padding: 0.5em 1em;
+  cursor: pointer;
+  font-size: 1em;
+  margin-left: auto; /* Push the button to the right */
 }
 .footer {
   background-color: var(--primary-color);
@@ -100,9 +119,19 @@ body {
   justify-content: center; /* Center the buttons and question */
 }
 
+.question-button {
+  background-color: var(--primary-color);
+  color: var(--tertiary-color);
+  border: none;
+  padding: 0.5em 1em;
+  cursor: pointer;
+  margin: 0 0.5em; /* Add margin to space out the buttons */
+}
+
 .question {
   flex-grow: 1;
   text-align: center;
+  color: var(--tertiary-color);
   margin: 0 1em; /* Add margin to space out the question from the buttons */
 }
 
@@ -122,19 +151,19 @@ button:disabled {
 .quiz-boxes-container {
   display: flex;
   flex-wrap: wrap; /* Allow boxes to wrap to the next line if needed */
-  gap: 1em; /* Add space between boxes */
+  gap: 1.5em; /* Add space between boxes */
   justify-content: center; /* Center the boxes horizontally */
   padding: 1em;
 }
 
 .quiz-box {
-  width: 200px;
-  height: 150px;
+  width: 300px;
+  height: 250px;
   display: flex;
   justify-content: center; /* Center content horizontally */
   align-items: center; /* Center content vertically */
   border: 1px solid #ccc;
-  border-radius: 8px;
+  border-radius: 40px;
   background-color: #f9f9f9;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -148,9 +177,75 @@ button:disabled {
 
 .quiz-box h3 {
   margin: 0;
-  font-size: 1.2em;
+  font-size: 1.3em;
+  font-family: 'comic sans ms', cursive, sans-serif;
+  font-weight: bold;
   color: #333;
 }
+
+.add-quiz-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2em;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  text-align: center;
+  color: #333;
+}
+
+.quiz-input {
+  width: 100%;
+  padding: 0.5em;
+  margin: 0.5em 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1em;
+}
+
+.question-container {
+  display: flex; /* Use flexbox to align inputs horizontally */
+  gap: 1em; /* Add space between the inputs */
+  margin-bottom: 1em;
+}
+
+.quiz-button {
+  display: inline-block;
+  padding: 0.75em 1.5em;
+  margin: 0.5em 0;
+  font-size: 1em;
+  font-weight: bold;
+  color: white;
+  background-color: #4CAF50;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.quiz-button:hover {
+  background-color: #45a049;
+}
+
+.add-question-button {
+  background-color: #2196F3;
+}
+
+.add-question-button:hover {
+  background-color: #1976D2;
+}
+
+.submit-button {
+  background-color: #4CAF50;
+}
+
+.submit-button:hover {
+  background-color: #388E3C;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
