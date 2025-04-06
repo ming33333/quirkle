@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main # Trigger the workflow on pushes to the 'main' branch
+      - main
 
 jobs:
   build-and-deploy:
@@ -18,7 +18,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16' # Use Node.js version 16
+          node-version: '16'
 
       # Step 3: Install dependencies
       - name: Install dependencies
@@ -35,9 +35,13 @@ jobs:
           echo "REACT_APP_FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }}" >> .env
           echo "REACT_APP_FIREBASE_MEASUREMENT_ID=${{ secrets.FIREBASE_MEASUREMENT_ID }}" >> .env
 
+      # Debug .env file
+      - name: Debug .env file
+        run: cat .env
+
       # Step 5: Build the app
       - name: Build the app
-        run: npm run build
+        run: npm run build || echo "Build failed" && exit 1
 
       # Step 6: Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
