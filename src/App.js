@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './components/utils/firebase/firebaseAuthentication'; // Import the auth object
 import Header from './components/Header';
@@ -32,7 +32,7 @@ function App() {
 
   return (
     <Router>
-      <div className="App">
+      <div className="App"> 
         <Header user={user} />
         <Routes>
           {/* Login Route */}

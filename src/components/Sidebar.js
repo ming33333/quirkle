@@ -55,7 +55,7 @@ const Sidebar = ({ setSelectedQuiz, setSidebarWidth }) => {
         <ul>
           {quizzes.map((quiz, index) => (
             <li key={index}>
-              <a href={`#quiz-${index}`} onClick={() => setSelectedQuiz(quiz)}>
+              <a href={`quiz-${index}`} onClick={() => setSelectedQuiz(quiz)}>
                 {quiz.title}
               </a>
             </li>
