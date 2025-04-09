@@ -20,7 +20,6 @@ const AddQuiz = ({ email }) => {
   };
 
   const handleSubmit = async () => {
-    console.log(JSON.stringify({ title, questions })); 
     try {
       const docRef = doc(db, 'users', email);
       // Reference the 'questionsCollection' subcollection
@@ -38,8 +37,6 @@ const AddQuiz = ({ email }) => {
       const response = await setDoc(doc(subcollectionRef, title), {
         questions: questions
       });
-      console.log('response', response);
-      console.log('Field added successfully!');
     } catch (error) {
       console.error('Error adding field:', error);
     }

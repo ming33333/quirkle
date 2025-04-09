@@ -18,13 +18,13 @@ const MainContent = ({ email, selectedQuiz, setSelectedQuiz }) => {
         // Reference the 'questionsCollection' subcollection
         const subcollectionRef = collection(docRef, 'quizCollection');
         const querySnapshot = await getDocs(subcollectionRef);
-        console.log('QuerySnapshot:', querySnapshot);
+        // console.log('QuerySnapshot:', querySnapshot);
         // Convert querySnapshot into a Map
         const quizzesData = {};
         querySnapshot.forEach((doc) => {
             quizzesData[doc.id] = doc.data();
         });
-        console.log('Quizzes:', JSON.stringify(quizzesData));
+        // console.log('Quizzes:', JSON.stringify(quizzesData));
         setQuizzes(quizzesData);
         setLoading(false);
         setQuizzes(quizzesData);
@@ -63,7 +63,7 @@ const MainContent = ({ email, selectedQuiz, setSelectedQuiz }) => {
     );
   }
 
-  console.log('Selected Quiz:', JSON.stringify(selectedQuiz)); //[{"answer":"test","question":"tes"},{"question":"test","answer":"test"}]
+  // console.log('Selected Quiz:', JSON.stringify(selectedQuiz)); //[{"answer":"test","question":"tes"},{"question":"test","answer":"test"}]
   const currentQuestion = selectedQuiz[currentQuestionIndex];
   return (
     <div className="main-content">

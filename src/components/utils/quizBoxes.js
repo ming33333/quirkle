@@ -4,8 +4,6 @@ import { useNavigate } from 'react-router-dom';
 const QuizBoxes = ({ quizzes, setSelectedQuiz }) => {
   const navigate = useNavigate(); // Hook to navigate to different routes
 
-  console.log('QuizBoxes props:', JSON.stringify(quizzes), JSON.stringify(setSelectedQuiz)); // Log the props for debugging
-
   return (
     <div className="quiz-boxes-container">
       {/* Render quiz boxes */}

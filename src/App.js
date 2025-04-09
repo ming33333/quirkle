@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './components/utils/firebase/firebaseAuthentication'; // Import the auth object
 import Header from './components/Header';
@@ -8,6 +8,7 @@ import MainContent from './components/MainContent';
 import AddQuestions from './components/pages/addQuiz';
 import Login from './components/pages/login';
 import StudyRoom from './components/pages/StudyRoom.js';
+import UserSearch from './components/pages/userSearch'; // Import the UserSearch component
 
 import './styles/App.css';
 
@@ -50,7 +51,12 @@ function App() {
             path="/studyroom"
             element={user ? <StudyRoom email={user.email} /> : <Navigate to="/login" />}
           />
+          <Route
+              path="/user-search"
+              element={user ? <UserSearch /> : <Navigate to="/login" />}
+            />
         </Routes>
+
       </div>
     </Router>
   );
