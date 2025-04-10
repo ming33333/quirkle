@@ -32,26 +32,22 @@ const Login = ({ setUser }) => {
   };
 
   return (
-    <div>
+    <div style={{ textAlign: 'center' }}> {/* Center-align the content */}
       <h2>Login</h2>
-      {/* <form onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+      <p>Welcome to the Quiz App! Please log in to continue.</p>
+      <div style={{ marginBottom: '1em' }}> {/* Container for the image and button */}
+        <img 
+          src={`${process.env.PUBLIC_URL}/red_panda.jpg`} 
+          alt="Red Panda" 
+          style={{ width: '200px', height: 'auto', marginBottom: '0.5em' }} 
         />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button type="submit">Login</button>
-      </form> */}
-      <button onClick={handleGoogleSignIn} style={{ marginTop: '1em' }}>
-        Sign in with Google
-      </button>
+        <button 
+          onClick={handleGoogleSignIn} 
+          style={{ display: 'block', margin: '0 auto', marginTop: '0.5em' }}
+        >
+          Sign in with Google
+        </button>
+      </div>
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );

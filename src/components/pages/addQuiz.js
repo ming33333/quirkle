@@ -27,8 +27,11 @@ const AddQuiz = ({ email }) => {
       // Check if the document exists
       const docSnap = await getDoc(docRef);
       if (!docSnap.exists()) {
+        //If User (document) does not exist, create it
+        console.log('User document does not exist. Creating a new user document...');
+        await setDoc(doc(db, 'users', email),{})
         // If the document does not exist, create it
-        console.log('Document does not exist. Creating a new document...');
+        console.log('Question document does not exist. Creating a new document...');
         await setDoc(doc(subcollectionRef, title), {
           title: title,
           questions: questions

@@ -7,6 +7,10 @@ https://ming33333.github.io/quirkle/
 - make side bar on appear if clicked, default appear (this is on on lyf or desktip view)
 - star questions and then only get starred questions
 - add in firebase (added must add more data and organize data accessing)
+- fix routing
+- profile, add friends
+- documents/users showing up as nonexistent
+- should move users creation in login section
 ~~fix data access~~
 - -  option to add more quizzes
 - - change quiz based on selection

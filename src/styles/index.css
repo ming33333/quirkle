@@ -137,7 +137,7 @@ body {
 
 button {
   background-color: var(--primary-color);
-  color: var(--secondary-color);
+  color: var(--tertiary-color);
   border: none;
   padding: 0.5em 1em;
   cursor: pointer;

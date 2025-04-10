@@ -48,7 +48,7 @@ const Header = ({ user }) => {
         }}
       />
       <nav>
-        <a href="/home" className="home-icon">
+        <a href="/#/home" className="home-icon">
           <FontAwesomeIcon icon={faHome} size="lg" /> 
         </a>
       </nav>
