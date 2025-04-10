@@ -36,6 +36,10 @@ function App() {
       <div className="App"> 
         <Header user={user} />
         <Routes>
+        <Route
+            path="/"
+            element={user ? <Navigate to="/home" /> : <Navigate to="/login" />}
+          />
           {/* Login Route */}
           <Route path="/login" element={<Login setUser={setUser} />} />
           {/* Protected Routes */}
