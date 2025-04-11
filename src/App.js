@@ -52,7 +52,7 @@ function App() {
             element={user ? <AddQuestions email={user.email} /> : <Navigate to="/login" />}
           />
           <Route
-            path="/studyroom"
+            path="/study-room"
             element={user ? <StudyRoom email={user.email} /> : <Navigate to="/login" />}
           />
           <Route
