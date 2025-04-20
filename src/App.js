@@ -9,6 +9,7 @@ import AddQuestions from './components/pages/addQuiz';
 import Login from './components/pages/login';
 import StudyRoom from './components/pages/StudyRoom.js';
 import UserSearch from './components/pages/userSearch'; // Import the UserSearch component
+import AcceptFriends from './components/pages/acceptFriends'; // Import the UserSearch component
 
 import './styles/App.css';
 
@@ -30,7 +31,6 @@ function App() {
   if (loading) {
     return <div>Loading...</div>; // Show a loading indicator while checking auth state
   }
-
   return (
     <Router>
       <div className="App"> 
@@ -57,7 +57,11 @@ function App() {
           />
           <Route
               path="/user-search"
-              element={user ? <UserSearch /> : <Navigate to="/login" />}
+              element={user ? <UserSearch email={user.email} /> : <Navigate to="/login" />}
+            />
+          <Route
+              path="/accept-friends"
+              element={user ? <AcceptFriends currentUserEmail={user.email} /> : <Navigate to="/login" />}
             />
         </Routes>
 

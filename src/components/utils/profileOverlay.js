@@ -16,7 +16,7 @@ const ProfileOverlay = ({ isOpen, onClose, userInfo }) => {
         </div>
         <hr />
         <h3>Search for Users</h3>
-        <UserSearch /> {/* Add the UserSearch component */}
+        <UserSearch email={userInfo.email}/> {/* Add the UserSearch component */}
       </div>
     </div>
   );

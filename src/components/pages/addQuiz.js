@@ -18,7 +18,7 @@ const AddQuiz = ({ email }) => {
   const handleAddQuestion = () => {
     setQuestions([...questions, { question: '', answer: '' }]);
   };
-
+  console.log(`in add quiz current user email ${email}`)
   const handleSubmit = async () => {
     try {
       const docRef = doc(db, 'users', email);
@@ -29,7 +29,7 @@ const AddQuiz = ({ email }) => {
       if (!docSnap.exists()) {
         //If User (document) does not exist, create it
         console.log('User document does not exist. Creating a new user document...');
-        await setDoc(doc(db, 'users', email),{})
+        await setDoc(docRef,{})
         // If the document does not exist, create it
         console.log('Question document does not exist. Creating a new document...');
         await setDoc(doc(subcollectionRef, title), {

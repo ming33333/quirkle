@@ -11,6 +11,12 @@ https://ming33333.github.io/quirkle/
 - profile, add friends
 - documents/users showing up as nonexistent
 - should move users creation in login section
+- update so user is made in DB at login
+- dont override request just update them
+- seperate friendcollection system from user search
+- deny friend feature
+
+- add logging of when friend request sent and accepted
 ~~fix data access~~
 - -  option to add more quizzes
 - - change quiz based on selection
