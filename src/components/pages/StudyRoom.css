@@ -21,3 +21,8 @@
 .character.other-user {
   background-color: #FF5733; /* Different color for other users */
 }
+
+.adsense-container {
+  margin-top: 20px;
+  text-align: center;
+}

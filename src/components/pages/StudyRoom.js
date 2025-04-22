@@ -45,50 +45,13 @@ const StudyRoom = ({ currentUserEmail }) => {
     };
   }, [currentUserEmail]);
 
-  // Handle key presses to move the character
-  const handleKeyDown = (event) => {
-    setPosition((prevPosition) => {
-      const newPosition = { ...prevPosition };
-      const step = 10; // Distance the character moves with each key press
-
-      switch (event.key) {
-        case 'ArrowUp':
-          newPosition.y = Math.max(prevPosition.y - step, 0); // Prevent moving out of bounds
-          break;
-        case 'ArrowDown':
-          newPosition.y = Math.min(prevPosition.y + step, 90); // Prevent moving out of bounds
-          break;
-        case 'ArrowLeft':
-          newPosition.x = Math.max(prevPosition.x - step, 0); // Prevent moving out of bounds
-          break;
-        case 'ArrowRight':
-          newPosition.x = Math.min(prevPosition.x + step, 90); // Prevent moving out of bounds
-          break;
-        default:
-          break;
-      }
-
-      // Send the updated position to the WebSocket server
-      if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-        ws.current.send(
-          JSON.stringify({
-            type: 'updatePosition',
-            email: currentUserEmail,
-            position: newPosition,
-          })
-        );
-      }
-
-      return newPosition;
-    });
-  };
-
-  // Add event listener for key presses
+  // Add AdSense initialization
   useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (e) {
+      console.error('AdSense error:', e);
+    }
   }, []);
 
   return (
@@ -115,6 +78,17 @@ const StudyRoom = ({ currentUserEmail }) => {
           {user.email}
         </div>
       ))}
+
+      {/* AdSense Ad Unit */}
+      <div className="adsense-container">
+        <ins
+          className="adsbygoogle"
+          style={{ display: 'block' }}
+          data-ad-client="ca-pub-2470775733308737"
+          data-ad-slot="1234567890" // Replace with your AdSense ad slot ID
+          data-ad-format="auto"
+        ></ins>
+      </div>
     </div>
   );
 };
