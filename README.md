@@ -4,27 +4,34 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## TODO
 https://ming33333.github.io/quirkle/
-- make side bar on appear if clicked, default appear (this is on on lyf or desktip view)
-- star questions and then only get starred questions
-- add in firebase (added must add more data and organize data accessing)
-- fix routing
-- profile, add friends
-- documents/users showing up as nonexistent
+~~ make side bar on appear if clicked, default appear (this is on on lyf or desktip view)~~
+
+~~ add in firebase (added must add more data and organize data accessing)~~
+
+~~ documents/users showing up as nonexistent~~
+
+
+~~fix data access~~
+~~- - option to add more quizzes~~
+~~ change quiz based on selection ~~
+~~have previous and nav buttons adjust to side bar size~~
+~~have button to click to change side bar size~~
+
+
+lower priority
+------------- - hide login fire base temp site https://firebase.google.com/docs/auth/web/google-signin#expandable-4
+- - use the context folder
+- - move login feature into utils 
+~~add logging of when friend request sent and accepted
 - should move users creation in login section
 - update so user is made in DB at login
 - dont override request just update them
 - seperate friendcollection system from user search
 - deny friend feature
+- fix routing
+- profile, add friends
+- star questions and then only get starred questions
 
-- add logging of when friend request sent and accepted
-~~fix data access~~
-- -  option to add more quizzes
-- - change quiz based on selection
-- - have previous and nav buttons adjust to side bar size
-- - have button to click to change side bar size
-- - hide login fire base temp site https://firebase.google.com/docs/auth/web/google-signin#expandable-4
-- - use the context folder
-- - move login feature into utils 
 
 ## Firebase
 can deploy rules with this line: firebase deploy --only firestore:rules
