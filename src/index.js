@@ -15,7 +15,6 @@ const addAdSenseScript = () => {
 
 // Call the function to add the AdSense script
 addAdSenseScript();
-
 ReactDOM.render(
   <React.StrictMode>
     <App />
