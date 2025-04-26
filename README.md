@@ -17,6 +17,15 @@ https://ming33333.github.io/quirkle/
 ~~have previous and nav buttons adjust to side bar size~~
 ~~have button to click to change side bar size~~
 
+| Date               | Action                                          |
+|--------------------|-------------------------------------------------|
+| Apr 26, 2025 (Monday) | - [ ] Feature: Add more questions to quiz or take quiz |
+| Apr 27, 2025 (Tuesday) | - [ ] Add point system                                |
+| Apr 28, 2025 (Wednesday) | - [ ] Add buying system                               |
+| Apr 29, 2025 (Thursday) | - [ ] Show bought items on screen                     |
+| Apr 30, 2025 (Friday)   | - [ ] Troubleshoot displayed bought items             |
+| May 1, 2025 (Saturday)  | - [ ] Add Google Ads                                  |
+| May 2, 2025 (Sunday)    | - [ ] Fix up site to look less sketchy                |
 
 lower priority
 ------------- - hide login fire base temp site https://firebase.google.com/docs/auth/web/google-signin#expandable-4
