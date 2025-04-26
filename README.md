@@ -19,16 +19,18 @@ https://ming33333.github.io/quirkle/
 
 | Date               | Action                                          |
 |--------------------|-------------------------------------------------|
-| Apr 26, 2025 (Monday) | - [ ] Feature: Add more questions to quiz or take quiz |
-| Apr 27, 2025 (Tuesday) | - [ ] Add point system                                |
-| Apr 28, 2025 (Wednesday) | - [ ] Add buying system                               |
-| Apr 29, 2025 (Thursday) | - [ ] Show bought items on screen                     |
-| Apr 30, 2025 (Friday)   | - [ ] Troubleshoot displayed bought items             |
-| May 1, 2025 (Saturday)  | - [ ] Add Google Ads                                  |
-| May 2, 2025 (Sunday)    | - [ ] Fix up site to look less sketchy                |
+| Apr 26, 2025 (Sat) | - [ ] Feature: Add more questions to quiz or take quiz |
+| Apr 27, 2025 (Sun) | - [ ] Add point system                                |
+| Apr 28, 2025 (Mon) | - [ ] Add buying system                               |
+| Apr 29, 2025 (Tues) | - [ ] Show bought items on screen                     |
+| Apr 30, 2025 (Wednes)   | - [ ] Troubleshoot displayed bought items             |
+| May 3, 2025 (Thurs)    | - [ ] Change DNS                               |
+| May 1, 2025 (Fri)  | - [ ] Add Google Ads                                  |
+| May 2, 2025 (Sat)    | - [ ] Fix up site to look less sketchy                |
 
 lower priority
-------------- - hide login fire base temp site https://firebase.google.com/docs/auth/web/google-signin#expandable-4
+
+- - hide login fire base temp site https://firebase.google.com/docs/auth/web/google-signin#expandable-4
 - - use the context folder
 - - move login feature into utils 
 ~~add logging of when friend request sent and accepted
@@ -39,7 +41,8 @@ lower priority
 - deny friend feature
 - fix routing
 - profile, add friends
-- star questions and then only get starred questions
+- star questions and then only get starred questions 
+- better system for adding questions
 
 
 ## Firebase

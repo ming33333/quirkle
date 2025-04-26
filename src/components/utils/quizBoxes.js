@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const QuizBoxes = ({ quizzes, setSelectedQuiz }) => {
+const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle }) => {
   const navigate = useNavigate(); // Hook to navigate to different routes
+  const [clickedQuiz, setClickedQuiz] = useState(null); // Track which quiz box is clicked
 
   return (
     <div className="quiz-boxes-container">
@@ -11,10 +12,38 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz }) => {
         <div
           key={index}
           className="quiz-box"
-          onClick={() => setSelectedQuiz(quizzes[key]["questions"])} // Update the selected quiz
-          style={{ cursor: 'pointer' }} // Add a pointer cursor to indicate it's clickable
+          onClick={() => setClickedQuiz(clickedQuiz === key ? null : key)} // Toggle the clicked quiz
+          style={{ position: 'relative', cursor: 'pointer' }} // Add relative positioning for options
         >
           <h3>{key}</h3> {/* Display the key (quiz name) in each quiz box */}
+
+          {/* Show options when the quiz box is clicked */}
+          {clickedQuiz === key && (
+            <div className="click-options">
+              <button
+                onClick={() => {
+                  setSelectedQuiz(quizzes[key]["questions"]); // Set the selected quiz
+                  setSelectedTitle(key); // Set the selected title
+                }}
+                className="click-button"
+              >
+                Take Quiz
+              </button>
+              <button
+                onClick={() =>
+                  navigate('/add-questions', {
+                    state: {
+                      title: key, // Pass the quiz title
+                      questions: quizzes[key]["questions"], // Pass the quiz questions
+                    },
+                  })
+                } // Navigate to Add Questions with state
+                className="click-button"
+              >
+                Add Questions
+              </button>
+            </div>
+          )}
         </div>
       ))}
 

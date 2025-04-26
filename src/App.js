@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './components/utils/firebase/firebaseAuthentication'; // Import the auth object
 import Header from './components/Header';
@@ -17,7 +18,17 @@ function App() {
   const [user, setUser] = useState(null); // Store the logged-in user
   const [loading, setLoading] = useState(true); // Track whether the app is checking the auth state
   const [selectedQuiz, setSelectedQuiz] = useState(null); // Track the selected quiz
+  const [selectedTitle, setSelectedTitle] = useState(null); // Track the selected quiz title
+  // const location = useLocation(); // Hook to access the current location
+  // const initialData = location.state || null; // Retrieve initialData from the state
 
+  // const quizData = {
+  //   title: 'Sample Quiz',
+  //   questions: [
+  //     { question: 'What is React?', answer: 'A JavaScript library for building user interfaces.' },
+  //     { question: 'What is JSX?', answer: 'A syntax extension for JavaScript.' },
+  //   ],
+  // };
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser); // Set the logged-in user
@@ -45,11 +56,11 @@ function App() {
           {/* Protected Routes */}
           <Route
             path="/home"
-            element={user ? <MainContent email={user.email} selectedQuiz={selectedQuiz} setSelectedQuiz={setSelectedQuiz} /> : <Navigate to="/login" />}
+            element={user ? <MainContent email={user.email} selectedQuiz={selectedQuiz} setSelectedQuiz={setSelectedQuiz} selectedTitle={selectedTitle} setSelectedTitle={setSelectedTitle}  /> : <Navigate to="/login" />}
           />
           <Route
             path="/add-questions"
-            element={user ? <AddQuestions email={user.email} /> : <Navigate to="/login" />}
+            element={user ? <AddQuestions email={user.email}/> : <Navigate to="/login" />}
           />
           <Route
             path="/study-room"

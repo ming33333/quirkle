@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { collection, addDoc, updateDoc, doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, getDoc, setDoc, doc } from 'firebase/firestore';
+import { useLocation } from 'react-router-dom';
 import { db } from '../utils/firebase/firebaseDB';
 import { useNavigate } from 'react-router-dom';
 
-
 const AddQuiz = ({ email }) => {
+
+  const location = useLocation();
+  const initialData = location.state || {}; // Retrieve initialData from the state
+  console.log(`initialData`, initialData);
   const navigate = useNavigate(); // Hook to navigate to different routes
-  const [title, setTitle] = useState('');
-  const [questions, setQuestions] = useState([{ question: '', answer: '' }]);
+  const [title, setTitle] = useState(initialData?.title || ''); // Prefill title if provided
+  const [questions, setQuestions] = useState(initialData?.questions || [{ question: '', answer: '' }]); // Prefill questions if provided
 
   const handleInputChange = (index, field, value) => {
     const updatedQuestions = [...questions];
@@ -18,38 +22,43 @@ const AddQuiz = ({ email }) => {
   const handleAddQuestion = () => {
     setQuestions([...questions, { question: '', answer: '' }]);
   };
-  console.log(`in add quiz current user email ${email}`)
+
+  const handleRemoveQuestion = (index) => {
+    const updatedQuestions = questions.filter((_, i) => i !== index); // Remove the question at the specified index
+    setQuestions(updatedQuestions);
+  };
+
   const handleSubmit = async () => {
     try {
       const docRef = doc(db, 'users', email);
-      // Reference the 'questionsCollection' subcollection
+      // Reference the 'quizCollection' subcollection
       const subcollectionRef = collection(docRef, 'quizCollection');
-      // Check if the document exists
+
+      // Check if the user document exists
       const docSnap = await getDoc(docRef);
       if (!docSnap.exists()) {
-        //If User (document) does not exist, create it
         console.log('User document does not exist. Creating a new user document...');
-        await setDoc(docRef,{})
-        // If the document does not exist, create it
-        console.log('Question document does not exist. Creating a new document...');
-        await setDoc(doc(subcollectionRef, title), {
-          title: title,
-          questions: questions
-        });
+        await setDoc(docRef, {}); // Create the user document if it doesn't exist
       }
-      const response = await setDoc(doc(subcollectionRef, title), {
-        questions: questions
+
+      // Add or update the quiz document in the 'quizCollection' subcollection
+      await setDoc(doc(subcollectionRef, title), {
+        title: title,
+        questions: questions,
       });
+
+      console.log('Quiz added/updated successfully!');
     } catch (error) {
-      console.error('Error adding field:', error);
+      console.error('Error adding/updating quiz:', error);
     }
+
     navigate('/home'); // Redirect to the main page after submission
   };
 
   return (
     <div className="main-content">
       <div className="add-quiz-container">
-        <h2>Add New Quiz</h2>
+        <h2>{initialData ? 'Edit Quiz' : 'Add New Quiz'}</h2>
         <input
           type="text"
           placeholder="Quiz Title"
@@ -73,13 +82,16 @@ const AddQuiz = ({ email }) => {
               onChange={(e) => handleInputChange(index, 'answer', e.target.value)}
               className="quiz-input"
             />
+            <button onClick={() => handleRemoveQuestion(index)} className="remove-button">
+              Remove
+            </button>
           </div>
         ))}
         <button onClick={handleAddQuestion} className="quiz-button add-question-button">
           Add Another Question
         </button>
         <button onClick={handleSubmit} className="quiz-button submit-button">
-          Submit Quiz
+          {initialData ? 'Update Quiz' : 'Submit Quiz'}
         </button>
       </div>
     </div>

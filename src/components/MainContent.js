@@ -4,7 +4,7 @@ import QuizBoxes from './utils/quizBoxes';
 import QuizView from './pages/quizView';
 import { collection, getDocs, doc } from 'firebase/firestore';
 
-const MainContent = ({ email, selectedQuiz, setSelectedQuiz }) => {
+const MainContent = ({ email, selectedQuiz, setSelectedQuiz, selectedTitle,setSelectedTitle }) => {
   const [quizzes, setQuizzes] = useState([]);
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -59,16 +59,17 @@ const MainContent = ({ email, selectedQuiz, setSelectedQuiz }) => {
   if (!selectedQuiz) {
     return (
       <div className="main-content">
-        <QuizBoxes quizzes={quizzes} setSelectedQuiz={setSelectedQuiz} />
+        <QuizBoxes quizzes={quizzes} setSelectedQuiz={setSelectedQuiz} setSelectedTitle={setSelectedTitle}/>
       </div>
     );
   }
 
-  // console.log('Selected Quiz:', JSON.stringify(selectedQuiz)); //[{"answer":"test","question":"tes"},{"question":"test","answer":"test"}]
-  const currentQuestion = selectedQuiz[currentQuestionIndex];
+  console.log(`in main content selected title: ${selectedTitle}`);
+
   return (
     <QuizView
       selectedQuiz={selectedQuiz}
+      selectedTitle={selectedTitle}
       currentQuestionIndex={currentQuestionIndex}
       setSelectedQuiz={setSelectedQuiz}
       handlePrevQuestion={handlePrevQuestion}
