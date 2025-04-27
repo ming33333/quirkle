@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
-import { db } from '../utils/firebase/firebaseDB';
+import { db } from '../firebase/firebaseDB';
 
 const AcceptFriends = ({ currentUserEmail }) => {
   const [friends, setFriends] = useState([]); // Store current friends

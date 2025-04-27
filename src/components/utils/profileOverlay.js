@@ -1,5 +1,7 @@
 import React from 'react';
 import UserSearch from '../pages/userSearch'; // Import the UserSearch component
+import ShowPoints from './showPoints'; // Import the ShowPoints component
+
 
 const ProfileOverlay = ({ isOpen, onClose, userInfo }) => {
   if (!isOpen) return null; // Don't render anything if the overlay is not open
@@ -15,7 +17,7 @@ const ProfileOverlay = ({ isOpen, onClose, userInfo }) => {
           <p><strong>Email:</strong> {userInfo.email}</p>
         </div>
         <hr />
-        <h3>Search for Users</h3>
+        <ShowPoints email={userInfo.email}/> {/* Add the UserSearch component */}
         <UserSearch email={userInfo.email}/> {/* Add the UserSearch component */}
       </div>
     </div>

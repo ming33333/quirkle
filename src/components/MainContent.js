@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { db } from './utils/firebase/firebaseDB';
+import { db } from './firebase/firebaseDB';
 import QuizBoxes from './utils/quizBoxes';
 import QuizView from './pages/quizView';
 import { collection, getDocs, doc } from 'firebase/firestore';
@@ -76,6 +76,7 @@ const MainContent = ({ email, selectedQuiz, setSelectedQuiz, selectedTitle,setSe
       handleNextQuestion={handleNextQuestion}
       toggleAnswerVisibility={toggleAnswerVisibility}
       showAnswer={showAnswer}
+      email={email}
     />
   );
 };

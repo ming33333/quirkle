@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { collection, getDoc, setDoc, doc } from 'firebase/firestore';
 import { useLocation } from 'react-router-dom';
-import { db } from '../utils/firebase/firebaseDB';
+import { db } from '../firebase/firebaseDB';
 import { useNavigate } from 'react-router-dom';
 
 const AddQuiz = ({ email }) => {

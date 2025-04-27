@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './components/utils/firebase/firebaseAuthentication'; // Import the auth object
+import { auth } from './components/firebase/firebaseAuthentication.js'; // Import the auth object
 import Header from './components/Header';
 import Footer from './components/Footer';
 import MainContent from './components/MainContent';

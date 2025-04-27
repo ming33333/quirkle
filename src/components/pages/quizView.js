@@ -1,3 +1,7 @@
+import React, { useEffect } from 'react';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../firebase/firebaseDB'; // Adjust the path if needed
+
 const QuizView = ({
   selectedQuiz,
   selectedTitle,
@@ -7,10 +11,78 @@ const QuizView = ({
   handleNextQuestion,
   toggleAnswerVisibility,
   showAnswer,
+  email, // Pass the user's email as a prop
 }) => {
   const currentQuestion = selectedQuiz[currentQuestionIndex];
-  console.log(`selectedQuiz: ${JSON.stringify(selectedQuiz)} and title: ${selectedTitle}`);
 
+  const handleAwardPoint = async () => {
+    console.log('Awarding point...');
+    console.log('email', email);
+    try {
+      const pointsDocRef = doc(db, 'users', email, 'pointSystem', 'points');
+      const pointsDoc = await getDoc(pointsDocRef);
+      console.log('pointsDoc', pointsDoc);
+      if (pointsDoc.exists()) {
+        const currentPoints = pointsDoc.data().value || 0;
+        await updateDoc(pointsDocRef, { value: currentPoints + 1 }); // Increment points by 1
+      } else {
+        console.log('Points document does not exist. Creating it with a value of 1...');
+        await setDoc(pointsDocRef, { value: 1 }); // Create the document and set its value to 1
+      }
+    } catch (err) {
+      console.error('Error updating points:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (currentQuestionIndex === selectedQuiz.length) {
+      handleAwardPoint(); // Award the point when the user finishes the quiz
+    }
+  }, [currentQuestionIndex, selectedQuiz.length]);
+
+  if (currentQuestionIndex === selectedQuiz.length - 1) {
+    handleAwardPoint(); // Award the point when the user finishes the quiz
+
+    return (
+      <div className="main-content">
+        <h2>Congrats, you are done!</h2>
+        <p>You have completed the quiz and earned 1 point!</p>
+        <div className="question-navigation">
+        <button onClick={handlePrevQuestion} disabled={currentQuestionIndex === 0} className="question-button">
+          &lt; Prev
+        </button>
+        <div className="question">
+          <strong>
+            Q{currentQuestionIndex + 1}/{selectedQuiz.length}:
+          </strong>{' '}
+          {currentQuestion.question}
+          <br />
+          <button onClick={toggleAnswerVisibility} className="question-button answer-toggle">
+            {showAnswer ? 'Hide Answer' : 'Show Answer'}
+          </button>
+          {showAnswer && (
+            <div>
+              <strong>A:</strong> {currentQuestion.answer}
+            </div>
+          )}
+        </div>
+        <button
+          onClick={handleNextQuestion}
+          disabled={currentQuestionIndex === selectedQuiz.length - 1}
+          className="question-button"
+        >
+          Next &gt;
+        </button>
+      </div>
+        <button onClick={() => setSelectedQuiz(null)} className="question-button">
+          Back to Quiz List
+        </button>
+      </div>
+    );
+  }
+
+  console.log(`currentQuestionIndex`, currentQuestionIndex);
+  console.log(`selected quizlength`, selectedQuiz.length-1);
   return (
     <div className="main-content">
       <button onClick={() => setSelectedQuiz(null)} style={{ marginBottom: '1em' }} className="question-button">
