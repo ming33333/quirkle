@@ -11,6 +11,7 @@ import Login from './components/pages/login';
 import StudyRoom from './components/pages/StudyRoom.js';
 import UserSearch from './components/pages/userSearch'; // Import the UserSearch component
 import AcceptFriends from './components/pages/acceptFriends'; // Import the UserSearch component
+import Store from './components/pages/store'
 
 import './styles/App.css';
 
@@ -73,6 +74,10 @@ function App() {
           <Route
               path="/accept-friends"
               element={user ? <AcceptFriends currentUserEmail={user.email} /> : <Navigate to="/login" />}
+            />
+          <Route
+              path="/store"
+              element={user ? <Store email={user.email} /> : <Navigate to="/login" />}
             />
         </Routes>
 
