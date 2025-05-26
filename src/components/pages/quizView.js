@@ -16,12 +16,10 @@ const QuizView = ({
   const currentQuestion = selectedQuiz[currentQuestionIndex];
 
   const handleAwardPoint = async () => {
-    console.log('Awarding point...');
-    console.log('email', email);
     try {
       const pointsDocRef = doc(db, 'users', email, 'pointSystem', 'points');
       const pointsDoc = await getDoc(pointsDocRef);
-      console.log('pointsDoc', pointsDoc);
+
       if (pointsDoc.exists()) {
         const currentPoints = pointsDoc.data().value || 0;
         await updateDoc(pointsDocRef, { value: currentPoints + 1 }); // Increment points by 1
@@ -40,40 +38,11 @@ const QuizView = ({
     }
   }, [currentQuestionIndex, selectedQuiz.length]);
 
-  if (currentQuestionIndex === selectedQuiz.length - 1) {
-    handleAwardPoint(); // Award the point when the user finishes the quiz
-
+  if (currentQuestionIndex === selectedQuiz.length) {
     return (
-      <div className="main-content">
+      <div className="quiz-container">
         <h2>Congrats, you are done!</h2>
         <p>You have completed the quiz and earned 1 point!</p>
-        <div className="question-navigation">
-        <button onClick={handlePrevQuestion} disabled={currentQuestionIndex === 0} className="question-button">
-          &lt; Prev
-        </button>
-        <div className="question">
-          <strong>
-            Q{currentQuestionIndex + 1}/{selectedQuiz.length}:
-          </strong>{' '}
-          {currentQuestion.question}
-          <br />
-          <button onClick={toggleAnswerVisibility} className="question-button answer-toggle">
-            {showAnswer ? 'Hide Answer' : 'Show Answer'}
-          </button>
-          {showAnswer && (
-            <div>
-              <strong>A:</strong> {currentQuestion.answer}
-            </div>
-          )}
-        </div>
-        <button
-          onClick={handleNextQuestion}
-          disabled={currentQuestionIndex === selectedQuiz.length - 1}
-          className="question-button"
-        >
-          Next &gt;
-        </button>
-      </div>
         <button onClick={() => setSelectedQuiz(null)} className="question-button">
           Back to Quiz List
         </button>
@@ -81,19 +50,21 @@ const QuizView = ({
     );
   }
 
-  console.log(`currentQuestionIndex`, currentQuestionIndex);
-  console.log(`selected quizlength`, selectedQuiz.length-1);
   return (
-    <div className="main-content">
+    <div className="quiz-container">
       <button onClick={() => setSelectedQuiz(null)} style={{ marginBottom: '1em' }} className="question-button">
         Back to Quiz List
       </button>
       <h2>{selectedTitle}</h2> {/* Display the selected title */}
       <div className="question-navigation">
-        <button onClick={handlePrevQuestion} disabled={currentQuestionIndex === 0} className="question-button">
+        <button
+          onClick={handlePrevQuestion}
+          disabled={currentQuestionIndex === 0}
+          className="question-button navigation-button"
+        >
           &lt; Prev
         </button>
-        <div className="question">
+        <div className="quiz-box">
           <strong>
             Q{currentQuestionIndex + 1}/{selectedQuiz.length}:
           </strong>{' '}
@@ -111,7 +82,7 @@ const QuizView = ({
         <button
           onClick={handleNextQuestion}
           disabled={currentQuestionIndex === selectedQuiz.length - 1}
-          className="question-button"
+          className="question-button navigation-button"
         >
           Next &gt;
         </button>

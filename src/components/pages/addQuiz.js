@@ -12,6 +12,7 @@ const AddQuiz = ({ email }) => {
   const navigate = useNavigate(); // Hook to navigate to different routes
   const [title, setTitle] = useState(initialData?.title || ''); // Prefill title if provided
   const [questions, setQuestions] = useState(initialData?.questions || [{ question: '', answer: '' }]); // Prefill questions if provided
+  const [bulkInput, setBulkInput] = useState(''); // State for bulk input
 
   const handleInputChange = (index, field, value) => {
     const updatedQuestions = [...questions];
@@ -54,6 +55,16 @@ const AddQuiz = ({ email }) => {
 
     navigate('/home'); // Redirect to the main page after submission
   };
+  const handleBulkAdd = () => {
+    const newQuestions = bulkInput
+      .split('\n') // Split by new lines
+      .map((line) => line.split('\t')) // Split each line by tabs (for two columns)
+      .filter((cols) => cols.length === 2) // Ensure each line has exactly 2 columns
+      .map(([question, answer]) => ({ question: question.trim(), answer: answer.trim() })); // Map to question/answer objects
+
+    setQuestions([...questions, ...newQuestions]); // Add new questions to the existing list
+    setBulkInput(''); // Clear the bulk input field
+  };
 
   return (
     <div className="main-content">
@@ -87,6 +98,16 @@ const AddQuiz = ({ email }) => {
             </button>
           </div>
         ))}
+
+        <textarea
+          placeholder="Paste questions and answers here (tab-separated, one per line)"
+          value={bulkInput}
+          onChange={(e) => setBulkInput(e.target.value)}
+          className="bulk-input"
+        />
+        <button onClick={handleBulkAdd} className="quiz-button bulk-add-button">
+          Add Bulk Questions
+        </button>
         <button onClick={handleAddQuestion} className="quiz-button add-question-button">
           Add Another Question
         </button>

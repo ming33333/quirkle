@@ -3,6 +3,7 @@ import { db } from './firebase/firebaseDB';
 import QuizBoxes from './utils/quizBoxes';
 import QuizView from './pages/quizView';
 import { collection, getDocs, doc } from 'firebase/firestore';
+import AddQuestions from '../components/pages/addQuiz';
 
 const MainContent = ({ email, selectedQuiz, setSelectedQuiz, selectedTitle,setSelectedTitle }) => {
   const [quizzes, setQuizzes] = useState([]);
@@ -67,7 +68,7 @@ const MainContent = ({ email, selectedQuiz, setSelectedQuiz, selectedTitle,setSe
   console.log(`in main content selected title: ${selectedTitle}`);
 
   return (
-    <QuizView
+    <><QuizView
       selectedQuiz={selectedQuiz}
       selectedTitle={selectedTitle}
       currentQuestionIndex={currentQuestionIndex}
@@ -76,8 +77,7 @@ const MainContent = ({ email, selectedQuiz, setSelectedQuiz, selectedTitle,setSe
       handleNextQuestion={handleNextQuestion}
       toggleAnswerVisibility={toggleAnswerVisibility}
       showAnswer={showAnswer}
-      email={email}
-    />
+      email={email} /><AddQuestions /></>
   );
 };
 

@@ -22,7 +22,7 @@ https://ming33333.github.io/quirkle/
 |--------------------|-------------------------------------------------|
 | Apr 26, 2025 (Sat) | ✅ Feature: Add more questions to quiz or take quiz |
 | Apr 27, 2025 (Sun) | ✅ Add point system                                |
-| Apr 28, 2025 (Mon) |  ✅Add buying system and Show bought items on screen                              |
+| Apr 28, 2025 (Mon) |  ✅Add buying system and Show bought items on screen    |
 | Apr 30, 2025 (Wednes) | Troubleshoot displayed bought items             |
 | May 3, 2025 (Thurs)    | Change DNS                               |
 | May 1, 2025 (Fri)  |  Add Google Ads                                  |

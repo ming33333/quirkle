@@ -399,3 +399,35 @@ code {
 .click-button:hover {
   background-color: #45a049;
 }
+
+.navigation-button {
+  position: relative;
+  width: 60px; /* Increase the width for a larger hitbox */
+  height: 60px; /* Increase the height for a larger hitbox */
+  border: 2px solid white; /* Add a white circular border */
+  border-radius: 50%; /* Make the button circular */
+  background-color: #4caf50; /* Green background */
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.navigation-button:hover {
+  background-color: #45a049; /* Slightly darker green on hover */
+  transform: scale(1.1); /* Slightly enlarge the button on hover */
+}
+
+.navigation-button:disabled {
+  background-color: #ccc; /* Gray background for disabled state */
+  color: #666; /* Gray text for disabled state */
+  cursor: not-allowed;
+}
+
+.navigation-button:disabled:hover {
+  transform: none; /* No hover effect for disabled buttons */
+}

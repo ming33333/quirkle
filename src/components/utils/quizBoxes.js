@@ -13,7 +13,7 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle }) => {
           key={index}
           className="quiz-box"
           onClick={() => setClickedQuiz(clickedQuiz === key ? null : key)} // Toggle the clicked quiz
-          style={{ position: 'relative', cursor: 'pointer' }} // Add relative positioning for options
+          style={{ position: 'relative', cursor: 'pointer' }}
         >
           <h3>{key}</h3> {/* Display the key (quiz name) in each quiz box */}
 
@@ -37,7 +37,7 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle }) => {
                       questions: quizzes[key]["questions"], // Pass the quiz questions
                     },
                   })
-                } // Navigate to Add Questions with state
+                }
                 className="click-button"
               >
                 Add Questions
