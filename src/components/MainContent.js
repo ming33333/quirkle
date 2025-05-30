@@ -68,16 +68,19 @@ const MainContent = ({ email, selectedQuiz, setSelectedQuiz, selectedTitle,setSe
   console.log(`in main content selected title: ${selectedTitle}`);
 
   return (
-    <><QuizView
-      selectedQuiz={selectedQuiz}
-      selectedTitle={selectedTitle}
-      currentQuestionIndex={currentQuestionIndex}
-      setSelectedQuiz={setSelectedQuiz}
-      handlePrevQuestion={handlePrevQuestion}
-      handleNextQuestion={handleNextQuestion}
-      toggleAnswerVisibility={toggleAnswerVisibility}
-      showAnswer={showAnswer}
-      email={email} /><AddQuestions /></>
+    <div className ="main-content">
+      <QuizView
+        selectedQuiz={selectedQuiz}
+        selectedTitle={selectedTitle}
+        currentQuestionIndex={currentQuestionIndex}
+        setSelectedQuiz={setSelectedQuiz}
+        handlePrevQuestion={handlePrevQuestion}
+        handleNextQuestion={handleNextQuestion}
+        toggleAnswerVisibility={toggleAnswerVisibility}
+        showAnswer={showAnswer}
+        email={email} />
+      <AddQuestions />
+    </div>
   );
 };
 
