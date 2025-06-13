@@ -15,7 +15,9 @@ body {
   background-color: var(--primary-color);
   color: var(--tertiary-color);
   text-align: center;
-  padding: 3em;
+  padding: 2em;
+  position: relative; /* Allow child elements to position themselves relative to the header */
+
 }
 .header-content {
   display: flex;
@@ -35,9 +37,18 @@ body {
 }
 
 .home-icon {
-  text-decoration: none;
-  color: var(--tertiary-color); /* Use your existing color variable */
-  font-size: 1.5em;
+  position: absolute; /* Position the icon relative to the header */
+  left: 50%; /* Center horizontally */
+  transform: translate(-50%, -50%); /* Adjust for the icon's dimensions */
+  display: flex;
+  justify-content: center; /* Center the icon horizontally */
+  align-items: center; /* Center the icon vertically */
+  width: 50px; /* Set a fixed width for the icon container */
+  height: 50px; /* Set a fixed height for the icon container */
+  border: 2px solid #ccc; /* Optional: Add a border around the icon */
+  border-radius: 50%; /* Optional: Make the icon container circular */
+  background-color: #f9f9f9; /* Optional: Add a background color */
+  text-align: center;
 }
 
 .home-icon:hover {
@@ -152,7 +163,7 @@ button:disabled {
   display: flex;
   flex-wrap: wrap; /* Allow boxes to wrap to the next line if needed */
   gap: 1.5em; /* Add space between boxes */
-  justify-content: center; /* Center the boxes horizontally */
+  justify-content: flex-start	; /* Center the boxes horizontally */
   padding: 1em;
 }
 

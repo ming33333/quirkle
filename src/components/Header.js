@@ -9,6 +9,7 @@ import  ProfileOverlay  from './utils/profileOverlay'; // Import the ProfileOver
 const Header = ({ user }) => {
   const [isOverlayOpen, setIsOverlayOpen] = useState(false); // State to control the overlay visibility
   const navigate = useNavigate(); // Hook to navigate to different routes
+
   const handleLogout = async () => {
     const auth = getAuth();
     try {
@@ -24,6 +25,11 @@ const Header = ({ user }) => {
     <header className="header">
       <div className="header-content">
         <h1 className="header-title">Quirkle</h1>
+        <nav>
+          <a href="/quirkle/#/home" className="home-icon">
+            <FontAwesomeIcon icon={faHome} size="lg" /> 
+          </a>
+        </nav>
         {user && (
           <div className="header-user">
             <p
@@ -47,11 +53,6 @@ const Header = ({ user }) => {
           email: user?.email || 'No Email',
         }}
       />
-      <nav>
-        <a href="/quirkle/#/home" className="home-icon">
-          <FontAwesomeIcon icon={faHome} size="lg" /> 
-        </a>
-      </nav>
     </header>
   );
 };
