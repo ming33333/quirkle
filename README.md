@@ -2,6 +2,12 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Updating quirkle.io
+
+- pushing to main automatically update githubpages branch, and causes it to crash
+- npm run deploy?
+- 
+
 ## TODO
 https://ming33333.github.io/quirkle/
 ~~ make side bar on appear if clicked, default appear (this is on on lyf or desktip view)~~
