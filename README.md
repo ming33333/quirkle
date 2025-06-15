@@ -5,7 +5,9 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 ## Updating quirkle.io
 
 - pushing to main automatically update githubpages branch, and causes it to crash
-- npm run deploy?
+- change homepage key-value to the target page ("https://ming33333.github.io/quirkle/" or https://quirkle.io/)
+- npm run build
+- npm run deploy
 - 
 
 ## TODO
