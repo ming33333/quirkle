@@ -229,9 +229,61 @@ h2 {
 }
 
 .question-container {
-  display: flex; /* Use flexbox to align inputs horizontally */
-  gap: 1em; /* Add space between the inputs */
-  margin-bottom: 1em;
+  display: flex; /* Use Flexbox for layout */
+  align-items: center; /* Align items to the top */
+  gap: 10px; /* Add spacing between the fields and the options button */
+  margin-bottom: 20px; /* Add spacing between questions */
+}
+
+.qa-fields {
+  display: flex; /* Use Flexbox to align question and answer fields horizontally */
+  flex: 1; /* Allow the fields to take up the remaining space */
+  gap: 10px; /* Add spacing between the question and answer fields */
+}
+
+.quiz-textarea {
+  flex: 1; /* Make the textareas take up equal space */
+  min-height: 40px; /* Set a minimum height */
+  font-size: 1em; /* Adjust font size */
+  padding: 10px; /* Add padding for better spacing */
+  border: 1px solid #ccc; /* Add a border */
+  border-radius: 4px; /* Add rounded corners */
+  box-sizing: border-box; /* Include padding in width/height calculations */
+  resize: none; /* Prevent manual resizing */
+  overflow: hidden; /* Hide scrollbars */
+}
+
+.options-menu {
+  flex-shrink: 0; /* Prevent the options button from resizing */
+  display: flex;
+  justify-content: center; /* Center the button horizontally */
+  align-items: center; /* Center the button vertically */
+  height: 100%; /* Ensure it takes the full height of the container */
+}
+
+.options-button {
+  background: grey; /* Remove default button styling */
+  border: none;
+  font-size: 1.5em; /* Make the ⋮ icon larger */
+  cursor: pointer;
+  padding: 5px;
+}
+
+.options-dropdown {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+.remove-button {
+  background-color: #f44336; /* Red background for delete button */
+  color: white; /* White text */
+  padding: 5px 10px; /* Add padding for better spacing */
+  border: none; /* Remove border */
+  border-radius: 4px; /* Add rounded corners */
+  cursor: pointer; /* Change cursor to pointer */
 }
 
 .quiz-button {
