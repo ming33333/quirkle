@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase/firebaseDB'; // Adjust the path to your Firestore setup
+import { db } from '../utils/firebase/firebaseDB'; // Adjust the path to your Firestore setup
 
 const ShowItems = ({ email }) => {
   const [purchasedItems, setPurchasedItems] = useState([]); // State to store purchased items

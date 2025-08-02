@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase/firebaseDB'; // Adjust the path if needed
-
+import { db } from '../utils/firebase/firebaseDB'; // Adjust the path if needed
 const QuizView = ({
   selectedQuiz,
   selectedTitle,

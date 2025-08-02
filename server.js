@@ -47,7 +47,6 @@ wss.on('connection', (ws) => {
 
 // Express endpoint to start the WebSocket server
 app.get('/studyroom', (req, res) => {
-  console.log('StudyRoom endpoint hit.');
   res.send('WebSocket server is running.');
 });
 

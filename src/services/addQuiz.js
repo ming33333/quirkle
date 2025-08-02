@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { collection, getDoc, setDoc, doc } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { collection, getDoc, setDoc, doc, deleteDoc } from 'firebase/firestore';
 import { useLocation } from 'react-router-dom';
-import { db } from '../firebase/firebaseDB';
+import { db } from '../utils/firebase/firebaseDB';
 import { useNavigate } from 'react-router-dom';
 
 const AddQuiz = ({ email }) => {
@@ -13,6 +13,15 @@ const AddQuiz = ({ email }) => {
   const [title, setTitle] = useState(initialData?.title || ''); // Prefill title if provided
   const [questions, setQuestions] = useState(initialData?.questions || [{ question: '', answer: '' }]); // Prefill questions if provided
   const [bulkInput, setBulkInput] = useState(''); // State for bulk input
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  useEffect(() => {
+    // Adjust the height of all textareas based on their content
+    const textareas = document.querySelectorAll('.quiz-textarea');
+    textareas.forEach((textarea) => {
+      textarea.style.height = 'auto'; // Reset height
+      textarea.style.height = `${textarea.scrollHeight}px`; // Adjust height to fit content
+    });
+  }, [questions]); // Run whenever questions change
 
   const handleInputChange = (index, field, value) => {
     const updatedQuestions = [...questions];
@@ -27,6 +36,26 @@ const AddQuiz = ({ email }) => {
   const handleRemoveQuestion = (index) => {
     const updatedQuestions = questions.filter((_, i) => i !== index); // Remove the question at the specified index
     setQuestions(updatedQuestions);
+  };
+  const handleDeleteQuiz = async () => {
+    try {
+      const quizRef = doc(db, 'users', email, 'quizCollection', title); // Reference the quiz document
+      await deleteDoc(quizRef); // Delete the quiz document
+      console.log(`Quiz "${title}" deleted successfully!`);
+      setTitle(''); // Clear the title
+      setQuestions([]); // Clear the questions
+      setShowDeletePopup(false); // Hide the popup
+    } catch (err) {
+      console.error('Error deleting quiz:', err);
+    }
+  };
+
+  const confirmDeleteQuiz = () => {
+    setShowDeletePopup(true); // Show the confirmation popup
+  };
+
+  const cancelDeleteQuiz = () => {
+    setShowDeletePopup(false); // Hide the confirmation popup
   };
 
   const handleSubmit = async () => {
@@ -70,6 +99,23 @@ const AddQuiz = ({ email }) => {
     <div className="main-content">
       <div className="add-quiz-container">
         <h2>{initialData ? 'Edit Quiz' : 'Add New Quiz'}</h2>
+        <button onClick={confirmDeleteQuiz} className="delete-quiz-button">
+          Delete Quiz
+        </button>
+        {/* Delete Confirmation Popup */}
+        {showDeletePopup && (
+          <div className="popup-overlay">
+            <div className="popup-content">
+              <h3>Are you sure you want to delete the quiz "{title}"?</h3>
+              <button onClick={handleDeleteQuiz} className="confirm-delete-button">
+                Yes, Delete
+              </button>
+              <button onClick={cancelDeleteQuiz} className="cancel-delete-button">
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
         <input
           type="text"
           placeholder="Quiz Title"
@@ -79,21 +125,38 @@ const AddQuiz = ({ email }) => {
         />
         {questions.map((q, index) => (
           <div key={index} className="question-container">
-            <input
-              type="text"
+            <textarea
               placeholder="Question"
               value={q.question}
               onChange={(e) => handleInputChange(index, 'question', e.target.value)}
-              className="quiz-input"
+              onInput={(e) => {
+                e.target.style.height = 'auto'; // Reset height to calculate new height
+                e.target.style.height = `${e.target.scrollHeight}px`; // Dynamically adjust height
+              }}
+              className="quiz-textarea"
+              style={{
+                overflow: 'hidden',
+                resize: 'none', // Prevent manual resizing
+              }}
             />
-            <input
-              type="text"
+            <textarea
               placeholder="Answer"
               value={q.answer}
               onChange={(e) => handleInputChange(index, 'answer', e.target.value)}
-              className="quiz-input"
+              onInput={(e) => {
+                e.target.style.height = 'auto'; // Reset height to calculate new height
+                e.target.style.height = `${e.target.scrollHeight}px`; // Dynamically adjust height
+              }}
+              className="quiz-textarea"
+              style={{
+                overflow: 'hidden',
+                resize: 'none', // Prevent manual resizing
+              }}
             />
-            <button onClick={() => handleRemoveQuestion(index)} className="remove-button">
+            <button
+              onClick={() => handleRemoveQuestion(index)} // Call the remove function
+              className="remove-button"
+            >
               Remove
             </button>
           </div>

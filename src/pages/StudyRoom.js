@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import './StudyRoom.css';
-import ShowItems from '../utils/showItems'; // Import the ShowItems component
+import ShowItems from '../services/showItems'; // Import the ShowItems component
 
 const StudyRoom = ({ email }) => {
   const [position, setPosition] = useState({ x: 50, y: 50 }); // Current user's position

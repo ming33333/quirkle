@@ -125,9 +125,10 @@ body {
 }
 
 .question-navigation {
-  display: flex;
-  align-items: center;
-  justify-content: center; /* Center the buttons and question */
+  display: flex; /* Use flexbox for layout */
+  justify-content: space-between; /* Space out navigation buttons */
+  align-items: center; /* Align buttons vertically */
+  margin: 20px auto; /* Center the navigation horizontally */
 }
 
 .question-button {
@@ -166,8 +167,18 @@ button:disabled {
   justify-content: flex-start	; /* Center the boxes horizontally */
   padding: 1em;
 }
-
 .quiz-box {
+  width: 75% !important;; /* Make the quiz-box take up 75% of the screen width */
+  padding: 20px; /* Add padding for spacing */
+  font-size: 1.2em; /* Increase font size for better readability */
+  border: 2px solid #ccc; /* Optional: Add a border */
+  border-radius: 8px; /* Optional: Add rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Add shadow for depth */
+  background-color: #3e7d4a; /* Optional: Add background color */
+  margin: 20px auto; /* Center the quiz-box horizontally */
+  text-align: center; /* Center-align the text inside the quiz-box */
+}
+.quiz-option {
   width: 300px;
   height: 250px;
   display: flex;
@@ -410,22 +421,15 @@ code {
 .click-button:hover {
   background-color: #45a049;
 }
-
 .navigation-button {
-  position: relative;
-  width: 60px; /* Increase the width for a larger hitbox */
-  height: 60px; /* Increase the height for a larger hitbox */
-  border: 2px solid white; /* Add a white circular border */
-  border-radius: 50%; /* Make the button circular */
+  padding: 10px 15px; /* Add padding for larger hitboxes */
+  font-size: 1em; /* Adjust font size */
+  border: 2px solid #4caf50; /* Optional: Add a border */
+  border-radius: 4px; /* Optional: Add rounded corners */
   background-color: #4caf50; /* Green background */
-  color: white;
-  font-size: 16px;
-  font-weight: bold;
+  color: white; /* White text */
   cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: transform 0.2s, background-color 0.2s;
+  transition: background-color 0.2s, transform 0.2s;
 }
 
 .navigation-button:hover {
@@ -441,4 +445,75 @@ code {
 
 .navigation-button:disabled:hover {
   transform: none; /* No hover effect for disabled buttons */
+}
+
+.flashcard-animation {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.flashcard {
+  width: 150px;
+  height: 100px;
+  background-color: #4caf50;
+  color: white;
+  font-size: 1.2em;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  animation: bounce 1.5s infinite ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.room {
+  position: relative;
+  width: 500px;
+  height: 500px;
+  margin: 0 auto;
+  background-color: #f4f4f4;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.character {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background-color: #4CAF50;
+  border-radius: 50%;
+  transition: top 0.1s, left 0.1s; /* Smooth movement */
+}
+
+.character.other-user {
+  background-color: #FF5733; /* Different color for other users */
+}
+
+.adsense-container {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.quiz-input {
+  width: 100%; /* Make the input box take up the full width */
+  min-height: 40px; /* Set a minimum height */
+  font-size: 1em; /* Adjust font size */
+  padding: 10px; /* Add padding for better spacing */
+  border: 1px solid #ccc; /* Add a border */
+  border-radius: 4px; /* Add rounded corners */
+  box-sizing: border-box; /* Include padding in width/height calculations */
+  resize: none; /* Prevent manual resizing */
+  overflow: hidden; /* Hide scrollbars */
 }

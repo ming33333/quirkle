@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase/firebaseDB';
+import { db } from '../utils/firebase/firebaseDB';
 
 const UserSearch = ({ email }) => {
   const [searchTerm, setSearchTerm] = useState(''); // Input value for the search

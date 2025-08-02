@@ -5,6 +5,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 ## Updating quirkle.io
 
 - pushing to main automatically update githubpages branch, and causes it to crash
+- need to push changes up first up?
 - change homepage key-value to the target page ("https://ming33333.github.io/quirkle/" or https://quirkle.io/)
 - npm run build
 - npm run deploy
@@ -32,7 +33,7 @@ https://ming33333.github.io/quirkle/
 | Apr 27, 2025 (Sun) | ✅ Add point system                                |
 | Apr 28, 2025 (Mon) |  ✅Add buying system and Show bought items on screen    |
 | Apr 30, 2025 (Wednes) | Troubleshoot displayed bought items             |
-| May 3, 2025 (Thurs)    | Change DNS                               |
+| May 3, 2025 (Thurs)    ✅| Change DNS                               |
 | May 1, 2025 (Fri)  |  Add Google Ads                                  |
 | May 2, 2025 (Sat)    |  Fix up site to look less sketchy                |
 | May 3, 2025 (Sun)    |        Fix point systems so it only 1 point once per day per quiz  and already purchased bug     |

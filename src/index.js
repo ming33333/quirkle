@@ -14,7 +14,7 @@ const addAdSenseScript = () => {
 };
 
 // Call the function to add the AdSense script
-addAdSenseScript();
+// addAdSenseScript();
 
 // Create the root and render the app
 const root = ReactDOM.createRoot(document.getElementById('root')); // Use createRoot

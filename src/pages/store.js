@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase/firebaseDB'; // Adjust the path if needed
+import { db } from '../utils/firebase/firebaseDB'; // Adjust the path if needed
 
 const Store = ({ email }) => {
   const [points, setPoints] = useState(0); // User's current points

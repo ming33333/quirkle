@@ -1,6 +1,6 @@
 import React from 'react';
-import UserSearch from '../pages/userSearch'; // Import the UserSearch component
-import ShowPoints from './showPoints'; // Import the ShowPoints component
+import UserSearch from '../services/userSearch'; // Import the UserSearch component
+import ShowPoints from '../services/showPoints'; // Import the ShowPoints component
 
 
 const ProfileOverlay = ({ isOpen, onClose, userInfo }) => {

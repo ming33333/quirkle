@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { db } from './firebase/firebaseDB';
-import QuizBoxes from './utils/quizBoxes';
-import QuizView from './pages/quizView';
+import { db } from '../utils/firebase/firebaseDB';
+import QuizBoxes from './quizzes';
+import QuizView from './quiz';
 import { collection, getDocs, doc } from 'firebase/firestore';
-import AddQuestions from '../components/pages/addQuiz';
+import AddQuestions from '../services/addQuiz';
 
 const MainContent = ({ email, selectedQuiz, setSelectedQuiz, selectedTitle,setSelectedTitle }) => {
   const [quizzes, setQuizzes] = useState([]);

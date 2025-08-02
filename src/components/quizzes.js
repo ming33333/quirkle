@@ -11,7 +11,7 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle }) => {
       {Object.keys(quizzes).map((key, index) => (
         <div
           key={index}
-          className="quiz-box"
+          className="quiz-option"
           onClick={() => setClickedQuiz(clickedQuiz === key ? null : key)} // Toggle the clicked quiz
           style={{ position: 'relative', cursor: 'pointer' }}
         >

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase/firebaseDB'; // Import your Firestore setup
+import { db } from '../utils/firebase/firebaseDB'; // Import your Firestore setup
 
 const ShowPoints = ({ email }) => {
   const [points, setPoints] = useState(null); // State to store the user's points
