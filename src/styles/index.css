@@ -254,11 +254,8 @@ h2 {
 }
 
 .options-menu {
-  flex-shrink: 0; /* Prevent the options button from resizing */
-  display: flex;
-  justify-content: center; /* Center the button horizontally */
-  align-items: center; /* Center the button vertically */
-  height: 100%; /* Ensure it takes the full height of the container */
+  position: relative; /* Position relative to allow absolute positioning of the dropdown */
+  display: inline-block; /* Keep the options button inline */
 }
 
 .options-button {
@@ -270,12 +267,20 @@ h2 {
 }
 
 .options-dropdown {
-  position: absolute;
+  display: none; /* Initially hide the dropdown */
+  position: absolute; /* Position the dropdown relative to the options button */
+  top: 100%; /* Position it directly below the options button */
+  left: 0; /* Align it to the left of the options button */
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 1000;
+  padding: 5px;
+}
+
+.options-dropdown .remove-button:hover {
+  background-color: #d32f2f; /* Darker red on hover */
 }
 .remove-button {
   background-color: #f44336; /* Red background for delete button */

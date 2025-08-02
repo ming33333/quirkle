@@ -125,6 +125,25 @@ const AddQuiz = ({ email }) => {
         />
         {questions.map((q, index) => (
           <div key={index} className="question-container">
+            <div className="options-menu">
+              <button
+                className="options-button"
+                onClick={() => {
+                  const menu = document.getElementById(`menu-${index}`);
+                  menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+                }}
+              >
+                ⋮
+              </button>
+              <div id={`menu-${index}`} className="options-dropdown">
+                <button
+                  onClick={() => handleRemoveQuestion(index)} // Call the remove function
+                  className="remove-button"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
             <div className="qa-fields">
               <textarea
                 placeholder="Question"
@@ -154,25 +173,6 @@ const AddQuiz = ({ email }) => {
                   resize: 'none', // Prevent manual resizing
                 }}
               />
-            </div>
-            <div className="options-menu">
-              <button
-                className="options-button"
-                onClick={() => {
-                  const menu = document.getElementById(`menu-${index}`);
-                  menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-                }}
-              >
-                ⋮
-              </button>
-              <div id={`menu-${index}`} className="options-dropdown" style={{ display: 'none' }}>
-                <button
-                  onClick={() => handleRemoveQuestion(index)} // Call the remove function
-                  className="remove-button"
-                >
-                  Remove
-                </button>
-              </div>
             </div>
           </div>
         ))}
