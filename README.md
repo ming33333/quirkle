@@ -10,7 +10,8 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 - npm run build
 - npm run deploy
 - 
-
+## DEPLOY TO SITE
+ auto deploys when launched on main (unsure when changes probagate)
 ## TODO
 https://ming33333.github.io/quirkle/
 ~~ make side bar on appear if clicked, default appear (this is on on lyf or desktip view)~~

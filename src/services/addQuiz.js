@@ -125,6 +125,20 @@ const AddQuiz = ({ email }) => {
         />
         {questions.map((q, index) => (
           <div key={index} className="question-container">
+            <div className="qa-fields">
+              <textarea
+                placeholder="Question"
+                value={q.question}
+                onChange={(e) => handleInputChange(index, 'question', e.target.value)}
+                className="quiz-textarea"
+              />
+              <textarea
+                placeholder="Answer"
+                value={q.answer}
+                onChange={(e) => handleInputChange(index, 'answer', e.target.value)}
+                className="quiz-textarea"
+              />
+            </div>
             <div className="options-menu">
               <button
                 className="options-button"
@@ -137,42 +151,12 @@ const AddQuiz = ({ email }) => {
               </button>
               <div id={`menu-${index}`} className="options-dropdown">
                 <button
-                  onClick={() => handleRemoveQuestion(index)} // Call the remove function
+                  onClick={() => handleRemoveQuestion(index)}
                   className="remove-button"
                 >
                   Remove
                 </button>
               </div>
-            </div>
-            <div className="qa-fields">
-              <textarea
-                placeholder="Question"
-                value={q.question}
-                onChange={(e) => handleInputChange(index, 'question', e.target.value)}
-                onInput={(e) => {
-                  e.target.style.height = 'auto'; // Reset height to calculate new height
-                  e.target.style.height = `${e.target.scrollHeight}px`; // Dynamically adjust height
-                }}
-                className="quiz-textarea"
-                style={{
-                  overflow: 'hidden',
-                  resize: 'none', // Prevent manual resizing
-                }}
-              />
-              <textarea
-                placeholder="Answer"
-                value={q.answer}
-                onChange={(e) => handleInputChange(index, 'answer', e.target.value)}
-                onInput={(e) => {
-                  e.target.style.height = 'auto'; // Reset height to calculate new height
-                  e.target.style.height = `${e.target.scrollHeight}px`; // Dynamically adjust height
-                }}
-                className="quiz-textarea"
-                style={{
-                  overflow: 'hidden',
-                  resize: 'none', // Prevent manual resizing
-                }}
-              />
             </div>
           </div>
         ))}

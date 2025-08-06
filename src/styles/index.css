@@ -230,8 +230,9 @@ h2 {
 
 .question-container {
   display: flex; /* Use Flexbox for layout */
-  align-items: center; /* Align items to the top */
-  gap: 10px; /* Add spacing between the fields and the options button */
+  align-items: center; /* Vertically center all child elements */
+  justify-content: space-between; /* Push the options button to the far right */
+  gap: 10px; /* Add spacing between the fields */
   margin-bottom: 20px; /* Add spacing between questions */
 }
 
@@ -253,8 +254,10 @@ h2 {
   overflow: hidden; /* Hide scrollbars */
 }
 
+
 .options-menu {
   position: relative; /* Position relative to allow absolute positioning of the dropdown */
+  flex-shrink: 0; /* Prevent the options menu from resizing */
   display: inline-block; /* Keep the options button inline */
 }
 
