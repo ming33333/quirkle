@@ -3,7 +3,7 @@ import { db } from '../utils/firebase/firebaseDB';
 import QuizBoxes from './quizzes';
 import QuizView from './quiz';
 import { collection, getDocs, doc } from 'firebase/firestore';
-import AddQuestions from '../services/addQuiz';
+import AddQuiz from '../services/addQuiz';
 
 const MainContent = ({ email, selectedQuiz, setSelectedQuiz, selectedTitle,setSelectedTitle }) => {
   const [quizzes, setQuizzes] = useState([]);
@@ -79,7 +79,7 @@ const MainContent = ({ email, selectedQuiz, setSelectedQuiz, selectedTitle,setSe
         toggleAnswerVisibility={toggleAnswerVisibility}
         showAnswer={showAnswer}
         email={email} />
-      <AddQuestions />
+      {/* <AddQuiz /> */}
     </div>
   );
 };

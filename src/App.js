@@ -8,7 +8,7 @@ import { auth } from './utils/firebase/firebaseAuthentication.js'; // Import the
 import Header from './components/Header';
 import MainContent from './components/MainContent';
 
-import AddQuestions from './services/addQuiz.js';
+import AddQuiz from './services/addQuiz.js';
 import Login from './pages/login';
 import StudyRoom from './pages/StudyRoom.js';
 import UserSearch from './services/userSearch.js'; // Import the UserSearch component
@@ -17,6 +17,7 @@ import Store from './pages/store'
 import Welcome from './pages/welcome.js';
 
 import './styles/App.css';
+import QuizView from './pages/quizView'; // Import the QuizView component
 
 function App() {
   const [user, setUser] = useState(null); // Store the logged-in user
@@ -61,8 +62,8 @@ function App() {
     element={user ? <MainContent email={user.email} selectedQuiz={selectedQuiz} setSelectedQuiz={setSelectedQuiz} selectedTitle={selectedTitle} setSelectedTitle={setSelectedTitle}  /> : <Navigate to="/login" />}
     />
     <Route
-    path="/add-questions"
-    element={user ? <AddQuestions email={user.email}/> : <Navigate to="/login" />}
+    path="/quiz-view"
+    element={user ? <AddQuiz email={user.email}/> : <Navigate to="/login" />}
     />
     <Route
     path="/study-room"
@@ -80,8 +81,12 @@ function App() {
     path="/store"
     element={user ? <Store email={user.email} /> : <Navigate to="/login" />}
     />
+    <Route
+    path="/test"
+    element={user ? <QuizView /> : <Navigate to="/login" />}
+    />
     </Routes>
-    
+
     </div>
     </Router>
   );

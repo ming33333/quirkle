@@ -174,7 +174,7 @@ button:disabled {
   border: 2px solid #ccc; /* Optional: Add a border */
   border-radius: 8px; /* Optional: Add rounded corners */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Add shadow for depth */
-  background-color: #3e7d4a; /* Optional: Add background color */
+  background-color: #ebebeb; /* Optional: Add background color */
   margin: 20px auto; /* Center the quiz-box horizontally */
   text-align: center; /* Center-align the text inside the quiz-box */
 }

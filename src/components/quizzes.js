@@ -12,7 +12,14 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle }) => {
         <div
           key={index}
           className="quiz-option"
-          onClick={() => setClickedQuiz(clickedQuiz === key ? null : key)} // Toggle the clicked quiz
+          onClick={() =>
+            navigate('/quiz-view', {
+              state: {
+                title: key, // Pass the quiz title
+                questions: quizzes[key]["questions"], // Pass the quiz questions
+              },
+            })
+          } // Toggle the clicked quiz
           style={{ position: 'relative', cursor: 'pointer' }}
         >
           <h3>{key}</h3> {/* Display the key (quiz name) in each quiz box */}

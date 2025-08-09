@@ -97,6 +97,16 @@ const AddQuiz = ({ email }) => {
 
   return (
     <div className="main-content">
+      <QuizView
+        selectedQuiz={selectedQuiz}
+        selectedTitle={selectedTitle}
+        currentQuestionIndex={currentQuestionIndex}
+        setSelectedQuiz={setSelectedQuiz}
+        handlePrevQuestion={handlePrevQuestion}
+        handleNextQuestion={handleNextQuestion}
+        toggleAnswerVisibility={toggleAnswerVisibility}
+        showAnswer={showAnswer}
+        email={email} />
       <div className="add-quiz-container">
         <h2>{initialData ? 'Edit Quiz' : 'Add New Quiz'}</h2>
         <button onClick={confirmDeleteQuiz} className="delete-quiz-button">
