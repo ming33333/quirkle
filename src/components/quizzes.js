@@ -20,11 +20,12 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle }) => {
               },
             })
           } // Toggle the clicked quiz
-          style={{ position: 'relative', cursor: 'pointer' }}
-        >
-          <h3>{key}</h3> {/* Display the key (quiz name) in each quiz box */}
-
-          {/* Show options when the quiz box is clicked */}
+            style={{ position: 'relative', cursor: 'pointer' }}
+          >
+          <div className="quiz-header">
+            <h3>{key}</h3> {/* Display the key (quiz name) */}
+            <h2 className="quiz-date">Date:</h2> {/* Display the date */}
+          </div>
           {clickedQuiz === key && (
             <div className="click-options">
               <button

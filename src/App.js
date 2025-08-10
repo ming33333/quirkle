@@ -81,10 +81,10 @@ function App() {
     path="/store"
     element={user ? <Store email={user.email} /> : <Navigate to="/login" />}
     />
-    <Route
+    {/* <Route
     path="/test"
     element={user ? <QuizView /> : <Navigate to="/login" />}
-    />
+    /> */}
     </Routes>
 
     </div>

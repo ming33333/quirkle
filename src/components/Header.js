@@ -23,9 +23,17 @@ const Header = ({ user }) => {
   return (
     <header className="header">
       <div className="header-content">
-        <h1 className="header-title">Quirkle</h1>
         <nav>
-          <a href="/quirkle/#/home" className="home-icon">
+          <h1
+            onClick={() => navigate('/')} // Navigate to '/' when clicked
+            className="header-title"
+            style={{ cursor: 'pointer' }}
+          >
+            Quirkle
+          </h1>
+        </nav>
+        <nav>
+          <a href="/#/home" className="home-icon">
             <FontAwesomeIcon icon={faHome} size="lg" /> 
           </a>
         </nav>

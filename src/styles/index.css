@@ -204,7 +204,21 @@ button:disabled {
   font-weight: bold;
   color: #333;
 }
+.quiz-header h3,
+.quiz-header h2 {
+  display: block; /* Ensure each heading takes up its own line */
+  margin: 0; /* Remove default margins if needed */
+  color: var(--primary-color)
+}
 
+.quiz-date {
+  position: absolute; /* Position the date element absolutely */
+  bottom: 10px; /* Position it 10px from the bottom */
+  left: 10px; /* Position it 10px from the left */
+  margin: 0; /* Remove default margin */
+  font-size: 1em; /* Adjust font size */
+  color: #666; /* Optional: Add a color */
+}
 .add-quiz-container {
   max-width: 600px;
   margin: 0 auto;
