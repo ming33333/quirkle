@@ -24,7 +24,17 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle }) => {
           >
           <div className="quiz-header">
             <h3>{key}</h3> {/* Display the key (quiz name) */}
-            <h2 className="quiz-date">Date:</h2> {/* Display the date */}
+            <h2 className="quiz-date"> 
+              Last Accessed: {quizzes[key]["lastAccessed"] 
+                ? new Date(quizzes[key]["lastAccessed"]).toLocaleString(undefined, {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    timeZoneName: 'short',
+                  }) 
+                : 'n/a'}</h2> {/* Display the date */}
           </div>
           {clickedQuiz === key && (
             <div className="click-options">
@@ -39,10 +49,11 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle }) => {
               </button>
               <button
                 onClick={() =>
-                  navigate('/add-questions', {
+                  navigate('/quiz-view', {
                     state: {
                       title: key, // Pass the quiz title
                       questions: quizzes[key]["questions"], // Pass the quiz questions
+                      lastAccessed: quizzes[key]["lastAccessed"], // Pass the last accessed date
                     },
                   })
                 }

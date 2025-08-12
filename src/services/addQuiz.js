@@ -3,11 +3,21 @@ import { collection, getDoc, setDoc, doc, deleteDoc } from 'firebase/firestore';
 import { useLocation } from 'react-router-dom';
 import { db } from '../utils/firebase/firebaseDB';
 import { useNavigate } from 'react-router-dom';
+import { updateDocument } from '../utils/firebase/firebaseServices';
 
 const AddQuiz = ({ email }) => {
 
   const location = useLocation();
   const initialData = location.state || {}; // Retrieve initialData from the state
+  if (initialData?.lastAccessed) {
+    console.log(`Last accessed: ${initialData.lastAccessed}`);
+  } else{
+    console.log(`No last accessed date provided. Adding now`);
+    console.log(`initialData`, initialData);
+    updateDocument(`users/${email}/quizCollection/${initialData.title}`, { lastAccessed: new Date().toISOString() });
+
+
+  }
   console.log(`initialData`, initialData);
   const navigate = useNavigate(); // Hook to navigate to different routes
   const [title, setTitle] = useState(initialData?.title || ''); // Prefill title if provided

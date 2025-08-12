@@ -26,10 +26,14 @@ const MainContent = ({ email, selectedQuiz, setSelectedQuiz, selectedTitle,setSe
         querySnapshot.forEach((doc) => {
             quizzesData[doc.id] = doc.data();
         });
-        // console.log('Quizzes:', JSON.stringify(quizzesData));
-        setQuizzes(quizzesData);
-        setLoading(false);
-        setQuizzes(quizzesData);
+        // Sort quizzesData by lastAccessed in descending order
+        const sortedQuizzesData = Object.fromEntries(
+          Object.entries(quizzesData).sort(([, a], [, b]) => 
+            new Date(b.lastAccessed) - new Date(a.lastAccessed)
+          )
+        );
+        console.log('Sorted Quizzes Data:', (sortedQuizzesData));
+        setQuizzes(sortedQuizzesData);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching quizzes:', error);
