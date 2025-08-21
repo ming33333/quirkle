@@ -32,7 +32,6 @@ const MainContent = ({ email, selectedQuiz, setSelectedQuiz, selectedTitle,setSe
             new Date(b.lastAccessed) - new Date(a.lastAccessed)
           )
         );
-        console.log('Sorted Quizzes Data:', (sortedQuizzesData));
         setQuizzes(sortedQuizzesData);
         setLoading(false);
       } catch (error) {
@@ -68,11 +67,14 @@ const MainContent = ({ email, selectedQuiz, setSelectedQuiz, selectedTitle,setSe
       </div>
     );
   }
-
-  console.log(`in main content selected title: ${selectedTitle}`);
+  console.log()
+  console.log('Rendering QuizView and AddQuiz components with the following props:');
+  console.log('selectedQuiz:', selectedQuiz);
+  console.log('selectedTitle:', selectedTitle);
+  console.log('email:', email);
 
   return (
-    <div className ="main-content">
+    <div className="main-content">
       <QuizView
         selectedQuiz={selectedQuiz}
         selectedTitle={selectedTitle}
@@ -83,7 +85,15 @@ const MainContent = ({ email, selectedQuiz, setSelectedQuiz, selectedTitle,setSe
         toggleAnswerVisibility={toggleAnswerVisibility}
         showAnswer={showAnswer}
         email={email} />
-      {/* <AddQuiz /> */}
+        
+      <AddQuiz 
+        email={email}
+        quizData={{
+          title: selectedTitle,
+          questions: selectedQuiz,
+          lastAccessed: selectedQuiz.lastAccessed
+        }}
+      />
     </div>
   );
 };

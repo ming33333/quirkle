@@ -5,15 +5,17 @@ import { db } from '../utils/firebase/firebaseDB';
 import { useNavigate } from 'react-router-dom';
 import { updateDocument } from '../utils/firebase/firebaseServices';
 
-const AddQuiz = ({ email }) => {
-
+const AddQuiz = ({ email, quizData }) => {
+  console.log('AddQuiz props:', { quizData });
   const location = useLocation();
-  const initialData = location.state || {}; // Retrieve initialData from the state
-  if (initialData?.lastAccessed) {
+  const initialData = quizData || {}; // Retrieve initialData from the state
+  if (initialData?.lastAccessed ) {
     console.log(`Last accessed: ${initialData.lastAccessed}`);
+    updateDocument(`users/${email}/quizCollection/${initialData.title}`, { lastAccessed: new Date().toISOString() });
+  } else if (Object.keys(initialData).length <= 0) {
+    console.log(`Initial data is empty.`);
   } else{
-    console.log(`No last accessed date provided. Adding now`);
-    console.log(`initialData`, initialData);
+    console.log(`Initial data trying to update.`);
     updateDocument(`users/${email}/quizCollection/${initialData.title}`, { lastAccessed: new Date().toISOString() });
 
 
@@ -36,10 +38,12 @@ const AddQuiz = ({ email }) => {
   const handleInputChange = (index, field, value) => {
     const updatedQuestions = [...questions];
     updatedQuestions[index][field] = value;
+    console.log(`Updated question at index total ${index} ${JSON.stringify(updatedQuestions)}:`);
     setQuestions(updatedQuestions);
   };
 
   const handleAddQuestion = () => {
+    console.log('current questions:', questions);
     setQuestions([...questions, { question: '', answer: '' }]);
   };
 
@@ -51,7 +55,7 @@ const AddQuiz = ({ email }) => {
     try {
       const quizRef = doc(db, 'users', email, 'quizCollection', title); // Reference the quiz document
       await deleteDoc(quizRef); // Delete the quiz document
-      console.log(`Quiz "${title}" deleted successfully!`);
+      // console.log(`Quiz "${title}" deleted successfully!`);
       setTitle(''); // Clear the title
       setQuestions([]); // Clear the questions
       setShowDeletePopup(false); // Hide the popup
@@ -69,6 +73,7 @@ const AddQuiz = ({ email }) => {
   };
 
   const handleSubmit = async () => {
+    console.log('Submitting quiz:', { title, questions });
     try {
       const docRef = doc(db, 'users', email);
       // Reference the 'quizCollection' subcollection
@@ -80,7 +85,7 @@ const AddQuiz = ({ email }) => {
         console.log('User document does not exist. Creating a new user document...');
         await setDoc(docRef, {}); // Create the user document if it doesn't exist
       }
-
+      console.log('User document exists or created successfully!');
       // Add or update the quiz document in the 'quizCollection' subcollection
       await setDoc(doc(subcollectionRef, title), {
         title: title,

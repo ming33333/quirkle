@@ -62,7 +62,7 @@ function App() {
     element={user ? <MainContent email={user.email} selectedQuiz={selectedQuiz} setSelectedQuiz={setSelectedQuiz} selectedTitle={selectedTitle} setSelectedTitle={setSelectedTitle}  /> : <Navigate to="/login" />}
     />
     <Route
-    path="/quiz-view"
+    path="/add-questions"
     element={user ? <AddQuiz email={user.email}/> : <Navigate to="/login" />}
     />
     <Route
@@ -81,6 +81,10 @@ function App() {
     path="/store"
     element={user ? <Store email={user.email} /> : <Navigate to="/login" />}
     />
+    {/* <Route
+    path="/add-questions"
+    element={user ? <AddQuiz email={user.email} /> : <Navigate to="/login" />}
+    /> */}
     {/* <Route
     path="/test"
     element={user ? <QuizView /> : <Navigate to="/login" />}

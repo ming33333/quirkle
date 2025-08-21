@@ -591,3 +591,35 @@ code {
   resize: none; /* Prevent manual resizing */
   overflow: hidden; /* Hide scrollbars */
 }
+
+.answer-buttons {
+  margin-top: 10px; /* Add spacing above the buttons */
+  display: flex;
+  gap: 10px; /* Add spacing between the buttons */
+}
+
+.right-button {
+  background-color: #4caf50; /* Green background for Right button */
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.right-button:hover {
+  background-color: #45a049; /* Darker green on hover */
+}
+
+.wrong-button {
+  background-color: #f44336; /* Red background for Wrong button */
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.wrong-button:hover {
+  background-color: #d32f2f; /* Darker red on hover */
+}

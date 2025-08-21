@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect,useState } from 'react';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../utils/firebase/firebaseDB'; // Adjust the path if needed
 const QuizView = ({
@@ -12,8 +12,41 @@ const QuizView = ({
   showAnswer,
   email, // Pass the user's email as a prop
 }) => {
-  const currentQuestion = selectedQuiz[currentQuestionIndex];
 
+  const [filterChoice, setFilterChoice] = useState(null); // Track the user's filter choice
+  const handleFilterChoice = (choice) => {
+    if (choice === 'passed') {
+      // Filter questions that are marked as passed
+      const filteredQuestions = selectedQuiz.filter((q) => q.passed === true);
+      setSelectedQuiz(filteredQuestions);
+    } else if (choice === 'notPassed') {
+      // Filter questions that do not have a passed key or are not passed
+      const filteredQuestions = selectedQuiz.filter((q) => q.passed !== true);
+      setSelectedQuiz(filteredQuestions);
+    } else {
+      setSelectedQuiz(selectedQuiz)
+    }
+    setFilterChoice(choice); // Save the user's choice
+  };
+  const handleAnswerChoice = async (choice) => {
+    try {
+      const updatedQuestions = [...selectedQuiz]; // Create a copy of the questions array
+      const currentQuestion = updatedQuestions[currentQuestionIndex]; // Get the current question
+  
+      // Add a "correct" field to the current question based on the user's choice
+      currentQuestion.passed = choice === 'right';
+  
+      // Update the questions array in Firestore
+      const quizDocRef = doc(db, 'users', email, 'quizCollection', selectedTitle);
+      await updateDoc(quizDocRef, { questions: updatedQuestions });
+  
+      console.log(`Question updated with choice: ${choice}`);
+    } catch (error) {
+      console.error('Error updating question in Firestore:', error);
+    }
+  };
+  // console.log('QuizView props:')
+  const currentQuestion = selectedQuiz[currentQuestionIndex];
   const handleAwardPoint = async () => {
     try {
       const pointsDocRef = doc(db, 'users', email, 'pointSystem', 'points');
@@ -23,7 +56,7 @@ const QuizView = ({
         const currentPoints = pointsDoc.data().value || 0;
         await updateDoc(pointsDocRef, { value: currentPoints + 1 }); // Increment points by 1
       } else {
-        console.log('Points document does not exist. Creating it with a value of 1...');
+        // console.log('Points document does not exist. Creating it with a value of 1...');
         await setDoc(pointsDocRef, { value: 1 }); // Create the document and set its value to 1
       }
     } catch (err) {
@@ -48,10 +81,34 @@ const QuizView = ({
       </div>
     );
   }
-
+  // Show the filter prompt if the user hasn't made a choice yet
+  if (filterChoice === null) {
+    return (
+      <div className="quiz-container">
+        <h2>Choose Your Quiz Mode</h2>
+        <p>Do you want to take only questions marked as passed or those not marked as passed?</p>
+        <button onClick={() => handleFilterChoice('passed')} className="question-button">
+          Passed Questions
+        </button>
+        <button onClick={() => handleFilterChoice('notPassed')} className="question-button">
+          Not Passed Questions
+        </button>
+        <button onClick={() => handleFilterChoice('all')} className="question-button">
+          All
+        </button>
+      </div>
+    );
+  }
   return (
     <div className="quiz-container">
-      <button onClick={() => setSelectedQuiz(null)} style={{ marginBottom: '1em' }} className="question-button">
+      <button
+        onClick={() => {
+          setFilterChoice(null); // Reset filterChoice to null
+          setSelectedQuiz(null); // Go back to the quiz list
+        }}
+        style={{ marginBottom: '1em' }}
+        className="question-button"
+      >
         Back to Quiz List
       </button>
       <h2>{selectedTitle}</h2> {/* Display the selected title */}
@@ -75,6 +132,14 @@ const QuizView = ({
           {showAnswer && (
             <div>
               <strong>A:</strong> {currentQuestion.answer}
+              <div className="answer-buttons">
+                <button onClick={() => handleAnswerChoice('right')} className="question-button right-button">
+                  Right
+                </button>
+                <button onClick={() => handleAnswerChoice('wrong')} className="question-button wrong-button">
+                  Wrong
+                </button>
+              </div>
             </div>
           )}
         </div>

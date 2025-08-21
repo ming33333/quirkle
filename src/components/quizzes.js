@@ -12,14 +12,10 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle }) => {
         <div
           key={index}
           className="quiz-option"
-          onClick={() =>
-            navigate('/quiz-view', {
-              state: {
-                title: key, // Pass the quiz title
-                questions: quizzes[key]["questions"], // Pass the quiz questions
-              },
-            })
-          } // Toggle the clicked quiz
+          onClick={() => {
+            setSelectedQuiz(quizzes[key]["questions"]); // Set the selected quiz
+            setSelectedTitle(key); // Set the selected title
+          }}
             style={{ position: 'relative', cursor: 'pointer' }}
           >
           <div className="quiz-header">

@@ -12,7 +12,7 @@ export const updateDocument = async (docPath, data) => {
     try {
         const documentRef = doc(db, docPath);
         await updateDoc(documentRef, data);
-        console.log(`Document at ${docPath} updated successfully.`);
+        // console.log(`Document at ${docPath} updated successfully.`);
     } catch (error) {
         console.error(`Error updating document at ${docPath}:`, error);
         throw error;
