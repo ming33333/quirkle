@@ -1,6 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const Welcome = () => {
+  const [flashcards, setFlashcards] = useState([
+    { question: 'What is React?', answer: 'A JavaScript library for building user interfaces.', flipped: false },
+    { question: 'What is a component?', answer: 'A reusable piece of UI in React.', flipped: false },
+    { question: 'What is JSX?', answer: 'A syntax extension for JavaScript that looks like HTML.', flipped: false },
+  ]);
   useEffect(() => {
     // Dynamically load the AdSense script
     const script = document.createElement('script');
@@ -16,7 +21,13 @@ const Welcome = () => {
       console.error('AdSense error:', e);
     }
   }, []);
-  
+  const handleFlip = (index) => {
+    setFlashcards((prevFlashcards) =>
+      prevFlashcards.map((card, i) =>
+        i === index ? { ...card, flipped: !card.flipped } : card
+      )
+    );
+  };
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px' }}>
     {/* Main Content */}
@@ -35,19 +46,26 @@ const Welcome = () => {
     improving your studies but also supporting independent development. Thank you for being part of this 
     community!
     </p>
-    <a href="#/login" style={{ textDecoration: 'none', color: 'white', backgroundColor: '#4caf50', padding: '10px 20px', borderRadius: '5px', fontSize: '1.2em' }}>
+    <a href="#/login" style={{ textDecoration: 'none', color: 'white', backgroundColor: 'salmon', padding: '10px 20px', borderRadius: '5px', fontSize: '1.2em' }}>
     Login to Get Started
     </a>
     </div>
     
-    {/* Flashcard Animation */}
-    <div className="flashcard-animation" style={{ display: 'flex', gap: '20px', marginBottom: '2em' }}>
-    <div className="flashcard" style={{ animationDelay: '0s' }}>Flashcard 1</div>
-    <div className="flashcard" style={{ animationDelay: '0.2s' }}>Flashcard 2</div>
-    <div className="flashcard" style={{ animationDelay: '0.4s' }}>Flashcard 3</div>
-    </div>
-    
-    {/* AdSense Ad Block */}
+      {/* Flashcard Animation */}
+      <div className="flashcard-container">
+        {flashcards.map((card, index) => (
+          <div
+            key={index}
+            className={`flashcard ${card.flipped ? 'flipped' : ''}`}
+            onClick={() => handleFlip(index)}
+            style={{ animationDelay: `${Math.random() * 0.5}s` }} // Random animation delay between 0 and 0.5 seconds
+          >
+            <div className="flashcard-front">{card.question}</div>
+            <div className="flashcard-back">{card.answer}</div>
+          </div>
+        ))}
+      </div>
+      {/* AdSense Ad Block */}
     <div style={{ position: 'fixed', bottom: '0', width: '100%', textAlign: 'center', backgroundColor: '#f9f9f9', boxShadow: '0 -2px 5px rgba(0, 0, 0, 0.1)' }}>
       <ins
         className="adsbygoogle"
