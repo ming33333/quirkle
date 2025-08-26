@@ -11,34 +11,12 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 - npm run deploy
 ## DEPLOY TO SITE
  auto deploys when launched on main (unsure when changes probagate)
+
+## Clean up time
+- pages are not correct so fix them 
+
 ## TODO
 https://ming33333.github.io/quirkle/
-~~ make side bar on appear if clicked, default appear (this is on on lyf or desktip view)~~
-
-~~ add in firebase (added must add more data and organize data accessing)~~
-
-~~ documents/users showing up as nonexistent~~
-
-
-~~fix data access~~
-~~- - option to add more quizzes~~
-~~ change quiz based on selection ~~
-~~have previous and nav buttons adjust to side bar size~~
-~~have button to click to change side bar size~~
-
-| Date               | Action                                          |
-| Date               | Action                                          |
-|--------------------|-------------------------------------------------|
-| Apr 26, 2025 (Sat) | ✅ Feature: Add more questions to quiz or take quiz |
-| Apr 27, 2025 (Sun) | ✅ Add point system                                |
-| Apr 28, 2025 (Mon) |  ✅Add buying system and Show bought items on screen    |
-| Apr 30, 2025 (Wednes) | Troubleshoot displayed bought items             |
-| May 3, 2025 (Thurs)    ✅| Change DNS                               |
-| May 1, 2025 (Fri)  |  Add Google Ads                                  |
-| May 2, 2025 (Sat)    |  Fix up site to look less sketchy                |
-| May 3, 2025 (Sun)    |        Fix point systems so it only 1 point once per day per quiz  and already purchased bug     |
-| May 4, 2025 (Mon)    | study rooom not working probably bc i switch to multiplayer         |
-| May 5, 2025 (Tues)    |  Fully integrate friend system             |
 
 lower priority
 
