@@ -9,8 +9,9 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 - change homepage key-value to the target page ("https://ming33333.github.io/quirkle/" or https://quirkle.io/)
 - npm run build
 - npm run deploy
+
 ## DEPLOY TO SITE
- auto deploys when launched on main (unsure when changes probagate)
+ auto deploys when launched on main (changes probagate in about 5 mins?)
 
 ## Clean up time
 - pages are not correct so fix them 

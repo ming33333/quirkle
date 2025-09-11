@@ -20,12 +20,28 @@ const AddQuiz = ({ email, quizData }) => {
 
 
   }
-  console.log(`initialData`, initialData);
+  const handleToggleStar = async (index) => {
+    try {
+      const updatedQuestions = [...questions]; // Create a copy of the questions array
+      updatedQuestions[index].starred = !updatedQuestions[index].starred; // Toggle the star status
+      setQuestions(updatedQuestions); // Update the state
+  
+      // Update the database
+      await updateDocument(`users/${email}/quizCollection/${title}`, {
+        questions: updatedQuestions,
+      });
+  
+      console.log(`Question ${index + 1} star status updated to: ${updatedQuestions[index].starred}`);
+    } catch (error) {
+      console.error('Error updating star status in Firestore:', error);
+    }
+  };
   const navigate = useNavigate(); // Hook to navigate to different routes
   const [title, setTitle] = useState(initialData?.title || ''); // Prefill title if provided
   const [questions, setQuestions] = useState(initialData?.questions || [{ question: '', answer: '' }]); // Prefill questions if provided
   const [bulkInput, setBulkInput] = useState(''); // State for bulk input
   const [showDeletePopup, setShowDeletePopup] = useState(false);
+  console.log(`Questions state:`, questions);
   useEffect(() => {
     // Adjust the height of all textareas based on their content
     const textareas = document.querySelectorAll('.quiz-textarea');
@@ -41,10 +57,14 @@ const AddQuiz = ({ email, quizData }) => {
     console.log(`Updated question at index total ${index} ${JSON.stringify(updatedQuestions)}:`);
     setQuestions(updatedQuestions);
   };
-
-  const handleAddQuestion = () => {
-    console.log('current questions:', questions);
-    setQuestions([...questions, { question: '', answer: '' }]);
+  const handleAddQuestionBelow = (index) => {
+    const newQuestion = { question: '', answer: '' }; // Create a new empty question
+    const updatedQuestions = [
+      ...questions.slice(0, index + 1), // Keep all questions up to the current index
+      newQuestion, // Insert the new question
+      ...questions.slice(index + 1), // Keep all questions after the current index
+    ];
+    setQuestions(updatedQuestions); // Update the state
   };
 
   const handleRemoveQuestion = (index) => {
@@ -73,7 +93,6 @@ const AddQuiz = ({ email, quizData }) => {
   };
 
   const handleSubmit = async () => {
-    console.log('Submitting quiz:', { title, questions });
     try {
       const docRef = doc(db, 'users', email);
       // Reference the 'quizCollection' subcollection
@@ -141,6 +160,12 @@ const AddQuiz = ({ email, quizData }) => {
         {questions.map((q, index) => (
           <div key={index} className="question-container">
             <div className="qa-fields">
+            <div className="question-labels">
+              <label className="question-number">
+                Q{index + 1}: {q.starred ? '★' : ''} {/* Display star icon */}
+              </label>
+              <label className="question-pass">{q.passed ? 'Passed' : 'Not Passed'}</label>
+            </div>
               <textarea
                 placeholder="Question"
                 value={q.question}
@@ -169,7 +194,19 @@ const AddQuiz = ({ email, quizData }) => {
                   onClick={() => handleRemoveQuestion(index)}
                   className="remove-button"
                 >
-                  Remove
+                  Remove Question
+                </button>
+                <button
+                  onClick={() => handleAddQuestionBelow(index)}
+                  className="add-button"
+                >
+                  Add Question Below
+                </button>
+                <button
+                  onClick={() => handleToggleStar(index)}
+                  className="star-button"
+                >
+                  {q.starred ? 'Unstar Question' : 'Star Question'}
                 </button>
               </div>
             </div>
@@ -184,9 +221,6 @@ const AddQuiz = ({ email, quizData }) => {
         />
         <button onClick={handleBulkAdd} className="quiz-button bulk-add-button">
           Add Bulk Questions
-        </button>
-        <button onClick={handleAddQuestion} className="quiz-button add-question-button">
-          Add Another Question
         </button>
         <button onClick={handleSubmit} className="quiz-button submit-button">
           {initialData ? 'Update Quiz' : 'Submit Quiz'}

@@ -527,6 +527,48 @@ code {
   transition: transform 0.3s ease;
 }
 
+.question-labels {
+  display: flex;
+  flex-direction: column; /* Stack the labels vertically */
+  margin-bottom: 10px; /* Add spacing below the labels */
+  align-items: flex-start; /* Align labels to the left */
+}
+
+.question-number,
+.question-pass {
+  display: inline-block; /* Ensure consistent block-like behavior */
+  width: 75px; /* Set a fixed width for all labels */
+  text-align: left; /* Align text to the left */
+  font-weight: bold; /* Optional: Make the question number bold */
+}
+
+
+.question-pass {
+  color: #666; /* Optional: Add a subtle color for the "Passed" label */
+  font-size: 0.9em; /* Optional: Adjust the font size */
+}
+
+.question-number {
+  font-weight: bold;
+  margin-right: 10px;
+  display: inline-block;
+}
+
+.question-number .star-icon {
+  color: gold; /* Gold color for the star */
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+.options-dropdown .star-button {
+  color: #ffa500; /* Orange color for the star button */
+  font-weight: bold;
+}
+
+.options-dropdown .star-button:hover {
+  background-color: #f0f0f0;
+}
+
 .flashcard:hover {
   transform: scale(1.05);
 }
