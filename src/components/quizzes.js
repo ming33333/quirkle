@@ -4,7 +4,15 @@ import { useNavigate } from 'react-router-dom';
 const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle }) => {
   const navigate = useNavigate(); // Hook to navigate to different routes
   const [clickedQuiz, setClickedQuiz] = useState(null); // Track which quiz box is clicked
+  const [showTooltip, setShowTooltip] = useState(null); // Track which tooltip is visible
 
+  const calculateDaysAgo = (lastAccessed) => {
+    const lastAccessedDate = new Date(lastAccessed);
+    const currentDate = new Date();
+    const timeDifference = currentDate - lastAccessedDate; // Difference in milliseconds
+    const daysAgo = Math.floor(timeDifference / (1000 * 60 * 60 * 24)); // Convert to days
+    return daysAgo;
+  };
   return (
     <div className="quiz-boxes-container">
       {/* Render quiz boxes */}
@@ -20,17 +28,33 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle }) => {
           >
           <div className="quiz-header">
             <h3>{key}</h3> {/* Display the key (quiz name) */}
-            <h2 className="quiz-date"> 
-              Last Accessed: {quizzes[key]["lastAccessed"] 
-                ? new Date(quizzes[key]["lastAccessed"]).toLocaleString(undefined, {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    timeZoneName: 'short',
-                  }) 
-                : 'n/a'}</h2> {/* Display the date */}
+            <span
+              className="last-accessed"
+              onMouseEnter={() => setShowTooltip(key)} // Show tooltip on hover
+              onMouseLeave={() => setShowTooltip(null)} // Hide tooltip when hover ends
+              onClick={(event) => {
+                event.stopPropagation(); // Prevent the click event from propagating to the parent
+                setShowTooltip((prev) => (prev === key ? null : key)); // Toggle tooltip on click
+              }}
+            >
+              {quizzes[key]["lastAccessed"]
+                ? `${calculateDaysAgo(quizzes[key]["lastAccessed"])} days ago`
+                : 'Never Accessed'}
+              {showTooltip === key && (
+                <div className="tooltip">
+                  {quizzes[key]["lastAccessed"]
+                    ? new Date(quizzes[key]["lastAccessed"]).toLocaleString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : 'No access date available'}
+                </div>
+              )}
+            </span>
           </div>
           {clickedQuiz === key && (
             <div className="click-options">

@@ -20,6 +20,20 @@ const AddQuiz = ({ email, quizData }) => {
 
 
   }
+  const handleAutoUpdate = async (index) => {
+    console.log(`Auto-updating question at index ${index}`);
+    try {
+      const updatedQuestions = [...questions]; // Create a copy of the questions array
+      const quizDocRef = doc(db, 'users', email, 'quizCollection', title); // Reference to the quiz document
+  
+      // Update the database with the modified questions array
+      await updateDocument(`users/${email}/quizCollection/${initialData.title}`, { lastAccessed: new Date().toISOString() });
+  
+      console.log(`Question ${index + 1} updated successfully.`);
+    } catch (error) {
+      console.error('Error updating question in Firestore:', error);
+    }
+  };
   const handleToggleStar = async (index) => {
     try {
       const updatedQuestions = [...questions]; // Create a copy of the questions array
@@ -160,22 +174,24 @@ const AddQuiz = ({ email, quizData }) => {
         {questions.map((q, index) => (
           <div key={index} className="question-container">
             <div className="qa-fields">
-            <div className="question-labels">
-              <label className="question-number">
-                Q{index + 1}: {q.starred ? '★' : ''} {/* Display star icon */}
-              </label>
-              <label className="question-pass">{q.passed ? 'Passed' : 'Not Passed'}</label>
-            </div>
+              <div className="question-labels">
+                <label className="question-number">
+                  Q{index + 1}: {q.starred ? '★' : '☆'} {/* Display star icon */}
+                </label>
+                <label className="question-pass">{q.passed ? 'Passed' : 'Not Passed'}</label>
+              </div>
               <textarea
                 placeholder="Question"
                 value={q.question}
                 onChange={(e) => handleInputChange(index, 'question', e.target.value)}
+                onBlur={() => handleAutoUpdate(index)} // Trigger auto-update on blur
                 className="quiz-textarea"
               />
               <textarea
                 placeholder="Answer"
                 value={q.answer}
                 onChange={(e) => handleInputChange(index, 'answer', e.target.value)}
+                onBlur={() => handleAutoUpdate(index)} // Trigger auto-update on blur
                 className="quiz-textarea"
               />
             </div>
@@ -222,9 +238,9 @@ const AddQuiz = ({ email, quizData }) => {
         <button onClick={handleBulkAdd} className="quiz-button bulk-add-button">
           Add Bulk Questions
         </button>
-        <button onClick={handleSubmit} className="quiz-button submit-button">
+        {/* <button onClick={handleSubmit} className="quiz-button submit-button">
           {initialData ? 'Update Quiz' : 'Submit Quiz'}
-        </button>
+        </button> */}
       </div>
     </div>
   );

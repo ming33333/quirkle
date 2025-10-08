@@ -53,9 +53,9 @@ function App() {
     <Header user={user} />
     <Routes>
     <Route
-    path="/" element={ <Welcome/>}
+    path="/" element={ <Welcome user={user}/> }
     />
-    <Route path="/login" element={<Login setUser={setUser} />} />
+    <Route path="/login" element={<Login setUser={setUser} user={user} />} />
     {/* Protected Routes */}
     <Route
     path="/home"

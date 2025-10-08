@@ -85,22 +85,27 @@ const QuizView = ({
   if (filterChoice === null) {
     return (
       <div className="quiz-container">
-        <h2>Choose Your Quiz Mode</h2>
-        <p>Do you want to take only questions marked as passed or those not marked as passed?</p>
+      <h2>Choose Your Quiz Mode</h2>
+      <p>Do you want to take only questions marked as passed or those not marked as passed?</p>
+      <button onClick={() => setSelectedQuiz(null)} className="question-button">
+        Back to Quiz List
+      </button>
+      <div style={{ marginTop: '1em' }}>
         <button onClick={() => handleFilterChoice('passed')} className="question-button">
-          Passed Questions
+        Passed Questions
         </button>
         <button onClick={() => handleFilterChoice('notPassed')} className="question-button">
-          Not Passed Questions
+        Not Passed Questions
         </button>
         <button onClick={() => handleFilterChoice('all')} className="question-button">
-          All
+        All
         </button>
+      </div>
       </div>
     );
   }
   return (
-    <div className="quiz-container">
+    <div className="quiz-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <button
         onClick={() => {
           setFilterChoice(null); // Reset filterChoice to null
@@ -112,27 +117,36 @@ const QuizView = ({
         Back to Quiz List
       </button>
       <h2>{selectedTitle}</h2> {/* Display the selected title */}
-      <div className="question-navigation">
-        <button
-          onClick={handlePrevQuestion}
-          disabled={currentQuestionIndex === 0}
-          className="question-button navigation-button"
-        >
-          &lt; Prev
-        </button>
-        <div className="quiz-box">
+      <div className="question-navigation" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1em', marginBottom: '1em' }}>
+          <button
+            onClick={handlePrevQuestion}
+            disabled={currentQuestionIndex === 0}
+            className="question-button navigation-button"
+          >
+            &lt; Prev
+          </button>
+          <button
+            onClick={handleNextQuestion}
+            disabled={currentQuestionIndex === selectedQuiz.length - 1}
+            className="question-button navigation-button"
+          >
+            Next &gt;
+          </button>
+        </div>
+        <div className="quiz-box" style={{ margin: '1em 0', textAlign: 'center' }}>
           <strong>
             Q{currentQuestionIndex + 1}/{selectedQuiz.length}:
           </strong>{' '}
           {currentQuestion.question}
           <br />
-          <button onClick={toggleAnswerVisibility} className="question-button answer-toggle">
+          <button onClick={toggleAnswerVisibility} className="question-button answer-toggle" style={{ marginTop: '1em' }}>
             {showAnswer ? 'Hide Answer' : 'Show Answer'}
           </button>
           {showAnswer && (
             <div>
               <strong>A:</strong> {currentQuestion.answer}
-              <div className="answer-buttons">
+              <div className="answer-buttons" style={{ marginTop: '1em', display: 'flex', justifyContent: 'center', gap: '1em' }}>
                 <button onClick={() => handleAnswerChoice('right')} className="question-button right-button">
                   Right
                 </button>
@@ -143,13 +157,6 @@ const QuizView = ({
             </div>
           )}
         </div>
-        <button
-          onClick={handleNextQuestion}
-          disabled={currentQuestionIndex === selectedQuiz.length - 1}
-          className="question-button navigation-button"
-        >
-          Next &gt;
-        </button>
       </div>
     </div>
   );

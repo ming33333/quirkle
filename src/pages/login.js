@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 
-const Login = ({ setUser }) => {
+const Login = ({ setUser, user }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -30,6 +30,11 @@ const Login = ({ setUser }) => {
       setError(err.message);
     }
   };
+if (user) {
+  navigate('/home'); // Redirect to the main page if user is already logged in
+} else {
+  console.log(`user state in login: ${JSON.stringify(user)}`);
+}
 
   return (
     <div style={{ textAlign: 'center' }}> {/* Center-align the content */}
