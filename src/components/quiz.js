@@ -14,6 +14,24 @@ const QuizView = ({
 }) => {
 
   const [filterChoice, setFilterChoice] = useState(null); // Track the user's filter choice
+  const [showExitPopup, setShowExitPopup] = useState(false); // Track whether the exit popup is visible
+
+  const handleExitQuiz = () => {
+    if (currentQuestionIndex < selectedQuiz.length) {
+      setShowExitPopup(true); // Show the popup if the user hasn't finished the quiz
+    } else {
+      setSelectedQuiz(null); // Exit the quiz if it's completed
+    }
+  };
+
+  const handleContinueQuiz = () => {
+    setShowExitPopup(false); // Close the popup and let the user continue
+  };
+
+  const handleConfirmExit = () => {
+    setShowExitPopup(false); // Close the popup
+    setSelectedQuiz(null); // Exit the quiz
+  };
   const handleFilterChoice = (choice) => {
     if (choice === 'passed') {
       // Filter questions that are marked as passed
@@ -40,7 +58,6 @@ const QuizView = ({
       const quizDocRef = doc(db, 'users', email, 'quizCollection', selectedTitle);
       await updateDoc(quizDocRef, { questions: updatedQuestions });
   
-      console.log(`Question updated with choice: ${choice}`);
     } catch (error) {
       console.error('Error updating question in Firestore:', error);
     }
@@ -133,6 +150,21 @@ const QuizView = ({
           >
             Next &gt;
           </button>
+      {/* Exit Confirmation Popup */}
+      {showExitPopup && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <h3>You haven't finished the quiz yet!</h3>
+            <p>Do you want to continue or exit?</p>
+            <button onClick={handleContinueQuiz} className="question-button">
+              Continue Quiz
+            </button>
+            <button onClick={handleConfirmExit} className="question-button">
+              Exit Quiz
+            </button>
+          </div>
+        </div>
+      )}
         </div>
         <div className="quiz-box" style={{ margin: '1em 0', textAlign: 'center' }}>
           <strong>

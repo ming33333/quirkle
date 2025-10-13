@@ -67,11 +67,6 @@ const MainContent = ({ email, selectedQuiz, setSelectedQuiz, selectedTitle,setSe
       </div>
     );
   }
-  console.log()
-  console.log('Rendering QuizView and AddQuiz components with the following props:');
-  console.log('selectedQuiz:', selectedQuiz);
-  console.log('selectedTitle:', selectedTitle);
-  console.log('email:', email);
 
   return (
     <div className="main-content">

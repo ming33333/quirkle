@@ -1,27 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDoc, setDoc, doc, deleteDoc } from 'firebase/firestore';
+import { collection, getDoc, setDoc, doc, deleteDoc, and } from 'firebase/firestore';
 import { useLocation } from 'react-router-dom';
 import { db } from '../utils/firebase/firebaseDB';
 import { useNavigate } from 'react-router-dom';
 import { updateDocument } from '../utils/firebase/firebaseServices';
 
 const AddQuiz = ({ email, quizData }) => {
-  console.log('AddQuiz props:', { quizData });
   const location = useLocation();
+  const [initialDataEmpty, setInitialDataEmpty] = useState(false);
   const initialData = quizData || {}; // Retrieve initialData from the state
-  if (initialData?.lastAccessed ) {
-    console.log(`Last accessed: ${initialData.lastAccessed}`);
-    updateDocument(`users/${email}/quizCollection/${initialData.title}`, { lastAccessed: new Date().toISOString() });
-  } else if (Object.keys(initialData).length <= 0) {
+
+  if (Object.keys(initialData).length <= 0 && !initialDataEmpty){ 
     console.log(`Initial data is empty.`);
-  } else{
-    console.log(`Initial data trying to update.`);
-    updateDocument(`users/${email}/quizCollection/${initialData.title}`, { lastAccessed: new Date().toISOString() });
-
-
+    setInitialDataEmpty(true);
+  }
+  if (!initialDataEmpty && initialData?.title) {
+    if (initialData?.lastAccessed) {
+      updateDocument(`users/${email}/quizCollection/${initialData.title}`, { lastAccessed: new Date().toISOString() });
+    } else{
+      updateDocument(`users/${email}/quizCollection/${initialData.title}`, { lastAccessed: new Date().toISOString() });
+    }
   }
   const handleAutoUpdate = async (index) => {
-    console.log(`Auto-updating question at index ${index}`);
     try {
       const updatedQuestions = [...questions]; // Create a copy of the questions array
       const quizDocRef = doc(db, 'users', email, 'quizCollection', title); // Reference to the quiz document
@@ -44,8 +44,6 @@ const AddQuiz = ({ email, quizData }) => {
       await updateDocument(`users/${email}/quizCollection/${title}`, {
         questions: updatedQuestions,
       });
-  
-      console.log(`Question ${index + 1} star status updated to: ${updatedQuestions[index].starred}`);
     } catch (error) {
       console.error('Error updating star status in Firestore:', error);
     }
@@ -55,7 +53,7 @@ const AddQuiz = ({ email, quizData }) => {
   const [questions, setQuestions] = useState(initialData?.questions || [{ question: '', answer: '' }]); // Prefill questions if provided
   const [bulkInput, setBulkInput] = useState(''); // State for bulk input
   const [showDeletePopup, setShowDeletePopup] = useState(false);
-  console.log(`Questions state:`, questions);
+
   useEffect(() => {
     // Adjust the height of all textareas based on their content
     const textareas = document.querySelectorAll('.quiz-textarea');
@@ -147,9 +145,11 @@ const AddQuiz = ({ email, quizData }) => {
     <div className="main-content">
       <div className="add-quiz-container">
         <h2>{initialData ? 'Edit Quiz' : 'Add New Quiz'}</h2>
-        <button onClick={confirmDeleteQuiz} className="delete-quiz-button">
-          Delete Quiz
-        </button>
+        {!initialDataEmpty && (
+          <button onClick={confirmDeleteQuiz} className="delete-quiz-button">
+            Delete Quiz
+          </button>
+        )}
         {/* Delete Confirmation Popup */}
         {showDeletePopup && (
           <div className="popup-overlay">
@@ -237,10 +237,13 @@ const AddQuiz = ({ email, quizData }) => {
         />
         <button onClick={handleBulkAdd} className="quiz-button bulk-add-button">
           Add Bulk Questions
-        </button>
-        {/* <button onClick={handleSubmit} className="quiz-button submit-button">
-          {initialData ? 'Update Quiz' : 'Submit Quiz'}
-        </button> */}
+        </button>        
+        {initialDataEmpty && (
+        <button onClick={handleSubmit} className="quiz-button submit-button">
+        {'Submit Quiz'}
+      </button>
+        )}
+
       </div>
     </div>
   );
