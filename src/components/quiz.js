@@ -17,14 +17,18 @@ const QuizView = ({
   const [showExitPopup, setShowExitPopup] = useState(false); // Track whether the exit popup is visible
 
   const handleExitQuiz = () => {
-    if (currentQuestionIndex < selectedQuiz.length) {
+    console.log('handling exit quiz');
+    console.log('currentQuestionIndex:', currentQuestionIndex+1, 'selectedQuiz length:', selectedQuiz.length);
+    if (currentQuestionIndex+1 < selectedQuiz.length) {
       setShowExitPopup(true); // Show the popup if the user hasn't finished the quiz
     } else {
       setSelectedQuiz(null); // Exit the quiz if it's completed
+      setFilterChoice(null); // Reset filterChoice to null
     }
   };
 
   const handleContinueQuiz = () => {
+    console.log('User has finished the quiz .');
     setShowExitPopup(false); // Close the popup and let the user continue
   };
 
@@ -125,8 +129,8 @@ const QuizView = ({
     <div className="quiz-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <button
         onClick={() => {
-          setFilterChoice(null); // Reset filterChoice to null
-          setSelectedQuiz(null); // Go back to the quiz list
+          handleExitQuiz();
+         
         }}
         style={{ marginBottom: '1em' }}
         className="question-button"
