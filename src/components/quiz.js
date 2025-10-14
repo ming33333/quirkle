@@ -1,6 +1,7 @@
 import React, { useEffect,useState } from 'react';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../utils/firebase/firebaseDB'; // Adjust the path if needed
+import { appendToMapField } from '../utils/firebase/firebaseServices';
 const QuizView = ({
   selectedQuiz,
   selectedTitle,
@@ -49,6 +50,15 @@ const QuizView = ({
       setSelectedQuiz(selectedQuiz)
     }
     setFilterChoice(choice); // Save the user's choice
+    console.log(`title ${selectedTitle} email ${email}`);
+    const quizStatsDocRef = doc(db, 'users', email, selectedTitle,'quizCollection');
+    const startTime = new Date().toISOString(); // Get the current time in ISO format
+    appendToMapField(`users/${email}/quizCollection/${selectedTitle}`, 'quizStats',
+      {
+      start: startTime,
+      filterChoice: choice,
+      complete: false,
+    });
   };
   const handleAnswerChoice = async (choice) => {
     try {
