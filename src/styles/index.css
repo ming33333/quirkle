@@ -858,3 +858,42 @@ code {
 .popup-content button:hover {
   background-color: #f0f0f0;
 }
+.spaced-learning-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  font-family: 'Arial', sans-serif;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Create a 2x2 grid */
+  gap: 20px; /* Add spacing between the buckets */
+  width: 100%;
+  max-width: 600px; /* Optional: Limit the grid width */
+}
+
+.bucket {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f9f9f9;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  height: 150px; /* Set a fixed height for the buckets */
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bucket:hover {
+  transform: scale(1.05); /* Slightly enlarge the bucket on hover */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Add a stronger shadow on hover */
+}
+
+.bucket h3 {
+  margin: 0;
+  font-size: 1.5em;
+  color: #333;
+}

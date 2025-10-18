@@ -10,6 +10,7 @@ import MainContent from './components/MainContent';
 
 import AddQuiz from './services/addQuiz.js';
 import Login from './pages/login';
+import SpacedLearning from './pages/spacedLearning.js';
 import StudyRoom from './pages/StudyRoom.js';
 import UserSearch from './services/userSearch.js'; // Import the UserSearch component
 import AcceptFriends from './services/acceptFriends.js'; // Import the UserSearch component
@@ -66,6 +67,10 @@ function App() {
     element={user ? <AddQuiz email={user.email}/> : <Navigate to="/login" />}
     />
     <Route
+    path="/spaced-learning"
+    element={user ? <SpacedLearning email={user.email} selectedQuiz={selectedQuiz} selectedTitle={selectedTitle}/>  : <Navigate to="/login" />}
+    />
+    {/* <Route
     path="/study-room"
     element={user ? <StudyRoom email={user.email} /> : <Navigate to="/login" />}
     />
@@ -80,7 +85,7 @@ function App() {
     <Route
     path="/store"
     element={user ? <Store email={user.email} /> : <Navigate to="/login" />}
-    />
+    /> */}
     {/* <Route
     path="/add-questions"
     element={user ? <AddQuiz email={user.email} /> : <Navigate to="/login" />}

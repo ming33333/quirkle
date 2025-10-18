@@ -141,14 +141,28 @@ const AddQuiz = ({ email, quizData }) => {
     setBulkInput(''); // Clear the bulk input field
   };
 
+  console.log('email:', email, 'initialData:', initialData, 'title:', title, 'questions:', questions);
+
   return (
     <div className="main-content">
       <div className="add-quiz-container">
         <h2>{initialData ? 'Edit Quiz' : 'Add New Quiz'}</h2>
         {!initialDataEmpty && (
-          <button onClick={confirmDeleteQuiz} className="delete-quiz-button">
-            Delete Quiz
-          </button>
+          <div className="button-group">
+            <button onClick={confirmDeleteQuiz} className="delete-quiz-button">
+              Delete Quiz
+            </button>
+            <button
+              onClick={() =>
+                navigate('/spaced-learning', {
+                  state: { initialData, email, title }, // Pass initialData to /spaced-learning
+                })
+              }
+              className="spaced-learning-button"
+            >
+              Spaced Learning
+            </button>
+          </div>
         )}
         {/* Delete Confirmation Popup */}
         {showDeletePopup && (
