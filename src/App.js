@@ -18,13 +18,29 @@ import Store from './pages/store'
 import Welcome from './pages/welcome.js';
 
 import './styles/App.css';
-import QuizView from './pages/quizView'; // Import the QuizView component
+import QuizView from './components/quiz'; // Import the QuizView component
 
 function App() {
   const [user, setUser] = useState(null); // Store the logged-in user
   const [loading, setLoading] = useState(true); // Track whether the app is checking the auth state
   const [selectedQuiz, setSelectedQuiz] = useState(null); // Track the selected quiz
   const [selectedTitle, setSelectedTitle] = useState(null); // Track the selected quiz title
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [questionAnswered, setQuestionAnswered] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const handlePrevQuestion = () => {
+    setCurrentQuestionIndex((prevIndex) => Math.max(prevIndex - 1, 0));
+    setShowAnswer(false); // Hide answer when navigating to previous question
+  };
+
+  const handleNextQuestion = () => {
+    setCurrentQuestionIndex((prevIndex) => Math.min(prevIndex + 1, selectedQuiz.length - 1));
+    setShowAnswer(false); // Hide answer when navigating to next question
+  };
+
+  const toggleAnswerVisibility = () => {
+    setShowAnswer((prevShowAnswer) => !prevShowAnswer);
+  };
   // const location = useLocation(); // Hook to access the current location
   // const initialData = location.state || null; // Retrieve initialData from the state
   
@@ -57,35 +73,98 @@ function App() {
     path="/" element={ <Welcome user={user}/> }
     />
     <Route path="/login" element={<Login setUser={setUser} user={user} />} />
-    {/* Protected Routes */}
+    /* Protected Routes */
     <Route
-    path="/home"
-    element={user ? <MainContent email={user.email} selectedQuiz={selectedQuiz} setSelectedQuiz={setSelectedQuiz} selectedTitle={selectedTitle} setSelectedTitle={setSelectedTitle}  /> : <Navigate to="/login" />}
+      path="/home"
+      element={
+        user ? (
+          <MainContent
+            email={user.email}
+            selectedQuiz={selectedQuiz}
+            setSelectedQuiz={setSelectedQuiz}
+            selectedTitle={selectedTitle}
+            setSelectedTitle={setSelectedTitle}
+          />
+        ) : (
+          <Navigate to="/login" />
+        )
+      }
     />
     <Route
-    path="/add-questions"
-    element={user ? <AddQuiz email={user.email}/> : <Navigate to="/login" />}
-    />
-    <Route
-    path="/spaced-learning"
-    element={user ? <SpacedLearning email={user.email} selectedQuiz={selectedQuiz} selectedTitle={selectedTitle}/>  : <Navigate to="/login" />}
-    />
-    {/* <Route
-    path="/study-room"
-    element={user ? <StudyRoom email={user.email} /> : <Navigate to="/login" />}
-    />
-    <Route
-    path="/user-search"
-    element={user ? <UserSearch email={user.email} /> : <Navigate to="/login" />}
-    />
-    <Route
-    path="/accept-friends"
-    element={user ? <AcceptFriends currentUserEmail={user.email} /> : <Navigate to="/login" />}
-    />
-    <Route
-    path="/store"
-    element={user ? <Store email={user.email} /> : <Navigate to="/login" />}
-    /> */}
+      path="/quiz-view"
+      element={
+        user ? (
+          <QuizView
+          selectedQuiz={selectedQuiz}
+          selectedTitle={selectedTitle}
+          currentQuestionIndex={currentQuestionIndex} // Initialize currentQuestionIndex
+          setSelectedQuiz={setSelectedQuiz}
+          handlePrevQuestion={handlePrevQuestion} // Placeholder for handlePrevQuestion function
+          handleNextQuestion={handleNextQuestion} // Placeholder for handleNextQuestion function
+          toggleAnswerVisibility={toggleAnswerVisibility} // Placeholder for toggleAnswerVisibility function
+          showAnswer={showAnswer} // Default value for showAnswer
+            email={user.email}
+            questionAnswered={questionAnswered}
+            setQuestionAnswered={setQuestionAnswered}
+          />
+          ) : (
+          <Navigate to="/login" />
+          )
+        }
+        />
+        <Route
+          path="/add-questions"
+          element={
+          user ? <AddQuiz email={user.email} /> : <Navigate to="/login" />
+          }
+        />
+        <Route
+          path="/spaced-learning"
+          element={
+          user ? (
+            <SpacedLearning
+            email={user.email}
+            selectedQuiz={selectedQuiz}
+            selectedTitle={selectedTitle}
+            setSelectedQuiz={setSelectedQuiz}
+            handlePrevQuestion={handlePrevQuestion} // Placeholder for handlePrevQuestion function
+            handleNextQuestion={handleNextQuestion} // Placeholder for handleNextQuestion function
+            toggleAnswerVisibility={toggleAnswerVisibility} // Placeholder for toggleAnswerVisibility function
+            showAnswer={showAnswer} // Default value for showAnswer
+            />
+          ) : (
+            <Navigate to="/login" />
+          )
+          }
+        />
+        {/* <Route
+          path="/study-room"
+          element={
+          user ? <StudyRoom email={user.email} /> : <Navigate to="/login" />
+          }
+        />
+        <Route
+          path="/user-search"
+          element={
+          user ? <UserSearch email={user.email} /> : <Navigate to="/login" />
+          }
+        />
+        <Route
+          path="/accept-friends"
+          element={
+          user ? (
+            <AcceptFriends currentUserEmail={user.email} />
+          ) : (
+            <Navigate to="/login" />
+          )
+          }
+        />
+        <Route
+          path="/store"
+          element={
+          user ? <Store email={user.email} /> : <Navigate to="/login" />
+          }
+        /> */}
     {/* <Route
     path="/add-questions"
     element={user ? <AddQuiz email={user.email} /> : <Navigate to="/login" />}

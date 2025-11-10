@@ -13,9 +13,21 @@ const QuizView = ({
   showAnswer,
   email, // Pass the user's email as a prop
 }) => {
-
+  console.log('all the props',{
+    selectedQuiz,
+    selectedTitle,
+    currentQuestionIndex,
+    setSelectedQuiz,
+    handlePrevQuestion,
+    handleNextQuestion,
+    toggleAnswerVisibility,
+    showAnswer,
+    email,
+  });
   const [filterChoice, setFilterChoice] = useState(null); // Track the user's filter choice
   const [showExitPopup, setShowExitPopup] = useState(false); // Track whether the exit popup is visible
+
+  console.log('Selected Quiz:', selectedQuiz); // Debugging: Ensure the filtered questions are passed correctly
 
   const handleExitQuiz = () => {
     console.log('handling exit quiz');
@@ -40,7 +52,9 @@ const QuizView = ({
   const handleFilterChoice = (choice) => {
     if (choice === 'passed') {
       // Filter questions that are marked as passed
+      console.log('selectedQuiz before filtering:', selectedQuiz);
       const filteredQuestions = selectedQuiz.filter((q) => q.passed === true);
+      console.log('passed Filtered Questions:', filteredQuestions);
       setSelectedQuiz(filteredQuestions);
     } else if (choice === 'notPassed') {
       // Filter questions that do not have a passed key or are not passed

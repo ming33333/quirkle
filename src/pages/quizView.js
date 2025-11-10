@@ -12,17 +12,33 @@ const QuizView = ({
   toggleAnswerVisibility,
   showAnswer,
   email, // Pass the user's email as a prop
+  questionAnswered,
+  setQuestionAnswered
 }) => {
   const currentQuestion = selectedQuiz[currentQuestionIndex];
-  const handleAnswerChoice = (choice) => {
-    if (choice === 'right') {
-      console.log('User chose: Right');
-      // Add logic for when the user selects "Right"
-      // Example: Increment a score or mark the question as correct
-    } else if (choice === 'wrong') {
-      console.log('User chose: Wrong');
-      // Add logic for when the user selects "Wrong"
-      // Example: Track incorrect answers or provide feedback
+  const handleAnswerChoice = async (choice) => {
+    setQuestionAnswered(true);
+    try {
+      const updatedQuestions = [...selectedQuiz]; // Create a copy of the questions array
+      const currentQuestion = updatedQuestions[currentQuestionIndex]; // Get the current question
+  
+      // Add a "correct" field to the current question based on the user's choice
+      currentQuestion.passed = choice === 'right';
+      const currentLevel = currentQuestion.level || 1;
+      const nextLevel = currentLevel + 1
+      console.log('current level:', currentLevel, 'next level:', nextLevel);
+      console.log('email:', email, 'title:', selectedTitle, 'question index:', currentQuestionIndex, 'passed:', currentQuestion.passed);
+      // Update the questions array in Firestore
+      if (choice === 'right') {
+        currentQuestion.level = nextLevel; // Increase level if answered correctly
+      } else {
+        currentQuestion.level = currentLevel; // Reset level if answered incorrectly
+      }
+      const quizDocRef = doc(db, 'users', email, 'quizCollection', selectedTitle);
+      await updateDoc(quizDocRef, { questions: updatedQuestions });
+  
+    } catch (error) {
+      console.error('Error updating question in Firestore:', error);
     }
   };
   const handleAwardPoint = async () => {
@@ -59,7 +75,6 @@ const QuizView = ({
       </div>
     );
   }
-  console.log(`selectedQuiz`, selectedQuiz);
   return (
     <div className="quiz-container">
       <button onClick={() => setSelectedQuiz(null)} style={{ marginBottom: '1em' }} className="question-button">
