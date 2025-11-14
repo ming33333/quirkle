@@ -141,8 +141,6 @@ const AddQuiz = ({ email, quizData }) => {
     setBulkInput(''); // Clear the bulk input field
   };
 
-  console.log('email:', email, 'initialData:', initialData, 'title:', title, 'questions:', questions);
-
   return (
     <div className="main-content">
       <div className="add-quiz-container">

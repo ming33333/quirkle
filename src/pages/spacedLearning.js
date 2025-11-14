@@ -1,20 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { updateDocument } from '../utils/firebase/firebaseServices';
+import  QuizView  from '../components/quiz'
 
-// const handleToggleStar = async (index) => {
-//   try {
-//     const updatedQuestions = [...questions]; // Create a copy of the questions array
-//     updatedQuestions[index].starred = !updatedQuestions[index].starred; // Toggle the star status
-//     setQuestions(updatedQuestions); // Update the state
-
-//     // Update the database
-//     await updateDocument(`users/${email}/quizCollection/${title}`, {
-//       questions: updatedQuestions,
-//     });
-//   } catch (error) {
-//     console.error('Error updating star status in Firestore:', error);
-//   }
-// };
 const checkAndUpdateLevels = async (selectedQuiz,email,title) => {
   let isUpdated = false;
   try {
@@ -26,7 +13,6 @@ const checkAndUpdateLevels = async (selectedQuiz,email,title) => {
       }
       return question;
     });
-    console.log('Updated Questions:', updatedQuestions);
     if (isUpdated) {
       // Update the database
       await updateDocument(`users/${email}/quizCollection/${title}`, {
@@ -39,15 +25,82 @@ const checkAndUpdateLevels = async (selectedQuiz,email,title) => {
   }
 };
 
-const SpacedLearning = ({ selectedQuiz, email, selectedTitle }) => {
-  checkAndUpdateLevels(selectedQuiz,email,selectedTitle);
+
+
+const SpacedLearning = ({ selectedQuiz, email, selectedTitle,setSelectedQuiz }) => {
+  const [updatedQuiz, setUpdatedQuiz] = React.useState([]);
+  const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [loading, setLoading] = useState(true);
+  let filteredQuestions, levelTitle;
+  const [levelSelected, setLevelSelected] = React.useState(false);
+
+  const handlePrevQuestion = () => {
+    setCurrentQuestionIndex((prevIndex) => Math.max(prevIndex - 1, 0));
+    setShowAnswer(false); // Hide answer when navigating to previous question
+  };
+  
+  const handleNextQuestion = () => {
+    console.log('next question')
+    setCurrentQuestionIndex((prevIndex) => Math.min(prevIndex + 1, selectedQuiz.length - 1));
+    setShowAnswer(false); // Hide answer when navigating to next question
+  };
+  
+  const toggleAnswerVisibility = () => {
+    setShowAnswer((prevShowAnswer) => !prevShowAnswer);
+  };
+
+  React.useEffect(() => {
+    const updateQuiz = async () => {
+      setUpdatedQuiz(selectedQuiz);
+    };
+    updateQuiz();
+  }, [selectedQuiz, email, selectedTitle]);
+
+  const handleBucketClick = (level) => {
+    checkAndUpdateLevels(selectedQuiz, email, selectedTitle)
+    // Filter questions for the selected level
+    setLevelSelected(true)
+    levelTitle = `${selectedTitle} - Level ${level}`;
+    filteredQuestions = selectedQuiz.filter((question) => question.level === level);
+    setUpdatedQuiz(filteredQuestions)
+    console.log(`Filtered Questions for Level ${level}:`, filteredQuestions);
+
+    // Update the quiz state with filtered questions
+    setUpdatedQuiz(filteredQuestions);
+
+  };
+
+  // If filteredQuestions is set, render the QuizView component
+  console.log('level selected',levelSelected)
+  if (levelSelected && selectedQuiz) {
+    console.log('level has been selected',updatedQuiz)
+    console.log('selected quiz spacelearning',selectedQuiz)
+    return (
+      <QuizView
+        selectedQuiz={selectedQuiz}
+        selectedTitle={selectedTitle}
+        currentQuestionIndex={currentQuestionIndex}
+        setSelectedQuiz={setSelectedQuiz}
+        handlePrevQuestion={handlePrevQuestion}
+        handleNextQuestion={handleNextQuestion}
+        toggleAnswerVisibility={toggleAnswerVisibility}
+        showAnswer={showAnswer}
+        email={email} />
+    );
+  }
 
   return (
     <div className="spaced-learning-container">
       <h2>Spaced Learning</h2>
       <div className="grid-container">
         {[1, 2, 3, 4].map((level) => (
-          <div key={level} className="bucket">
+          <div
+            key={level}
+            className="bucket"
+            onClick={() => handleBucketClick(level)} // Handle bucket click
+          >
             <h3>{`Level ${level}`}</h3>
           </div>
         ))}
@@ -55,5 +108,6 @@ const SpacedLearning = ({ selectedQuiz, email, selectedTitle }) => {
     </div>
   );
 };
+
 
 export default SpacedLearning;

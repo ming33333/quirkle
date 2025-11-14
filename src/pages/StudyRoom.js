@@ -6,8 +6,6 @@ const StudyRoom = ({ email }) => {
   const [otherUsers, setOtherUsers] = useState([]); // Positions of other users
   const [isAdVisible, setIsAdVisible] = useState(true); // State to control ad visibility
   const ws = useRef(null); // WebSocket reference
-  console.log('Current user email:', email);
-
   // Call the backend to ensure the WebSocket server is running
   useEffect(() => {
     const startWebSocketServer = async () => {

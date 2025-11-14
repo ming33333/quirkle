@@ -13,20 +13,40 @@ const QuizView = ({
   showAnswer,
   email, // Pass the user's email as a prop
 }) => {
-
+  // console.log('all the props',{
+  //   selectedQuiz,
+  //   selectedTitle,
+  //   currentQuestionIndex,
+  //   setSelectedQuiz,
+  //   handlePrevQuestion,
+  //   handleNextQuestion,
+  //   toggleAnswerVisibility,
+  //   showAnswer,
+  //   email,
+  // });
   const [filterChoice, setFilterChoice] = useState(null); // Track the user's filter choice
   const [showExitPopup, setShowExitPopup] = useState(false); // Track whether the exit popup is visible
+  let immediateExit;
 
-  const handleExitQuiz = () => {
+  console.log('Selected Quiz:', selectedQuiz); // Debugging: Ensure the filtered questions are passed correctly
+
+  const handleExitQuiz = (immediateExit = false) => {
+    console.log('immediateExit value:', immediateExit);
     console.log('handling exit quiz');
     console.log('currentQuestionIndex:', currentQuestionIndex+1, 'selectedQuiz length:', selectedQuiz.length);
+    if (immediateExit) {
+      setSelectedQuiz(null); // Exit the quiz if it's completed
+      setFilterChoice(null); // Reset filterChoice to null
+      window.location.href = '#/home'; // Redirect to /home
+      return;
+    }
     if (currentQuestionIndex+1 < selectedQuiz.length) {
       setShowExitPopup(true); // Show the popup if the user hasn't finished the quiz
     } else {
       setSelectedQuiz(null); // Exit the quiz if it's completed
       setFilterChoice(null); // Reset filterChoice to null
-    }
-  };
+  }
+};
 
   const handleContinueQuiz = () => {
     console.log('User has finished the quiz .');
@@ -40,7 +60,9 @@ const QuizView = ({
   const handleFilterChoice = (choice) => {
     if (choice === 'passed') {
       // Filter questions that are marked as passed
+      console.log('selectedQuiz before filtering:', selectedQuiz);
       const filteredQuestions = selectedQuiz.filter((q) => q.passed === true);
+      console.log('passed Filtered Questions:', filteredQuestions);
       setSelectedQuiz(filteredQuestions);
     } else if (choice === 'notPassed') {
       // Filter questions that do not have a passed key or are not passed
@@ -106,7 +128,7 @@ const QuizView = ({
       <div className="quiz-container">
         <h2>Congrats, you are done!</h2>
         <p>You have completed the quiz and earned 1 point!</p>
-        <button onClick={() => setSelectedQuiz(null)} className="question-button">
+        <button onClick={()=>handleExitQuiz(immediateExit=true)} className="question-button">
           Back to Quiz List
         </button>
       </div>
@@ -118,7 +140,7 @@ const QuizView = ({
       <div className="quiz-container">
       <h2>Choose Your Quiz Mode</h2>
       <p>Do you want to take only questions marked as passed or those not marked as passed?</p>
-      <button onClick={() => setSelectedQuiz(null)} className="question-button">
+      <button onClick={()=>handleExitQuiz(immediateExit=true)} className="question-button">
         Back to Quiz List
       </button>
       <div style={{ marginTop: '1em' }}>
@@ -138,10 +160,8 @@ const QuizView = ({
   return (
     <div className="quiz-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <button
-        onClick={() => {
-          handleExitQuiz();
-         
-        }}
+        onClick={() =>
+          handleExitQuiz(false)}
         style={{ marginBottom: '1em' }}
         className="question-button"
       >
