@@ -74,8 +74,9 @@ const SpacedLearning = ({ selectedQuiz, email, selectedTitle,setSelectedQuiz }) 
 
   // If filteredQuestions is set, render the QuizView component
   console.log('level selected',levelSelected)
-  if (levelSelected) {
+  if (levelSelected && selectedQuiz) {
     console.log('level has been selected',updatedQuiz)
+    console.log('selected quiz spacelearning',selectedQuiz)
     return (
       <QuizView
         selectedQuiz={selectedQuiz}
