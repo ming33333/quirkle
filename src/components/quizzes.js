@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle }) => {
+const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle,spacedLearning =false }) => {
   const navigate = useNavigate(); // Hook to navigate to different routes
   const [clickedQuiz, setClickedQuiz] = useState(null); // Track which quiz box is clicked
   const [showTooltip, setShowTooltip] = useState(null); // Track which tooltip is visible
@@ -26,6 +26,17 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle }) => {
   return (
     <div className="quiz-boxes-container">
       {/* Render quiz boxes */}
+    {spacedLearning && (
+    <div
+      className="quiz-option" // Use the same class as other quiz boxes
+      style={{
+        cursor: 'default',
+        backgroundColor: '#d3f9d8', // Optional: Keep the unique background color
+      }}
+    >
+      <h3 style={{ color: '#4caf50' }}>Hello</h3>
+    </div>
+    )}
       {Object.keys(quizzes).map((key, index) => (
         <div
           key={index}

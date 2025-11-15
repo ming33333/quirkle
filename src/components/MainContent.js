@@ -11,6 +11,7 @@ const MainContent = ({ email, selectedQuiz, setSelectedQuiz, selectedTitle,setSe
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all'); // 'all' or 'spacedLearning'
 
   useEffect(() => {
     const fetchQuizzes = async () => {
@@ -60,15 +61,49 @@ const MainContent = ({ email, selectedQuiz, setSelectedQuiz, selectedTitle,setSe
     setShowAnswer((prevShowAnswer) => !prevShowAnswer);
   };
 
+  // if (!selectedQuiz) {
+  //   return (
+  //     <div className="main-content">
+  //       <QuizBoxes quizzes={quizzes} setSelectedQuiz={setSelectedQuiz} setSelectedTitle={setSelectedTitle}/>
+  //     </div>
+  //   );
+
+
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter);
+  };
+
+  const filteredQuizzes = filter === 'all'
+    ? quizzes
+    : Object.fromEntries(
+        Object.entries(quizzes).filter(([, quiz]) => quiz.spacedLearning)
+      );
   if (!selectedQuiz) {
     return (
       <div className="main-content">
-        <QuizBoxes quizzes={quizzes} setSelectedQuiz={setSelectedQuiz} setSelectedTitle={setSelectedTitle}/>
+        <div className="filter-controls">
+          <button
+            className={filter === 'all' ? 'active' : ''}
+            onClick={() => handleFilterChange('all')}
+          >
+            All
+          </button>
+          <button
+            className={filter === 'spacedLearning' ? 'active' : ''}
+            onClick={() => handleFilterChange('spacedLearning')}
+          >
+            Spaced Learning
+          </button>
+        </div>
+        <div className="main-content">
+          <QuizBoxes quizzes={filteredQuizzes} setSelectedQuiz={setSelectedQuiz} setSelectedTitle={setSelectedTitle} spacedLearning = {filter==='spacedLearning'} />
+        </div>
       </div>
     );
   }
 
   return (
+    //TODO add filter here for spacedlearning view
     <div className="main-content">
       <QuizView
         selectedQuiz={selectedQuiz}
@@ -91,6 +126,9 @@ const MainContent = ({ email, selectedQuiz, setSelectedQuiz, selectedTitle,setSe
       />
     </div>
   );
-};
+  }
+
+
+
 
 export default MainContent;
