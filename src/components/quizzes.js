@@ -13,6 +13,16 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle }) => {
     const daysAgo = Math.floor(timeDifference / (1000 * 60 * 60 * 24)); // Convert to days
     return daysAgo;
   };
+
+
+  const calculateQuizLevels = (quiz) => {
+    const levels = {};
+    quiz.questions.forEach((question) => {
+      const level = parseInt(question.level, 10) || 1; // Default to level 1 if no level or invalid
+      levels[level] = (levels[level] || 0) + 1; // Count questions per level
+    });
+    return JSON.stringify(levels);
+  };
   return (
     <div className="quiz-boxes-container">
       {/* Render quiz boxes */}
@@ -40,7 +50,9 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle }) => {
               {quizzes[key]["lastAccessed"]
                 ? `${calculateDaysAgo(quizzes[key]["lastAccessed"])} days ago`
                 : 'Never Accessed'}
-              {showTooltip === key && (
+                <br /> {/* Added line break */}
+                {`Levels: ${calculateQuizLevels(quizzes[key])}`}
+                {showTooltip === key && (
                 <div className="tooltip">
                   {quizzes[key]["lastAccessed"]
                     ? new Date(quizzes[key]["lastAccessed"]).toLocaleString('en-US', {

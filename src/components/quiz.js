@@ -28,12 +28,7 @@ const QuizView = ({
   const [showExitPopup, setShowExitPopup] = useState(false); // Track whether the exit popup is visible
   let immediateExit;
 
-  console.log('Selected Quiz:', selectedQuiz); // Debugging: Ensure the filtered questions are passed correctly
-
   const handleExitQuiz = (immediateExit = false) => {
-    console.log('immediateExit value:', immediateExit);
-    console.log('handling exit quiz');
-    console.log('currentQuestionIndex:', currentQuestionIndex+1, 'selectedQuiz length:', selectedQuiz.length);
     if (immediateExit) {
       setSelectedQuiz(null); // Exit the quiz if it's completed
       setFilterChoice(null); // Reset filterChoice to null
@@ -49,7 +44,6 @@ const QuizView = ({
 };
 
   const handleContinueQuiz = () => {
-    console.log('User has finished the quiz .');
     setShowExitPopup(false); // Close the popup and let the user continue
   };
 
@@ -60,9 +54,7 @@ const QuizView = ({
   const handleFilterChoice = (choice) => {
     if (choice === 'passed') {
       // Filter questions that are marked as passed
-      console.log('selectedQuiz before filtering:', selectedQuiz);
       const filteredQuestions = selectedQuiz.filter((q) => q.passed === true);
-      console.log('passed Filtered Questions:', filteredQuestions);
       setSelectedQuiz(filteredQuestions);
     } else if (choice === 'notPassed') {
       // Filter questions that do not have a passed key or are not passed
@@ -89,10 +81,14 @@ const QuizView = ({
   
       // Add a "correct" field to the current question based on the user's choice
       currentQuestion.passed = choice === 'right';
-  
-      // Update the questions array in Firestore
+      currentQuestion.lastAnswered = new Date().toISOString(); // Record the time of answering
+      if (choice === 'right') 
+        currentQuestion.level = currentQuestion.level ? currentQuestion.level + 1 : 1; // Ensure level exists
+      else
+        currentQuestion.level = currentQuestion.level && currentQuestion.level - 1 > 0 ? currentQuestion.level - 1 : 1;  // Reset level to 1 if answered wrong
+      
       const quizDocRef = doc(db, 'users', email, 'quizCollection', selectedTitle);
-      await updateDoc(quizDocRef, { questions: updatedQuestions });
+      await updateDoc(quizDocRef, { questions: updatedQuestions }); //TODO update single question, rn updating whole quiz
   
     } catch (error) {
       console.error('Error updating question in Firestore:', error);
