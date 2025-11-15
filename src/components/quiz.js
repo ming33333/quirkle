@@ -82,6 +82,8 @@ const QuizView = ({
       // Add a "correct" field to the current question based on the user's choice
       currentQuestion.passed = choice === 'right';
       currentQuestion.lastAnswered = new Date().toISOString(); // Record the time of answering
+
+      //bug is here
       if (choice === 'right') 
         currentQuestion.level = currentQuestion.level ? currentQuestion.level + 1 : 1; // Ensure level exists
       else
