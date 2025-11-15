@@ -33,8 +33,9 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle,spacedLearning =
         cursor: 'default',
         backgroundColor: '#d3f9d8', // Optional: Keep the unique background color
       }}
-    >
-      <h3 style={{ color: '#4caf50' }}>Hello</h3>
+    > 
+    {/* TODO add in cumulative test view inthe isbox*/}
+      <h3 style={{ color: '#4caf50' }}>Hello</h3> 
     </div>
     )}
       {Object.keys(quizzes).map((key, index) => (
