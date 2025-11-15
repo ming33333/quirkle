@@ -2,7 +2,7 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Updating quirkle.io
+## Updating quirkle.io url 
 
 - pushing to main automatically update githubpages branch, and causes it to crash
 - need to push changes up first up?
@@ -13,41 +13,14 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 ## DEPLOY TO SITE
  auto deploys when launched on main (changes probagate in about 5 mins?)
 
-## Clean up time
-- pages are not correct so fix them 
+## TERMINOLOGY 
 
-## TODO
-https://ming33333.github.io/quirkle/
-
-lower priority
-
-- - hide login fire base temp site https://firebase.google.com/docs/auth/web/google-signin#expandable-4
-- - use the context folder
-- - move login feature into utils 
-~~add logging of when friend request sent and accepted
-- should move users creation in login section
-- update so user is made in DB at login
-- dont override request just update them
-- seperate friendcollection system from user search
-- deny friend feature
-- fix routing
-- profile, add friends
-- star questions and then only get starred questions 
-- better system for adding questions
+- spaced learning, Active Questions, questions in spaced learning that are ready to be taking, active question can be cumulated over time
+so some questions will be 'late'. Active questions can be taken late but will still adhere to the same rules if the user get the question right/wrong. 
 
 
-## Firebase
-can deploy rules with this line: firebase deploy --only firestore:rules
-check ways to make db more secure here: https://www.youtube.com/watch?v=hQI_w4AZ92I
-
-## Firebase structure
-
-co
-quizzes | users | { questions: {}, profile: {} } |  
-
-
-system | admins |
-       | site   | 
+## Data structuress
+- dates are in iso string
 
 ## Available Scripts
 
@@ -99,32 +72,6 @@ If you aren't satisfied with the build tool and configuration choices, you can `
 Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
 You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
 
 ### `npm run build` fails to minify
 

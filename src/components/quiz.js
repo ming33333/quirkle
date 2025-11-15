@@ -75,18 +75,32 @@ const QuizView = ({
     });
   };
   const handleAnswerChoice = async (choice) => {
+    const levelTypes = doc(db, 'configs', 'levelTypes');
+    const levelTypesDoc = await getDoc(levelTypes);
+    let levelTypesDataStandard;
+    levelTypesDataStandard= levelTypesDoc.data()['standard'];
+    
     try {
       const updatedQuestions = [...selectedQuiz]; // Create a copy of the questions array
       const currentQuestion = updatedQuestions[currentQuestionIndex]; // Get the current question
-  
-      // Add a "correct" field to the current question based on the user's choice
       currentQuestion.passed = choice === 'right';
       currentQuestion.lastAnswered = new Date().toISOString(); // Record the time of answering
-      if (choice === 'right') 
-        currentQuestion.level = currentQuestion.level ? currentQuestion.level + 1 : 1; // Ensure level exists
-      else
+      if (choice === 'right') {
+        currentQuestion.level = currentQuestion.level ? Math.min(currentQuestion.level + 1, 4) : 2;
+        const addedDays = levelTypesDataStandard[Math.min(currentQuestion.level, 4)] //TODO possible bug here if a days does not exist
+        const nextActiveDate = new Date();
+        nextActiveDate.setDate(nextActiveDate.getDate() + addedDays); // Add the days to the current date
+        currentQuestion.activeTime = nextActiveDate.toISOString(); // Update activeTime when the question needs to be seen next
+        console.log('Answered right, setting level to', currentQuestion.level,'next active time to', currentQuestion.activeTime);
+      }
+      else {
         currentQuestion.level = currentQuestion.level && currentQuestion.level - 1 > 0 ? currentQuestion.level - 1 : 1;  // Reset level to 1 if answered wrong
-      
+        const subtractedDays = levelTypesDataStandard[Math.max(currentQuestion.level, 1)]
+        const nextActiveDate = new Date();
+        nextActiveDate.setDate(nextActiveDate.getDate() + subtractedDays); // Add the days to the current date
+        currentQuestion.activeTime = nextActiveDate.toISOString(); // Update activeTime when question need to be seen next
+        console.log('Answered wrong, setting level to', currentQuestion.level,'next active time to', currentQuestion.activeTime);
+      }
       const quizDocRef = doc(db, 'users', email, 'quizCollection', selectedTitle);
       await updateDoc(quizDocRef, { questions: updatedQuestions }); //TODO update single question, rn updating whole quiz
   
