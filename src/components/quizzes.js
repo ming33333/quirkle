@@ -21,7 +21,6 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle }) => {
       const level = parseInt(question.level, 10) || 1; // Default to level 1 if no level or invalid
       levels[level] = (levels[level] || 0) + 1; // Count questions per level
     });
-    console.log('levels',levels)
     return JSON.stringify(levels);
   };
   return (
@@ -52,7 +51,7 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle }) => {
                 ? `${calculateDaysAgo(quizzes[key]["lastAccessed"])} days ago`
                 : 'Never Accessed'}
                 <br /> {/* Added line break */}
-                {`Levels: ${calculateQuizLevels(quizzes[key])}`}}
+                {`Levels: ${calculateQuizLevels(quizzes[key])}`}
                 {showTooltip === key && (
                 <div className="tooltip">
                   {quizzes[key]["lastAccessed"]

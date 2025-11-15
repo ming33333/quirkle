@@ -58,7 +58,12 @@ const SpacedLearning = ({ selectedQuiz, email, selectedTitle,setSelectedQuiz }) 
     updateQuiz();
   }, [selectedQuiz, email, selectedTitle]);
 
-  const handleBucketClick = (level) => {
+  const handleBucketClick = (level,email,title) => {
+    if (!selectedQuiz.SpacedLearning)
+      updateDocument(`users/${email}/quizCollection/${title}`, {
+        spacedLearning: 'standard'
+      });
+      
     checkAndUpdateLevels(selectedQuiz, email, selectedTitle)
     // Filter questions for the selected level
     setLevelSelected(true)
@@ -99,7 +104,7 @@ const SpacedLearning = ({ selectedQuiz, email, selectedTitle,setSelectedQuiz }) 
           <div
             key={level}
             className="bucket"
-            onClick={() => handleBucketClick(level)} // Handle bucket click
+            onClick={() => handleBucketClick(level,email,selectedTitle)} // Handle bucket click
           >
             <h3>{`Level ${level}`}</h3>
           </div>
