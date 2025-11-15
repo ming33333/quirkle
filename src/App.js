@@ -10,7 +10,7 @@ import MainContent from './components/MainContent';
 
 import AddQuiz from './services/addQuiz.js';
 import Login from './pages/login';
-import SpacedLearning from './pages/spacedLearning.js';
+import SpacedLearningQuiz from './pages/spacedLearningQuiz.js';
 import StudyRoom from './pages/StudyRoom.js';
 import UserSearch from './services/userSearch.js'; // Import the UserSearch component
 import AcceptFriends from './services/acceptFriends.js'; // Import the UserSearch component
@@ -122,7 +122,7 @@ function App() {
           path="/spaced-learning"
           element={
           user ? (
-            <SpacedLearning
+            <SpacedLearningQuiz
             email={user.email}
             selectedQuiz={selectedQuiz}
             selectedTitle={selectedTitle}

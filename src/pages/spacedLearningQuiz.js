@@ -27,7 +27,7 @@ const checkAndUpdateLevels = async (selectedQuiz,email,title) => {
 
 
 
-const SpacedLearning = ({ selectedQuiz, email, selectedTitle,setSelectedQuiz }) => {
+const SpacedLearningQuiz = ({ selectedQuiz, email, selectedTitle,setSelectedQuiz }) => {
   const [updatedQuiz, setUpdatedQuiz] = React.useState([]);
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -115,4 +115,4 @@ const SpacedLearning = ({ selectedQuiz, email, selectedTitle,setSelectedQuiz }) 
 };
 
 
-export default SpacedLearning;
+export default SpacedLearningQuiz;
