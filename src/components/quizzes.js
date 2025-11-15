@@ -46,33 +46,32 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle }) => {
               onClick={(event) => {
                 event.stopPropagation(); // Prevent the click event from propagating to the parent
                 setShowTooltip((prev) => (prev === key ? null : key)); // Toggle tooltip on click
-              }}
-            >
-              {/* {quizzes[key]["lastAccessed"]
+                }}
+                >
+                {quizzes[key]["lastAccessed"]
                 ? `${calculateDaysAgo(quizzes[key]["lastAccessed"])} days ago`
-                : 'Never Accessed'} */}
-                {
-                  `levels ${calculateQuizLevels(quizzes[key])}`
-                }
-              {showTooltip === key && (
+                : 'Never Accessed'}
+                <br /> {/* Added line break */}
+                {`Levels: ${calculateQuizLevels(quizzes[key])}`}}
+                {showTooltip === key && (
                 <div className="tooltip">
                   {quizzes[key]["lastAccessed"]
-                    ? new Date(quizzes[key]["lastAccessed"]).toLocaleString('en-US', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
-                    : 'No access date available'}
+                  ? new Date(quizzes[key]["lastAccessed"]).toLocaleString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    })
+                  : 'No access date available'}
                 </div>
-              )}
-            </span>
-          </div>
-          {clickedQuiz === key && (
-            <div className="click-options">
-              <button
+                )}
+              </span>
+              </div>
+              {clickedQuiz === key && (
+              <div className="click-options">
+                <button
                 onClick={() => {
                   setSelectedQuiz(quizzes[key]["questions"]); // Set the selected quiz
                   setSelectedTitle(key); // Set the selected title
