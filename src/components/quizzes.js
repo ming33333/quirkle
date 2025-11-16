@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { calculateActiveQuestions } from '../utils/helpers/quizHelpers';
 
 const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle,spacedLearning =false }) => {
   const navigate = useNavigate(); // Hook to navigate to different routes
@@ -23,6 +24,7 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle,spacedLearning =
     });
     return JSON.stringify(levels);
   };
+
   return (
     <div className="quiz-boxes-container">
       {/* Render quiz boxes */}
@@ -64,6 +66,8 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle,spacedLearning =
                 : 'Never Accessed'}
                 <br /> {/* Added line break */}
                 {`Levels: ${calculateQuizLevels(quizzes[key])}`}
+                <br /> {/* Added line break */}
+                {`Active Questions: ${calculateActiveQuestions(quizzes[key]).length}/${quizzes[key]["questions"].length}`}
                 {showTooltip === key && (
                 <div className="tooltip">
                   {quizzes[key]["lastAccessed"]
