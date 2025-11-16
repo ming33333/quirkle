@@ -36,7 +36,7 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle,spacedLearning =
         backgroundColor: '#d3f9d8', // Optional: Keep the unique background color
       }}
     > 
-    {/* TODO add in cumulative test view inthe isbox*/}
+    {/* TODO add in cumulative test view in the is box*/}
       <h3 style={{ color: '#4caf50' }}>Hello</h3> 
     </div>
     )}
