@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { updateDocument } from '../utils/firebase/firebaseServices';
+import { calculateActiveQuestions } from '../utils/helpers/quizHelpers';
 import  QuizView  from '../components/quiz'
 
 const checkAndUpdateLevels = async (selectedQuiz,email,title) => {
@@ -63,12 +64,17 @@ const SpacedLearningQuiz = ({ selectedQuiz, email, selectedTitle,setSelectedQuiz
       updateDocument(`users/${email}/quizCollection/${title}`, {
         spacedLearning: 'standard'
       });
+    console.log('selected quiz', selectedQuiz);
       
     checkAndUpdateLevels(selectedQuiz, email, selectedTitle)
     // Filter questions for the selected level
     setLevelSelected(true)
     levelTitle = `${selectedTitle} - Level ${level}`;
-    filteredQuestions = selectedQuiz.filter((question) => question.level === level);
+    if (level === 'active') { 
+      filteredQuestions =  calculateActiveQuestions({'questions':(selectedQuiz)});
+    } else {
+      filteredQuestions = selectedQuiz.filter((question) => question.level === level);
+    }
     setUpdatedQuiz(filteredQuestions)
     console.log(`Filtered Questions for Level ${level}:`, filteredQuestions);
 
@@ -77,14 +83,11 @@ const SpacedLearningQuiz = ({ selectedQuiz, email, selectedTitle,setSelectedQuiz
 
   };
 
-  // If filteredQuestions is set, render the QuizView component
-  console.log('level selected',levelSelected)
-  if (levelSelected && selectedQuiz) {
-    console.log('level has been selected',updatedQuiz)
-    console.log('selected quiz spacelearning',selectedQuiz)
+
+  if (levelSelected && updatedQuiz) {
     return (
       <QuizView
-        selectedQuiz={selectedQuiz}
+        selectedQuiz={updatedQuiz}
         selectedTitle={selectedTitle}
         currentQuestionIndex={currentQuestionIndex}
         setSelectedQuiz={setSelectedQuiz}
@@ -104,11 +107,17 @@ const SpacedLearningQuiz = ({ selectedQuiz, email, selectedTitle,setSelectedQuiz
           <div
             key={level}
             className="bucket"
-            onClick={() => handleBucketClick(level,email,selectedTitle)} // Handle bucket click
+            onClick={() => handleBucketClick(level, email, selectedTitle)} // Handle bucket click
           >
             <h3>{`Level ${level}`}</h3>
           </div>
         ))}
+        <div
+          className="bucket"
+          onClick={() => handleBucketClick('active', email, selectedTitle)} // Handle bucket click
+        >
+          <h3>All Active</h3>
+        </div>
       </div>
     </div>
   );
