@@ -1,9 +1,13 @@
-const express = require('express');
-const http = require('http');
-const WebSocket = require('ws');
+import express from 'express';
+import http from 'http';
+import WebSocket from 'ws';
 
 const app = express();
 const PORT = 8080;
+
+// Ensure the file is treated as an ES module
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 
 // Create an HTTP server
 const server = http.createServer(app);
@@ -14,7 +18,7 @@ const wss = new WebSocket.Server({ server });
 let users = {}; // Store user positions
 
 // WebSocket connection logic
-wss.on('connection', (ws) => {
+wss.on("connection", (ws) => {
   console.log('A user connected.');
 
   // Handle incoming messages
@@ -42,7 +46,7 @@ wss.on('connection', (ws) => {
   // Handle disconnection
   ws.on('close', () => {
     console.log('A user disconnected.');
-  });
+});
 });
 
 // Express endpoint to start the WebSocket server
@@ -54,3 +58,7 @@ app.get('/studyroom', (req, res) => {
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+
+
+

@@ -7,14 +7,20 @@ const AcceptFriends = ({ currentUserEmail }) => {
   const [friendRequests, setFriendRequests] = useState([]); // Store friend requests
   const [loading, setLoading] = useState(true); // Track loading state
   const [error, setError] = useState(null); // Track errors
-  console.log( `currentuser ${currentUserEmail}`)
+  console.log(`currentuser ${currentUserEmail}`);
 
   // Fetch current friends and friend requests from Firestore
   useEffect(() => {
     const fetchFriendsAndRequests = async () => {
       try {
         // Fetch current friends
-        const friendsDocRef = doc(db, 'users', currentUserEmail, 'friendCollection', 'friends');
+        const friendsDocRef = doc(
+          db,
+          'users',
+          currentUserEmail,
+          'friendCollection',
+          'friends'
+        );
         const friendsDoc = await getDoc(friendsDocRef);
 
         if (friendsDoc.exists()) {
@@ -27,7 +33,13 @@ const AcceptFriends = ({ currentUserEmail }) => {
         }
 
         // Fetch friend requests
-        const requestDocRef = doc(db, 'users', currentUserEmail, 'friendCollection', 'requests');
+        const requestDocRef = doc(
+          db,
+          'users',
+          currentUserEmail,
+          'friendCollection',
+          'requests'
+        );
         const requestDoc = await getDoc(requestDocRef);
 
         if (requestDoc.exists()) {
@@ -49,41 +61,73 @@ const AcceptFriends = ({ currentUserEmail }) => {
   }, [currentUserEmail]);
   // Handle accepting a friend request
   const handleAccept = async (friendEmail) => {
-    console.log('friend email',friendEmail)
+    console.log('friend email', friendEmail);
     try {
       // Updated the accepted friend from the requests list of user
       const updatedRequests = {
         [friendEmail]: {
-            response: true,
-            responded: true,
-            timestamp: new Date(),
-          }
+          response: true,
+          responded: true,
+          timestamp: new Date(),
+        },
       };
       // Updated the accepted friend from the requests list of sender
       const senderUpdatedRequests = {
         [currentUserEmail]: {
-            response: true,
-            responded: true,
-            timestamp: new Date(),
-          }
+          response: true,
+          responded: true,
+          timestamp: new Date(),
+        },
       };
       setFriendRequests(updatedRequests);
 
       // Update the Firestore document user request
-      const requestDocRef = doc(db, 'users', currentUserEmail, 'friendCollection', 'requests');
-      await setDoc(requestDocRef, updatedRequests, {merge: true});
+      const requestDocRef = doc(
+        db,
+        'users',
+        currentUserEmail,
+        'friendCollection',
+        'requests'
+      );
+      await setDoc(requestDocRef, updatedRequests, { merge: true });
 
       // Add the friend to the user's friend list
-      const friendListDocRef = doc(db, 'users', currentUserEmail, 'friendCollection', 'friends');
-      await setDoc(friendListDocRef,{ [friendEmail]: 'email'}, {merge: true} );
+      const friendListDocRef = doc(
+        db,
+        'users',
+        currentUserEmail,
+        'friendCollection',
+        'friends'
+      );
+      await setDoc(
+        friendListDocRef,
+        { [friendEmail]: 'email' },
+        { merge: true }
+      );
 
       // Update the Firestore document
-      const senderDocRef = doc(db, 'users', friendEmail, 'friendCollection', 'requests');
-      await setDoc(senderDocRef, senderUpdatedRequests, {merge: true});
+      const senderDocRef = doc(
+        db,
+        'users',
+        friendEmail,
+        'friendCollection',
+        'requests'
+      );
+      await setDoc(senderDocRef, senderUpdatedRequests, { merge: true });
 
       // Add the friend to the user's friend list
-      const senderFriendListDocRef = doc(db, 'users', friendEmail, 'friendCollection', 'friends');
-      await setDoc(senderFriendListDocRef,{ [currentUserEmail]: 'email'}, {merge: true} );
+      const senderFriendListDocRef = doc(
+        db,
+        'users',
+        friendEmail,
+        'friendCollection',
+        'friends'
+      );
+      await setDoc(
+        senderFriendListDocRef,
+        { [currentUserEmail]: 'email' },
+        { merge: true }
+      );
 
       console.log(`Accepted friend request from ${friendEmail}`);
     } catch (err) {
