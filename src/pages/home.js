@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../utils/firebase/firebaseDB';
-import QuizBoxes from './quizBoxes';
-import QuizView from './quizView';
+import QuizBoxes from '../components/quizBoxes';
+import QuizView from '../components/quizView';
 import { collection, getDocs, doc } from 'firebase/firestore';
 import AddQuiz from '../services/addQuiz';
 
-const MainContent = ({
+const Home = ({
   email,
   selectedQuiz,
   setSelectedQuiz,
@@ -143,4 +143,4 @@ const MainContent = ({
   );
 };
 
-export default MainContent;
+export default Home;

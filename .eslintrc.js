@@ -1,4 +1,4 @@
-export default {
+module.exports = {
     env: {
         browser: true,
         es2021: true
@@ -9,7 +9,21 @@ export default {
         sourceType: 'module'
     },
     rules: {
-        indent: ['error', 4], // Enforce 4 spaces for indentation
+        indent: ['error', 4, {
+            SwitchCase: 1, // Enforce indentation for switch cases
+            VariableDeclarator: { var: 1, let: 1, const: 1 }, // Enforce indentation for variable declarations
+            outerIIFEBody: 1, // Enforce indentation for outer IIFE bodies
+            MemberExpression: 1, // Enforce indentation for multi-line member expressions
+            FunctionDeclaration: { parameters: 1, body: 1 }, // Enforce indentation for function declarations
+            FunctionExpression: { parameters: 1, body: 1 }, // Enforce indentation for function expressions
+            CallExpression: { arguments: 1 }, // Enforce indentation for function call arguments
+            ArrayExpression: 1, // Enforce indentation for array expressions
+            ObjectExpression: 1, // Enforce indentation for object expressions
+            ImportDeclaration: 1, // Enforce indentation for import declarations
+            flatTernaryExpressions: false, // Do not allow flat ternary expressions
+            ignoredNodes: [], // No ignored nodes
+            ignoreComments: false // Do not ignore comments
+        }],
         'linebreak-style': ['error', 'unix'], // Enforce Unix line endings
         quotes: ['error', 'single'], // Enforce single quotes
         semi: ['error', 'always'], // Require semicolons

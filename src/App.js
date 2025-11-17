@@ -5,17 +5,17 @@ import {
   Routes,
   Navigate,
 } from 'react-router-dom';
-import { useLocation } from 'react-router-dom';
+// import { useLocation } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './utils/firebase/firebaseAuthentication.js'; // Import the auth object
 import Header from './components/Header';
-import MainContent from './components/mainContent';
+import Home from './pages/home.js';
 import AddQuiz from './services/addQuiz.js';
 import Login from './pages/login';
 import SpacedLearningQuiz from './pages/spacedLearningQuiz.js';
-import UserSearch from './services/userSearch.js'; // Import the UserSearch component
-import AcceptFriends from './services/acceptFriends.js'; // Import the UserSearch component
-import Store from './pages/store';
+// import UserSearch from './services/userSearch.js'; // Import the UserSearch component
+// import AcceptFriends from './services/acceptFriends.js'; // Import the UserSearch component
+// import Store from './pages/store';
 import Welcome from './pages/welcome.js';
 
 import './styles/App.css';
@@ -76,13 +76,14 @@ function App() {
           <Route
             path="/login"
             element={<Login setUser={setUser} user={user} />}
+          // eslint-disable-next-line react/jsx-no-comment-textnodes
           />
           /* Protected Routes */
           <Route
             path="/home"
             element={
               user ? (
-                <MainContent
+                <Home
                   email={user.email}
                   selectedQuiz={selectedQuiz}
                   setSelectedQuiz={setSelectedQuiz}
