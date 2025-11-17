@@ -30,7 +30,7 @@ const ShowItems = ({ email }) => {
 
     fetchPurchasedItems();
   }, [email]);
-console.log('purchasedItems:', purchasedItems);
+  console.log('purchasedItems:', purchasedItems);
   if (loading) {
     return <div>Loading purchased items...</div>;
   }
@@ -49,8 +49,12 @@ console.log('purchasedItems:', purchasedItems);
       <div className="items-list">
         {purchasedItems.map((item, index) => (
           <div key={index} className="item">
-          <img src={item} alt={`Purchased item ${index + 1}`} className="store-item-image" />
-        </div>
+            <img
+              src={item}
+              alt={`Purchased item ${index + 1}`}
+              className="store-item-image"
+            />
+          </div>
         ))}
       </div>
     </div>

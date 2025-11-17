@@ -42,15 +42,18 @@ const UserSearch = ({ email }) => {
       // Reference the 'friendRequests' subcollection under the recipient's document
       console.log('Recipient Email:', recipientEmail);
       const recipientDocRef = doc(db, 'users', recipientEmail);
-      const friendRequestRef = collection(recipientDocRef, 'friendCollection')
-      await setDoc(doc(friendRequestRef, "requests"), { 
-        [email]: {
-          response: false,
-          responded: false,
-          timestamp: new Date(),
+      const friendRequestRef = collection(recipientDocRef, 'friendCollection');
+      await setDoc(
+        doc(friendRequestRef, 'requests'),
+        {
+          [email]: {
+            response: false,
+            responded: false,
+            timestamp: new Date(),
+          },
         },
-      }, {merge: true});
-
+        { merge: true }
+      );
 
       // Update the UI to show that the request was sent
       setFriendRequestsSent((prev) => [...prev, recipientEmail]);
@@ -82,14 +85,20 @@ const UserSearch = ({ email }) => {
                   style={{
                     marginLeft: '1em',
                     padding: '0.5em',
-                    backgroundColor: friendRequestsSent.includes(user) ? '#ccc' : '#4CAF50',
+                    backgroundColor: friendRequestsSent.includes(user)
+                      ? '#ccc'
+                      : '#4CAF50',
                     color: 'white',
                     border: 'none',
                     borderRadius: '4px',
-                    cursor: friendRequestsSent.includes(user) ? 'not-allowed' : 'pointer',
+                    cursor: friendRequestsSent.includes(user)
+                      ? 'not-allowed'
+                      : 'pointer',
                   }}
                 >
-                  {friendRequestsSent.includes(user) ? 'Request Sent' : 'Add Friend'}
+                  {friendRequestsSent.includes(user)
+                    ? 'Request Sent'
+                    : 'Add Friend'}
                 </button>
               )}
             </li>

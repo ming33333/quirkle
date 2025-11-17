@@ -14,7 +14,7 @@ const wss = new WebSocket.Server({ server });
 let users = {}; // Store user positions
 
 // WebSocket connection logic
-wss.on('connection', (ws) => {
+wss.on("connection", (ws) => {
   console.log('A user connected.');
 
   // Handle incoming messages
@@ -42,7 +42,7 @@ wss.on('connection', (ws) => {
   // Handle disconnection
   ws.on('close', () => {
     console.log('A user disconnected.');
-  });
+});
 });
 
 // Express endpoint to start the WebSocket server
@@ -54,3 +54,6 @@ app.get('/studyroom', (req, res) => {
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+const array = [1, 
+  2, 3];

@@ -28,7 +28,9 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "server": "nodemon server.js",
-    "dev": "concurrently \"npm run server\" \"npm start\""
+    "dev": "concurrently \"npm run server\" \"npm start\"",
+    "lint": "eslint 'src/**/*.{js,jsx}'",
+    "format": "prettier --write 'src/**/*.{js,jsx}'"
   },
   "eslintConfig": {
     "extends": [
@@ -49,8 +51,15 @@
     ]
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
     "concurrently": "^6.5.1",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react": "^7.37.5",
     "gh-pages": "^6.3.0",
-    "nodemon": "^3.1.9"
+    "globals": "^16.5.0",
+    "nodemon": "^3.1.9",
+    "prettier": "^3.6.2"
   }
 }

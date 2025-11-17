@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 
 const Login = ({ setUser, user }) => {
@@ -12,7 +17,11 @@ const Login = ({ setUser, user }) => {
     e.preventDefault();
     const auth = getAuth();
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       setUser(userCredential.user); // Set the logged-in user
     } catch (err) {
       setError(err.message);
@@ -30,24 +39,28 @@ const Login = ({ setUser, user }) => {
       setError(err.message);
     }
   };
-if (user) {
-  navigate('/home'); // Redirect to the main page if user is already logged in
-} else {
-  console.log(`user state in login: ${JSON.stringify(user)}`);
-}
+  if (user) {
+    navigate('/home'); // Redirect to the main page if user is already logged in
+  } else {
+    console.log(`User state in login: ${JSON.stringify(user)}`);
+  }
 
   return (
-    <div style={{ textAlign: 'center' }}> {/* Center-align the content */}
+    <div style={{ textAlign: 'center' }}>
+      {' '}
+      {/* Center-align the content */}
       <h2>Login</h2>
       <p>Welcome to the Quiz App! Please log in to continue.</p>
-      <div style={{ marginBottom: '1em' }}> {/* Container for the image and button */}
-        <img 
-          src={`${process.env.PUBLIC_URL}/red_panda.jpg`} 
-          alt="Red Panda" 
-          style={{ width: '200px', height: 'auto', marginBottom: '0.5em' }} 
+      <div style={{ marginBottom: '1em' }}>
+        {' '}
+        {/* Container for the image and button */}
+        <img
+          src={`${process.env.PUBLIC_URL}/red_panda.jpg`}
+          alt="Red Panda"
+          style={{ width: '200px', height: 'auto', marginBottom: '0.5em' }}
         />
-        <button 
-          onClick={handleGoogleSignIn} 
+        <button
+          onClick={handleGoogleSignIn}
           style={{ display: 'block', margin: '0 auto', marginTop: '0.5em' }}
         >
           Sign in with Google
