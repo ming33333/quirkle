@@ -74,7 +74,7 @@ const QuizView = ({
       complete: false,
     });
   };
-  const handleAnswerChoice = async (choice) => {
+  const handleAnswerChoice = async (choice,currentQuizIndex) => {
     const levelTypes = doc(db, 'configs', 'levelTypes');
     const levelTypesDoc = await getDoc(levelTypes);
     let levelTypesDataStandard;
@@ -102,7 +102,10 @@ const QuizView = ({
         console.log('Answered wrong, setting level to', currentQuestion.level,'next active time to', currentQuestion.activeTime);
       }
       const quizDocRef = doc(db, 'users', email, 'quizCollection', selectedTitle);
-      await updateDoc(quizDocRef, { questions: updatedQuestions }); //TODO update single question, rn updating whole quiz
+      const questionKey = `questions.${currentQuizIndex}`;
+      await updateDoc(quizDocRef, {
+        [questionKey]: currentQuestion, // Update only the specific question at currentQuizIndex
+      });
   
     } catch (error) {
       console.error('Error updating question in Firestore:', error);

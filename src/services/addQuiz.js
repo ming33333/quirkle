@@ -50,7 +50,22 @@ const AddQuiz = ({ email, quizData }) => {
   };
   const navigate = useNavigate(); // Hook to navigate to different routes
   const [title, setTitle] = useState(initialData?.title || ''); // Prefill title if provided
-  const [questions, setQuestions] = useState(initialData?.questions || [{ question: '', answer: '' }]); // Prefill questions if provided
+  const [questions, setQuestions] = useState(() => {
+    if (initialData?.questions) {
+      let questionsArray = Array.isArray(initialData.questions)
+        ? initialData.questions
+        : Object.values(initialData.questions); // Convert map to array if needed
+
+      // Customize the questions initialization if needed
+      return questionsArray.map((q) => ({
+        ...q,
+        starred: q.starred || false, // Ensure 'starred' field exists
+        passed: q.passed || false, // Ensure 'passed' field exists
+      }));
+    }
+    // Default to a single empty question
+    return [{ question: '', answer: '', starred: false, passed: false }];
+  });
   const [bulkInput, setBulkInput] = useState(''); // State for bulk input
   const [showDeletePopup, setShowDeletePopup] = useState(false);
 

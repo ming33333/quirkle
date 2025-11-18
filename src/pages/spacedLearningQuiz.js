@@ -64,8 +64,7 @@ const SpacedLearningQuiz = ({ selectedQuiz, email, selectedTitle,setSelectedQuiz
       updateDocument(`users/${email}/quizCollection/${title}`, {
         spacedLearning: 'standard'
       });
-    console.log('selected quiz', selectedQuiz);
-      
+
     checkAndUpdateLevels(selectedQuiz, email, selectedTitle)
     // Filter questions for the selected level
     setLevelSelected(true)
@@ -76,11 +75,6 @@ const SpacedLearningQuiz = ({ selectedQuiz, email, selectedTitle,setSelectedQuiz
       filteredQuestions = selectedQuiz.filter((question) => question.level === level);
     }
     setUpdatedQuiz(filteredQuestions)
-    console.log(`Filtered Questions for Level ${level}:`, filteredQuestions);
-
-    // Update the quiz state with filtered questions
-    setUpdatedQuiz(filteredQuestions);
-
   };
 
 

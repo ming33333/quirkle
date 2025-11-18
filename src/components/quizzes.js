@@ -65,9 +65,9 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle,spacedLearning =
                 ? `${calculateDaysAgo(quizzes[key]["lastAccessed"])} days ago`
                 : 'Never Accessed'}
                 <br /> {/* Added line break */}
-                {`Levels: ${calculateQuizLevels(quizzes[key])}`}
+                {/* {`Levels: ${calculateQuizLevels(quizzes[key])}`} */}
                 <br /> {/* Added line break */}
-                {`Active Questions: ${calculateActiveQuestions(quizzes[key]).length}/${quizzes[key]["questions"].length}`}
+                {/* {`Active Questions: ${calculateActiveQuestions(quizzes[key]).length}/${quizzes[key]["questions"].length}`} */}
                 {showTooltip === key && (
                 <div className="tooltip">
                   {quizzes[key]["lastAccessed"]
