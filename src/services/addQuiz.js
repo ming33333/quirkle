@@ -32,18 +32,15 @@ const AddQuiz = ({ email, quizData }) => {
       });
     }
   }
-  const handleAutoUpdate = async (index) => {
+  const handleAutoUpdate = async (index,questionField) => {
     try {
       const updatedQuestions = [...questions]; // Create a copy of the questions array
-      const quizDocRef = doc(db, 'users', email, 'quizCollection', title); // Reference to the quiz document
-
+  
       // Update the database with the modified questions array
-      await updateDocument(
-        `users/${email}/quizCollection/${initialData.title}`,
-        { lastAccessed: new Date().toISOString() }
-      );
-
-      console.log(`Question ${index + 1} updated successfully.`);
+      // TODO optimize data  update by only updating the changed field, currently updates entire questions array
+      await updateDocument(`users/${email}/quizCollection/${initialData.title}`, { lastAccessed: new Date().toISOString(),questions: updatedQuestions});
+  
+      console.log(`Question ${index + 1} updated successfully on.`,questionField);
     } catch (error) {
       console.error('Error updating question in Firestore:', error);
     }
@@ -64,9 +61,22 @@ const AddQuiz = ({ email, quizData }) => {
   };
   const navigate = useNavigate(); // Hook to navigate to different routes
   const [title, setTitle] = useState(initialData?.title || ''); // Prefill title if provided
-  const [questions, setQuestions] = useState(
-    initialData?.questions || [{ question: '', answer: '' }]
-  ); // Prefill questions if provided
+  const [questions, setQuestions] = useState(() => {
+    if (initialData?.questions) {
+      let questionsArray = Array.isArray(initialData.questions)
+        ? initialData.questions
+        : Object.values(initialData.questions); // Convert map to array if needed
+
+      // Customize the questions initialization if needed
+      return questionsArray.map((q) => ({
+        ...q,
+        starred: q.starred || false, // Ensure 'starred' field exists
+        passed: q.passed || false, // Ensure 'passed' field exists
+      }));
+    }
+    // Default to a single empty question
+    return [{ question: '', answer: '', starred: false, passed: false }];
+  });
   const [bulkInput, setBulkInput] = useState(''); // State for bulk input
   const [showDeletePopup, setShowDeletePopup] = useState(false);
 
@@ -227,19 +237,15 @@ const AddQuiz = ({ email, quizData }) => {
               <textarea
                 placeholder="Question"
                 value={q.question}
-                onChange={(e) =>
-                  handleInputChange(index, 'question', e.target.value)
-                }
-                onBlur={() => handleAutoUpdate(index)} // Trigger auto-update on blur
+                onChange={(e) => handleInputChange(index, 'question', e.target.value)}
+                onBlur={() => handleAutoUpdate(index,"question")} // Trigger auto-update on blur
                 className="quiz-textarea"
               />
               <textarea
                 placeholder="Answer"
                 value={q.answer}
-                onChange={(e) =>
-                  handleInputChange(index, 'answer', e.target.value)
-                }
-                onBlur={() => handleAutoUpdate(index)} // Trigger auto-update on blur
+                onChange={(e) => handleInputChange(index, 'answer', e.target.value)}
+                onBlur={() => handleAutoUpdate(index,"answer")} // Trigger auto-update on blur
                 className="quiz-textarea"
               />
             </div>
