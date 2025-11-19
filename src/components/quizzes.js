@@ -17,6 +17,10 @@ const QuizBoxes = ({ quizzes, setSelectedQuiz, setSelectedTitle,spacedLearning =
 
 
   const calculateQuizLevels = (quiz) => {
+    if (!Array.isArray(quiz.questions)) {
+      console.log("Converting questions to an array");
+      quiz.questions = Array.from(quiz.questions); // Ensure questions is an array
+    }
     const levels = {};
     quiz.questions.forEach((question) => {
       const level = parseInt(question.level, 10) || 1; // Default to level 1 if no level or invalid
