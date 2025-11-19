@@ -2,16 +2,8 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Updating quirkle.io url 
-
-- pushing to main automatically update githubpages branch, and causes it to crash
-- need to push changes up first up?
-- change homepage key-value to the target page ("https://ming33333.github.io/quirkle/" or https://quirkle.io/)
-- npm run build
-- npm run deploy
-
 ## DEPLOY TO SITE
- auto deploys when launched on main (changes probagate in about 5 mins?)
+ auto deploys change to quirkle.io when launched on main (changes probagate in about 5 mins?)
 
 ## TERMINOLOGY 
 
