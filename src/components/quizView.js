@@ -126,14 +126,6 @@ const QuizView = ({
           currentQuestion.activeTime
         );
       }
-<<<<<<< HEAD:src/components/quiz.js
-      const quizDocRef = doc(db, 'users', email, 'quizCollection', selectedTitle);
-      const questionKey = `questions.${currentQuizIndex}`;
-      await updateDoc(quizDocRef, {
-        [questionKey]: currentQuestion, // Update only the specific question at currentQuizIndex
-      });
-  
-=======
       const quizDocRef = doc(
         db,
         'users',
@@ -142,7 +134,6 @@ const QuizView = ({
         selectedTitle
       );
       await updateDoc(quizDocRef, { questions: updatedQuestions }); //TODO update single question, rn updating whole quiz
->>>>>>> 6cff6b735d1055b24583f455d0951bc2e34205d0:src/components/quizView.js
     } catch (error) {
       console.error('Error updating question in Firestore:', error);
     }
