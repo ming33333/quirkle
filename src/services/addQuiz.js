@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDoc, setDoc, doc, deleteDoc, and } from 'firebase/firestore';
+import {
+  collection,
+  getDoc,
+  setDoc,
+  doc,
+  deleteDoc,
+  and,
+} from 'firebase/firestore';
 import { useLocation } from 'react-router-dom';
 import { db } from '../utils/firebase/firebaseDB';
 import { useNavigate } from 'react-router-dom';
@@ -10,15 +17,19 @@ const AddQuiz = ({ email, quizData }) => {
   const [initialDataEmpty, setInitialDataEmpty] = useState(false);
   const initialData = quizData || {}; // Retrieve initialData from the state
 
-  if (Object.keys(initialData).length <= 0 && !initialDataEmpty){ 
+  if (Object.keys(initialData).length <= 0 && !initialDataEmpty) {
     console.log(`Initial data is empty.`);
     setInitialDataEmpty(true);
   }
   if (!initialDataEmpty && initialData?.title) {
     if (initialData?.lastAccessed) {
-      updateDocument(`users/${email}/quizCollection/${initialData.title}`, { lastAccessed: new Date().toISOString() });
-    } else{
-      updateDocument(`users/${email}/quizCollection/${initialData.title}`, { lastAccessed: new Date().toISOString() });
+      updateDocument(`users/${email}/quizCollection/${initialData.title}`, {
+        lastAccessed: new Date().toISOString(),
+      });
+    } else {
+      updateDocument(`users/${email}/quizCollection/${initialData.title}`, {
+        lastAccessed: new Date().toISOString(),
+      });
     }
   }
   const handleAutoUpdate = async (index,questionField) => {
@@ -39,7 +50,7 @@ const AddQuiz = ({ email, quizData }) => {
       const updatedQuestions = [...questions]; // Create a copy of the questions array
       updatedQuestions[index].starred = !updatedQuestions[index].starred; // Toggle the star status
       setQuestions(updatedQuestions); // Update the state
-  
+
       // Update the database
       await updateDocument(`users/${email}/quizCollection/${title}`, {
         questions: updatedQuestions,
@@ -81,7 +92,9 @@ const AddQuiz = ({ email, quizData }) => {
   const handleInputChange = (index, field, value) => {
     const updatedQuestions = [...questions];
     updatedQuestions[index][field] = value;
-    console.log(`Updated question at index total ${index} ${JSON.stringify(updatedQuestions)}:`);
+    console.log(
+      `Updated question at index total ${index} ${JSON.stringify(updatedQuestions)}:`
+    );
     setQuestions(updatedQuestions);
   };
   const handleAddQuestionBelow = (index) => {
@@ -128,7 +141,9 @@ const AddQuiz = ({ email, quizData }) => {
       // Check if the user document exists
       const docSnap = await getDoc(docRef);
       if (!docSnap.exists()) {
-        console.log('User document does not exist. Creating a new user document...');
+        console.log(
+          'User document does not exist. Creating a new user document...'
+        );
         await setDoc(docRef, {}); // Create the user document if it doesn't exist
       }
       console.log('User document exists or created successfully!');
@@ -150,7 +165,10 @@ const AddQuiz = ({ email, quizData }) => {
       .split('\n') // Split by new lines
       .map((line) => line.split('\t')) // Split each line by tabs (for two columns)
       .filter((cols) => cols.length === 2) // Ensure each line has exactly 2 columns
-      .map(([question, answer]) => ({ question: question.trim(), answer: answer.trim() })); // Map to question/answer objects
+      .map(([question, answer]) => ({
+        question: question.trim(),
+        answer: answer.trim(),
+      })); // Map to question/answer objects
 
     setQuestions([...questions, ...newQuestions]); // Add new questions to the existing list
     setBulkInput(''); // Clear the bulk input field
@@ -182,10 +200,16 @@ const AddQuiz = ({ email, quizData }) => {
           <div className="popup-overlay">
             <div className="popup-content">
               <h3>Are you sure you want to delete the quiz "{title}"?</h3>
-              <button onClick={handleDeleteQuiz} className="confirm-delete-button">
+              <button
+                onClick={handleDeleteQuiz}
+                className="confirm-delete-button"
+              >
                 Yes, Delete
               </button>
-              <button onClick={cancelDeleteQuiz} className="cancel-delete-button">
+              <button
+                onClick={cancelDeleteQuiz}
+                className="cancel-delete-button"
+              >
                 Cancel
               </button>
             </div>
@@ -203,9 +227,12 @@ const AddQuiz = ({ email, quizData }) => {
             <div className="qa-fields">
               <div className="question-labels">
                 <label className="question-number">
-                  Q{index + 1}: {q.starred ? '★' : '☆'} {/* Display star icon */}
+                  Q{index + 1}: {q.starred ? '★' : '☆'}{' '}
+                  {/* Display star icon */}
                 </label>
-                <label className="question-pass">{q.passed ? 'Passed' : 'Not Passed'}</label>
+                <label className="question-pass">
+                  {q.passed ? 'Passed' : 'Not Passed'}
+                </label>
               </div>
               <textarea
                 placeholder="Question"
@@ -227,7 +254,8 @@ const AddQuiz = ({ email, quizData }) => {
                 className="options-button"
                 onClick={() => {
                   const menu = document.getElementById(`menu-${index}`);
-                  menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+                  menu.style.display =
+                    menu.style.display === 'block' ? 'none' : 'block';
                 }}
               >
                 ⋮
@@ -264,13 +292,12 @@ const AddQuiz = ({ email, quizData }) => {
         />
         <button onClick={handleBulkAdd} className="quiz-button bulk-add-button">
           Add Bulk Questions
-        </button>        
+        </button>
         {initialDataEmpty && (
-        <button onClick={handleSubmit} className="quiz-button submit-button">
-        {'Submit Quiz'}
-      </button>
+          <button onClick={handleSubmit} className="quiz-button submit-button">
+            {'Submit Quiz'}
+          </button>
         )}
-
       </div>
     </div>
   );

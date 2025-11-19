@@ -36,7 +36,9 @@ const Store = ({ email }) => {
         if (itemsDoc.exists()) {
           setPurchasedItems(itemsDoc.data().list || []);
         } else {
-          console.log('Items document does not exist. Setting purchased items to an empty list.');
+          console.log(
+            'Items document does not exist. Setting purchased items to an empty list.'
+          );
           setPurchasedItems([]);
         }
       } catch (err) {
@@ -51,7 +53,7 @@ const Store = ({ email }) => {
   }, [email]);
 
   // Handle purchasing an item
-  const handlePurchase = async (itemName,itemPath) => {
+  const handlePurchase = async (itemName, itemPath) => {
     if (points < 1) {
       alert('Not enough points to purchase this item.');
       return;
@@ -71,17 +73,16 @@ const Store = ({ email }) => {
       // Add the purchased item to the 'items' list in Firestore
 
       const itemsDoc = await getDoc(itemsDocRef);
- 
-      if (itemsDoc.exists()) {
-       const currentItems = itemsDoc.data().list || [];
-       await updateDoc(itemsDocRef, { list: [...currentItems, itemPath] });
-       console.log( `update items doc ${updatedItemsDoc.data().list}`)
 
+      if (itemsDoc.exists()) {
+        const currentItems = itemsDoc.data().list || [];
+        await updateDoc(itemsDocRef, { list: [...currentItems, itemPath] });
+        console.log(`update items doc ${updatedItemsDoc.data().list}`);
       } else {
-       await setDoc(itemsDocRef, { list: [itemPath] }); // Initialize the list with the purchased item
-     }
-     setPurchasedItems(updatedItemsDoc.data().list || []); // Update local state with the latest items
-     console.log('Purchased items:', purchasedItems);
+        await setDoc(itemsDocRef, { list: [itemPath] }); // Initialize the list with the purchased item
+      }
+      setPurchasedItems(updatedItemsDoc.data().list || []); // Update local state with the latest items
+      console.log('Purchased items:', purchasedItems);
 
       alert(`You have successfully purchased the ${itemName}!`);
     } catch (err) {
@@ -105,14 +106,20 @@ const Store = ({ email }) => {
       <div className="store-items">
         {items.map((item) => (
           <div key={item.name} className="store-item">
-            <img src={item.image} alt={item.name} className="store-item-image" />
+            <img
+              src={item.image}
+              alt={item.name}
+              className="store-item-image"
+            />
             <h3>{item.name}</h3>
             <button
-              onClick={() => handlePurchase(item.name,item.image)}
+              onClick={() => handlePurchase(item.name, item.image)}
               disabled={purchasedItems.includes(item.name)}
               className="store-item-button"
             >
-              {purchasedItems.includes(item.name) ? 'Purchased' : 'Buy for 1 Point'}
+              {purchasedItems.includes(item.name)
+                ? 'Purchased'
+                : 'Buy for 1 Point'}
             </button>
           </div>
         ))}

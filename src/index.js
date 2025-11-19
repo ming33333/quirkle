@@ -8,7 +8,8 @@ import reportWebVitals from './reportWebVitals';
 const addAdSenseScript = () => {
   const script = document.createElement('script');
   script.async = true;
-  script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2470775733308737';
+  script.src =
+    'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2470775733308737';
   script.crossOrigin = 'anonymous';
   document.head.appendChild(script);
 };

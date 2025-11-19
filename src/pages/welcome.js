@@ -1,19 +1,32 @@
 import React, { useEffect, useState } from 'react';
 
-const Welcome = ({user}) => {
+const Welcome = ({ user }) => {
   const [flashcards, setFlashcards] = useState([
-    { question: 'What is React?', answer: 'A JavaScript library for building user interfaces.', flipped: false },
-    { question: 'What is a component?', answer: 'A reusable piece of UI in React.', flipped: false },
-    { question: 'What is JSX?', answer: 'A syntax extension for JavaScript that looks like HTML.', flipped: false },
+    {
+      question: 'What is React?',
+      answer: 'A JavaScript library for building user interfaces.',
+      flipped: false,
+    },
+    {
+      question: 'What is a component?',
+      answer: 'A reusable piece of UI in React.',
+      flipped: false,
+    },
+    {
+      question: 'What is JSX?',
+      answer: 'A syntax extension for JavaScript that looks like HTML.',
+      flipped: false,
+    },
   ]);
   useEffect(() => {
     // Dynamically load the AdSense script
     const script = document.createElement('script');
     script.async = true;
-    script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2470775733308737';
+    script.src =
+      'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2470775733308737';
     script.crossOrigin = 'anonymous';
     document.body.appendChild(script);
-    
+
     // Initialize AdSense
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
@@ -29,32 +42,60 @@ const Welcome = ({user}) => {
     );
   };
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px' }}>
-    {/* /* Main Content */ }
-    <div style={{ textAlign: 'center', maxWidth: '800px', marginBottom: '2em' }}>
-      <h1 style={{ fontSize: '2.5em', fontWeight: 'bold', marginBottom: '0.5em' }}>
-        Welcome to Quirkle!
-      </h1>
-      <p style={{ fontSize: '1.2em', lineHeight: '1.8', marginBottom: '1em' }}>
-        Quirkle is a free platform designed to help students master their studies using flashcards and quizzes. 
-        Thousands of students have found success by creating personalized flashcards to improve their memory and 
-        understanding of complex topics. Whether you're preparing for exams or learning new skills, Quirkle is here 
-        to support your journey.
-      </p>
-      <p style={{ fontSize: '1.2em', lineHeight: '1.8', marginBottom: '1em' }}>
-        This site is completely free and proudly built by a solo developer. By using Quirkle, you're not only 
-        improving your studies but also supporting independent development. Thank you for being part of this 
-        community!
-      </p>
-      <a 
-        href={user ? "#/home" : "#/login"} 
-        style={{ textDecoration: 'none', color: 'white', backgroundColor: 'salmon', padding: '10px 20px', borderRadius: '5px', fontSize: '1.2em' }}
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        padding: '20px',
+      }}
+    >
+      {/* /* Main Content */}
+      <div
+        style={{ textAlign: 'center', maxWidth: '800px', marginBottom: '2em' }}
       >
-        {user ? "Go to Dashboard" : "Login to Get Started"}
-      </a>
-    </div>
+        <h1
+          style={{
+            fontSize: '2.5em',
+            fontWeight: 'bold',
+            marginBottom: '0.5em',
+          }}
+        >
+          Welcome to Quirkle!
+        </h1>
+        <p
+          style={{ fontSize: '1.2em', lineHeight: '1.8', marginBottom: '1em' }}
+        >
+          Quirkle is a free platform designed to help students master their
+          studies using flashcards and quizzes. Thousands of students have found
+          success by creating personalized flashcards to improve their memory
+          and understanding of complex topics. Whether you're preparing for
+          exams or learning new skills, Quirkle is here to support your journey.
+        </p>
+        <p
+          style={{ fontSize: '1.2em', lineHeight: '1.8', marginBottom: '1em' }}
+        >
+          This site is completely free and proudly built by a solo developer. By
+          using Quirkle, you're not only improving your studies but also
+          supporting independent development. Thank you for being part of this
+          community!
+        </p>
+        <a
+          href={user ? '#/home' : '#/login'}
+          style={{
+            textDecoration: 'none',
+            color: 'white',
+            backgroundColor: 'salmon',
+            padding: '10px 20px',
+            borderRadius: '5px',
+            fontSize: '1.2em',
+          }}
+        >
+          {user ? 'Go to Dashboard' : 'Login to Get Started'}
+        </a>
+      </div>
 
-    {/* /* Flashcard Animation */ }
+      {/* /* Flashcard Animation */}
       <div className="flashcard-container">
         {flashcards.map((card, index) => (
           <div
