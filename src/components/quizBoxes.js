@@ -72,19 +72,11 @@ const QuizBoxes = ({
               {quizzes[key]['lastAccessed']
                 ? `${calculateDaysAgo(quizzes[key]['lastAccessed'])} days ago`
                 : 'Never Accessed'}
-<<<<<<< HEAD:src/components/quizzes.js
-                <br /> {/* Added line break */}
-                {/* {`Levels: ${calculateQuizLevels(quizzes[key])}`} */}
-                <br /> {/* Added line break */}
-                {/* {`Active Questions: ${calculateActiveQuestions(quizzes[key]).length}/${quizzes[key]["questions"].length}`} */}
-                {showTooltip === key && (
-=======
               <br /> {/* Added line break */}
               {`Levels: ${calculateQuizLevels(quizzes[key])}`}
               <br /> {/* Added line break */}
               {`Active Questions: ${calculateActiveQuestions(quizzes[key]).length}/${quizzes[key]['questions'].length}`}
               {showTooltip === key && (
->>>>>>> 6cff6b735d1055b24583f455d0951bc2e34205d0:src/components/quizBoxes.js
                 <div className="tooltip">
                   {quizzes[key]['lastAccessed']
                     ? new Date(quizzes[key]['lastAccessed']).toLocaleString(

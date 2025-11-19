@@ -68,14 +68,8 @@ const SpacedLearningQuiz = ({
       updateDocument(`users/${email}/quizCollection/${title}`, {
         spacedLearning: 'standard',
       });
-<<<<<<< HEAD
 
     checkAndUpdateLevels(selectedQuiz, email, selectedTitle)
-=======
-    console.log('selected quiz', selectedQuiz);
-
-    checkAndUpdateLevels(selectedQuiz, email, selectedTitle);
->>>>>>> 6cff6b735d1055b24583f455d0951bc2e34205d0
     // Filter questions for the selected level
     setLevelSelected(true);
     levelTitle = `${selectedTitle} - Level ${level}`;
@@ -86,15 +80,11 @@ const SpacedLearningQuiz = ({
         (question) => question.level === level
       );
     }
-<<<<<<< HEAD
-    setUpdatedQuiz(filteredQuestions)
-=======
     setUpdatedQuiz(filteredQuestions);
     console.log(`Filtered Questions for Level ${level}:`, filteredQuestions);
 
     // Update the quiz state with filtered questions
     setUpdatedQuiz(filteredQuestions);
->>>>>>> 6cff6b735d1055b24583f455d0951bc2e34205d0
   };
 
   if (levelSelected && updatedQuiz) {

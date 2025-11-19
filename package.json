@@ -54,15 +54,11 @@
     "@babel/eslint-parser": "^7.28.5",
     "@eslint/js": "^9.39.1",
     "concurrently": "^6.5.1",
-<<<<<<< HEAD
-    "eslint-config-react-app": "^7.0.1",
-=======
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react": "^7.37.5",
->>>>>>> 6cff6b735d1055b24583f455d0951bc2e34205d0
     "gh-pages": "^6.3.0",
     "globals": "^16.5.0",
     "nodemon": "^3.1.9",
