@@ -1,19 +1,25 @@
 :root {
   --primary-color: salmon;
   --secondary-color: salmon;
-  --tertiary-color: #f3f2f2;
+  --tertiary-color: #eeeeee;
+  --primary-font-color: white;
+  --secondary-font-color: black;
+  --tertiary-font-color: #eeeeee;
+  --primary-font: Arial, sans-serif;
+  --secondary-font: Arial, sans-serif;
   --font-family: Arial, sans-serif;
   --header-padding: 1em;
   --footer-height: 50px;
 }
 body {
   margin: 0;
+  background-color: var(--primary-color);
   font-family: Arial, sans-serif;
 }
 
 .header {
   background-color: var(--primary-color);
-  color: var(--tertiary-color);
+  color: var(--primary-font-color);
   text-align: center;
   padding: 2em;
   position: relative; /* Allow child elements to position themselves relative to the header */
@@ -35,7 +41,6 @@ body {
   flex-direction: column; /* Stack the title and user info vertically */
   align-items: flex-start; /* Align text to the left */
 }
-
 .home-icon {
   position: absolute; /* Position the icon relative to the header */
   left: 50%; /* Center horizontally */
@@ -45,14 +50,15 @@ body {
   align-items: center; /* Center the icon vertically */
   width: 50px; /* Set a fixed width for the icon container */
   height: 50px; /* Set a fixed height for the icon container */
-  border: 2px solid #ccc; /* Optional: Add a border around the icon */
   border-radius: 50%; /* Optional: Make the icon container circular */
-  background-color: #f9f9f9; /* Optional: Add a background color */
+  background-color: #eeeeee; /* Change background color to #eeeeee */
   text-align: center;
+  color: var(--primary-color); /* Use the current text color */
+  text-decoration: none; /* Remove the underline */
 }
 
 .home-icon:hover {
-  color: var(--secondary-color); /* Change color on hover */
+  color: var(--tertiary-color); /* Change color on hover */
 }
 
 .logout-button {
@@ -513,13 +519,7 @@ code {
 .accept-friends button:hover {
   background-color: #45a049;
 }/* General Styles */
-.welcome-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-  font-family: 'Arial', sans-serif;
-}
+
 
 .welcome-content {
   text-align: center;
@@ -897,3 +897,96 @@ code {
   font-size: 1.5em;
   color: #333;
 }
+
+
+.welcome-header {
+  text-align: center;
+}
+
+.welcome-header h1 {
+  font-size: 3em; /* Halved font size */
+  color: #333;
+  margin-bottom: 10px;
+  padding: 20px; /* Add padding to the text */
+}
+
+.welcome-header p {
+  font-size: 1.5em; /* Halved font size */
+  color: #555;
+  text-align: center; /* Ensure the paragraph is also centered */
+  padding: 0 15%; /* Add 35% padding on each side */
+}
+
+.welcome-container {
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px;
+  font-family: 'Arial', sans-serif;
+}
+
+.welcome-card {
+  width: 90%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Center content horizontally */
+  align-items: center; /* Center content vertically */
+  border: 1px solid #ccc;
+  border-radius: 40px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-align: center;
+  overflow: visible; /* Ensure content is not cut off */
+  margin-bottom: 20px; /* Add spacing below the welcome-card */
+  font-size: 1.5em; /* Halved font size */
+  padding: 20px; /* Add padding to the text */
+}
+
+
+
+/* Flashcards container */
+.flashcards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+
+  width: 100%; /* Take up 100% of the width of the class it's under */
+  margin-top: 80px; /* Add spacing from the header */
+  max-width: 100%; /* Ensure it spans the full width of its parent */
+  position: static; /* Position the flashcards container statically */
+}
+
+/* Flashcard styling */
+.flashcard {
+  cursor: pointer;
+  position: relative; /* Ensure the flashcard is positioned relative to its container */
+  margin: 0 auto; /* Center the flashcard within its container */
+  font: var(--secondary-font-color);
+}
+
+.flashcard-front,
+.flashcard-back {
+  width: 100%;
+  height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--tertiary-color);
+  color: black; /* Set font color to black */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  backface-visibility: hidden;
+  transition: transform 0.6s;
+  position: absolute;
+}
+
+.flashcard.flipped .flashcard-front {
+  transform: rotateY(180deg);
+}
+
+.flashcard.flipped .flashcard-back {
+  transform: rotateY(0deg);
+}
+

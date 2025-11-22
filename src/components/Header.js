@@ -1,24 +1,15 @@
-import React, { useState } from 'react';
-import { getAuth, signOut } from 'firebase/auth';
+import React, { useState, useContext } from 'react';
+
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHome } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import ProfileOverlay from './profileOverlay';
+import { GlobalContext } from '../context/GlobalContext';
 
 const Header = ({ user }) => {
+  const config = useContext(GlobalContext)
   const [isOverlayOpen, setIsOverlayOpen] = useState(false); // State to control the overlay visibility
   const navigate = useNavigate(); // Hook to navigate to different routes
-
-  const handleLogout = async () => {
-    const auth = getAuth();
-    try {
-      await signOut(auth); // Sign out the user
-      console.log('User logged out successfully');
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
-    navigate('/login'); // Redirect to the main page
-  };
 
   return (
     <header className="header">
@@ -29,7 +20,7 @@ const Header = ({ user }) => {
             className="header-title"
             style={{ cursor: 'pointer' }}
           >
-            Quirkle
+            {config.name}
           </h1>
         </nav>
         <nav>
@@ -46,9 +37,7 @@ const Header = ({ user }) => {
             >
               Logged in as: {user.email}
             </p>
-            <button onClick={handleLogout} className="logout-button">
-              Logout
-            </button>
+
           </div>
         )}
       </div>
