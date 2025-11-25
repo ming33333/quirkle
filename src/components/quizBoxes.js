@@ -31,112 +31,112 @@ const QuizBoxes = ({
       levels[level] = (levels[level] || 0) + 1; // Count questions per level
     });
     return JSON.stringify(levels);
-  };
+    };
 
-  return (
+    return (
     <div className="quiz-boxes-container">
+      {/* Add an empty box for "Add Questions" */}
+      <div
+      className="quiz-box add-quiz-box"
+      onClick={() => navigate('/add-questions')} // Navigate to the Add Questions route
+      style={{
+        cursor: 'pointer',
+        backgroundColor: '#f0f0f0',
+        border: '2px dashed #ccc',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        fontFamily: 'Caveat',
+      }}
+      >
+      <h3 style={{ color: '#888' }}>+ Add Quiz</h3>
+      </div>
+
       {/* Render quiz boxes */}
       {spacedLearning && (
-        <div
-          className="quiz-option" // Use the same class as other quiz boxes
-          style={{
-            cursor: 'default',
-            backgroundColor: '#d3f9d8', // Optional: Keep the unique background color
-          }}
-        >
-          {/* TODO add in cumulative test view inthe isbox*/}
-          <h3 style={{ color: '#4caf50' }}>Hello</h3>
-        </div>
+      <div
+        className="quiz-option" // Use the same class as other quiz boxes
+        style={{
+        cursor: 'default',
+        backgroundColor: '#d3f9d8', // Optional: Keep the unique background color
+        }}
+      >
+        {/* TODO add in cumulative test view inthe isbox*/}
+        <h3 style={{ color: '#4caf50' }}>Hello</h3>
+      </div>
       )}
       {Object.keys(quizzes).map((key, index) => (
-        <div
-          key={index}
-          className="quiz-option"
+      <div
+        key={index}
+        className="quiz-option"
+        onClick={() => {
+        setSelectedQuiz(quizzes[key]['questions']); // Set the selected quiz
+        setSelectedTitle(key); // Set the selected title
+        }}
+        style={{ position: 'relative', cursor: 'pointer' }}
+      >
+        <div className="quiz-header">
+        <span
+          className="last-accessed"
+          onMouseEnter={() => setShowTooltip(key)} // Show tooltip on hover
+          onMouseLeave={() => setShowTooltip(null)} // Hide tooltip when hover ends
+        >
+          {quizzes[key]['lastAccessed']
+          ? `${calculateDaysAgo(quizzes[key]['lastAccessed'])} days ago`
+          : 'Never Accessed'}
+          {quizzes[key]['lastAccessed'] && showTooltip === key && (
+          <div className="tooltip">
+            {new Date(quizzes[key]['lastAccessed']).toLocaleString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            })}
+          </div>
+          )}
+        </span>
+        <br /> {/* Added line break */}
+        <span className="quiz-levels">
+          {`Levels: ${calculateQuizLevels(quizzes[key])}`}
+        </span>
+        <br /> {/* Added line break */}
+        <span className="active-questions">
+          {`Active Questions: ${calculateActiveQuestions(quizzes[key]).length}/${quizzes[key]['questions'].length}`}
+        </span>
+        </div>
+        {clickedQuiz === key && (
+        <div className="click-options">
+          <button
           onClick={() => {
             setSelectedQuiz(quizzes[key]['questions']); // Set the selected quiz
             setSelectedTitle(key); // Set the selected title
-            }}
-            style={{ position: 'relative', cursor: 'pointer' }}
+          }}
+          className="click-button"
           >
-            <div className="quiz-header">
-            <h3>{key}</h3> {/* Display the key (quiz name) */}
-            <span
-              className="last-accessed"
-              onMouseEnter={() => setShowTooltip(key)} // Show tooltip on hover
-              onMouseLeave={() => setShowTooltip(null)} // Hide tooltip when hover ends
-            >
-              {quizzes[key]['lastAccessed']
-              ? `${calculateDaysAgo(quizzes[key]['lastAccessed'])} days ago`
-              : 'Never Accessed'}
-              {quizzes[key]['lastAccessed'] && showTooltip === key && (
-              <div className="tooltip">
-                {new Date(quizzes[key]['lastAccessed']).toLocaleString(
-                'en-US',
-                {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                }
-                )}
-              </div>
-              )}
-              <br /> {/* Added line break */}
-              {`Levels: ${calculateQuizLevels(quizzes[key])}`}
-              <br /> {/* Added line break */}
-              {`Active Questions: ${calculateActiveQuestions(quizzes[key]).length}/${quizzes[key]['questions'].length}`}
-            </span>
-            </div>
-            {clickedQuiz === key && (
-            <div className="click-options">
-              <button
-              onClick={() => {
-                  setSelectedQuiz(quizzes[key]['questions']); // Set the selected quiz
-                  setSelectedTitle(key); // Set the selected title
-                }}
-                className="click-button"
-              >
-                Take Quiz
-              </button>
-              <button
-                onClick={() =>
-                  navigate('/quiz-view', {
-                    state: {
-                      title: key, // Pass the quiz title
-                      questions: quizzes[key]['questions'], // Pass the quiz questions
-                      lastAccessed: quizzes[key]['lastAccessed'], // Pass the last accessed date
-                    },
-                  })
-                }
-                className="click-button"
-              >
-                Add Questions
-              </button>
-            </div>
-          )}
+          Take Quiz
+          </button>
+          <button
+          onClick={() =>
+            navigate('/quiz-view', {
+            state: {
+              title: key, // Pass the quiz title
+              questions: quizzes[key]['questions'], // Pass the quiz questions
+              lastAccessed: quizzes[key]['lastAccessed'], // Pass the last accessed date
+            },
+            })
+          }
+          className="click-button"
+          >
+          Add Questions
+          </button>
         </div>
-      ))}
-
-      {/* Add an empty box for "Add Questions" */}
-      <div
-        className="quiz-box add-quiz-box"
-        onClick={() => navigate('/add-questions')} // Navigate to the Add Questions route
-        style={{
-          cursor: 'pointer',
-          backgroundColor: '#f0f0f0',
-          border: '2px dashed #ccc',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          fontFamily: 'Caveat',
-        }}
-      >
-        <h3 style={{ color: '#888' }}>+ Add Quiz</h3>
+        )}
       </div>
+      ))}
     </div>
-  );
-};
+    );
+  };
 
 export default QuizBoxes;
