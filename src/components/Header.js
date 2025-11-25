@@ -25,7 +25,7 @@ const Header = ({ user }) => {
         </nav>
         <nav>
           <a href="/#/home" className="home-icon">
-            <FontAwesomeIcon icon={faHome} size="lg" /> 
+            <FontAwesomeIcon icon={faHome} size="lg" />
           </a>
         </nav>
         {user && (

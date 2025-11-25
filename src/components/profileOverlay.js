@@ -4,7 +4,6 @@ import ShowPoints from '../services/showPoints'; // Import the ShowPoints compon
 import { useNavigate } from 'react-router-dom';
 import { getAuth, signOut } from 'firebase/auth';
 
-
 const ProfileOverlay = ({ isOpen, onClose, userInfo }) => {
   const navigate = useNavigate(); // Hook to navigate to different routes
   if (!isOpen) return null; // Don't render anything if the overlay is not open
@@ -34,8 +33,10 @@ const ProfileOverlay = ({ isOpen, onClose, userInfo }) => {
             </button>
         </div>
         <hr />
-        <ShowPoints email={userInfo.email}/> {/* Add the UserSearch component */}
-        <UserSearch email={userInfo.email}/> {/* Add the UserSearch component */}
+        <ShowPoints email={userInfo.email} />{' '}
+        {/* Add the UserSearch component */}
+        <UserSearch email={userInfo.email} />{' '}
+        {/* Add the UserSearch component */}
       </div>
     </div>
   );

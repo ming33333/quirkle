@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { updateDocument } from '../utils/firebase/firebaseServices';
 import { calculateActiveQuestions } from '../utils/helpers/quizHelpers';
-import  QuizView  from '../components/quiz'
+import QuizView from '../components/quizView';
 
-const checkAndUpdateLevels = async (selectedQuiz,email,title) => {
+const checkAndUpdateLevels = async (selectedQuiz, email, title) => {
   let isUpdated = false;
   try {
     const updatedQuestions = selectedQuiz.map((question) => {
       if (!question.hasOwnProperty('level')) {
         isUpdated = true;
         return { ...question, level: 1 }; // Add level property with default value 1
-        
       }
       return question;
     });
@@ -26,9 +25,12 @@ const checkAndUpdateLevels = async (selectedQuiz,email,title) => {
   }
 };
 
-
-
-const SpacedLearningQuiz = ({ selectedQuiz, email, selectedTitle,setSelectedQuiz }) => {
+const SpacedLearningQuiz = ({
+  selectedQuiz,
+  email,
+  selectedTitle,
+  setSelectedQuiz,
+}) => {
   const [updatedQuiz, setUpdatedQuiz] = React.useState([]);
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -41,13 +43,15 @@ const SpacedLearningQuiz = ({ selectedQuiz, email, selectedTitle,setSelectedQuiz
     setCurrentQuestionIndex((prevIndex) => Math.max(prevIndex - 1, 0));
     setShowAnswer(false); // Hide answer when navigating to previous question
   };
-  
+
   const handleNextQuestion = () => {
-    console.log('next question')
-    setCurrentQuestionIndex((prevIndex) => Math.min(prevIndex + 1, selectedQuiz.length - 1));
+    console.log('next question');
+    setCurrentQuestionIndex((prevIndex) =>
+      Math.min(prevIndex + 1, selectedQuiz.length - 1)
+    );
     setShowAnswer(false); // Hide answer when navigating to next question
   };
-  
+
   const toggleAnswerVisibility = () => {
     setShowAnswer((prevShowAnswer) => !prevShowAnswer);
   };
@@ -59,30 +63,29 @@ const SpacedLearningQuiz = ({ selectedQuiz, email, selectedTitle,setSelectedQuiz
     updateQuiz();
   }, [selectedQuiz, email, selectedTitle]);
 
-  const handleBucketClick = (level,email,title) => {
+  const handleBucketClick = (level, email, title) => {
     if (!selectedQuiz.SpacedLearning)
       updateDocument(`users/${email}/quizCollection/${title}`, {
-        spacedLearning: 'standard'
+        spacedLearning: 'standard',
       });
-    console.log('selected quiz', selectedQuiz);
-      
+
     checkAndUpdateLevels(selectedQuiz, email, selectedTitle)
     // Filter questions for the selected level
-    setLevelSelected(true)
+    setLevelSelected(true);
     levelTitle = `${selectedTitle} - Level ${level}`;
-    if (level === 'active') { 
-      filteredQuestions =  calculateActiveQuestions({'questions':(selectedQuiz)});
+    if (level === 'active') {
+      filteredQuestions = calculateActiveQuestions({ questions: selectedQuiz });
     } else {
-      filteredQuestions = selectedQuiz.filter((question) => question.level === level);
+      filteredQuestions = selectedQuiz.filter(
+        (question) => question.level === level
+      );
     }
-    setUpdatedQuiz(filteredQuestions)
+    setUpdatedQuiz(filteredQuestions);
     console.log(`Filtered Questions for Level ${level}:`, filteredQuestions);
 
     // Update the quiz state with filtered questions
     setUpdatedQuiz(filteredQuestions);
-
   };
-
 
   if (levelSelected && updatedQuiz) {
     return (
@@ -95,7 +98,8 @@ const SpacedLearningQuiz = ({ selectedQuiz, email, selectedTitle,setSelectedQuiz
         handleNextQuestion={handleNextQuestion}
         toggleAnswerVisibility={toggleAnswerVisibility}
         showAnswer={showAnswer}
-        email={email} />
+        email={email}
+      />
     );
   }
 
@@ -122,6 +126,5 @@ const SpacedLearningQuiz = ({ selectedQuiz, email, selectedTitle,setSelectedQuiz
     </div>
   );
 };
-
 
 export default SpacedLearningQuiz;

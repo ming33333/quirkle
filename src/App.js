@@ -10,7 +10,7 @@ import Login from './pages/login';
 import SpacedLearningQuiz from './pages/spacedLearning.js';
 import { GlobalProvider } from './context/GlobalContext';
 import Welcome from './pages/welcome.js';
-import QuizView from './components/quiz';
+import QuizView from './components/quizView';
 
 import './styles/App.css';
 
@@ -23,8 +23,10 @@ function App() {
   const [questionAnswered, setQuestionAnswered] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
+
   const handlePrevQuestion = () => {
     setCurrentQuestionIndex((prevIndex) => Math.max(prevIndex - 1, 0));
+    setShowAnswer(false);
     setShowAnswer(false);
   };
 
@@ -37,18 +39,24 @@ function App() {
     setShowAnswer((prevShowAnswer) => !prevShowAnswer);
   };
 
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
+      setUser(currentUser);
+      setLoading(false);
     });
+
 
     return () => unsubscribe();
   }, []);
 
+
   if (loading) {
     return <div>Loading...</div>;
   }
+
 
   return (
     <GlobalProvider>

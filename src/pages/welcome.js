@@ -4,15 +4,28 @@ import { GlobalContext } from '../context/GlobalContext';
 const Welcome = ({ user }) => {
   const config = useContext(GlobalContext);
   const [flashcards, setFlashcards] = useState([
-    { question: 'What is React?', answer: 'A JavaScript library for building user interfaces.', flipped: false },
-    { question: 'What is a component?', answer: 'A reusable piece of UI in React.', flipped: false },
-    { question: 'What is JSX?', answer: 'A syntax extension for JavaScript that looks like HTML.', flipped: false },
+    {
+      question: 'What is React?',
+      answer: 'A JavaScript library for building user interfaces.',
+      flipped: false,
+    },
+    {
+      question: 'What is a component?',
+      answer: 'A reusable piece of UI in React.',
+      flipped: false,
+    },
+    {
+      question: 'What is JSX?',
+      answer: 'A syntax extension for JavaScript that looks like HTML.',
+      flipped: false,
+    },
   ]);
 
   useEffect(() => {
     const script = document.createElement('script');
     script.async = true;
-    script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2470775733308737';
+    script.src =
+      'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2470775733308737';
     script.crossOrigin = 'anonymous';
     document.body.appendChild(script);
 
