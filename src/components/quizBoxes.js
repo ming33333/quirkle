@@ -59,60 +59,52 @@ const QuizBoxes = ({
             style={{ position: 'relative', cursor: 'pointer' }}
           >
             <div className="quiz-header">
-            /* Display the key (quiz name) */}
+            <h3>{key}</h3> {/* Display the key (quiz name) */}
             <span
               className="last-accessed"
               onMouseEnter={() => setShowTooltip(key)} // Show tooltip on hover
               onMouseLeave={() => setShowTooltip(null)} // Hide tooltip when hover ends
             >
               {quizzes[key]['lastAccessed']
-                ? `${calculateDaysAgo(quizzes[key]['lastAccessed'])} days ago`
-                : 'Never Accessed'}
+              ? `${calculateDaysAgo(quizzes[key]['lastAccessed'])} days ago`
+              : 'Never Accessed'}
               {quizzes[key]['lastAccessed'] && showTooltip === key && (
-                <div className="tooltip">
-                  {new Date(quizzes[key]['lastAccessed']).toLocaleString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </div>
+              <div className="tooltip">
+                {new Date(quizzes[key]['lastAccessed']).toLocaleString(
+                'en-US',
+                {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }
+                )}
+              </div>
               )}
+              <br /> {/* Added line break */}
+              {`Levels: ${calculateQuizLevels(quizzes[key])}`}
+              <br /> {/* Added line break */}
+              {`Active Questions: ${calculateActiveQuestions(quizzes[key]).length}/${quizzes[key]['questions'].length}`}
             </span>
-            <br /> {/* Added line break */}
-            {`Levels: ${calculateQuizLevels(quizzes[key])}`}
-            <br /> {/* Added line break */}
-            {`Active Questions: ${calculateActiveQuestions(quizzes[key]).length}/${quizzes[key]['questions'].length}`}
             </div>
             {clickedQuiz === key && (
-              <div className="click-options">
-                <button
-                  onClick={() => {
-                    setSelectedQuiz(quizzes[key]['questions']); // Set the selected quiz
-                    setSelectedTitle(key); // Set the selected title
-                  }}
-                  className="click-button"
-                >
-                  Take Quiz
-                </button>
-                <button
-                  onClick={() =>
-                    navigate('/quiz-view', {
-                      state: {
-                        title: key, // Pass the quiz title
-                        questions: quizzes[key]['questions'], // Pass the quiz questions
-                        lastAccessed: quizzes[key]['lastAccessed'], // Pass the last accessed date
-                      },
-                    })
-                  }
-                  className="click-button"
-                >
-                  Add Questions
-                </button>
-              </div>
-            )}
+            <div className="click-options">
+              <button
+              onClick={() => {
+                  setSelectedQuiz(quizzes[key]['questions']); // Set the selected quiz
+                  setSelectedTitle(key); // Set the selected title
+                }}
+                className="click-button"
+              >
+                Take Quiz
+              </button>
+              <button
+                onClick={() =>
+                  navigate('/quiz-view', {
+                    state: {
+                      title: key, // Pass the quiz title
                       questions: quizzes[key]['questions'], // Pass the quiz questions
                       lastAccessed: quizzes[key]['lastAccessed'], // Pass the last accessed date
                     },
