@@ -1,17 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../utils/firebase/firebaseDB';
-import QuizBoxes from '../components/quizBoxes';
-import QuizView from '../components/quizView';
+import QuizBoxes from './quizzes';
+import QuizView from './quiz';
 import { collection, getDocs, doc } from 'firebase/firestore';
 import AddQuiz from '../services/addQuiz';
 
-const Home = ({
-  email,
-  selectedQuiz,
-  setSelectedQuiz,
-  selectedTitle,
-  setSelectedTitle,
-}) => {
+const MainContent = ({ email, selectedQuiz, setSelectedQuiz, selectedTitle,setSelectedTitle }) => {
   const [quizzes, setQuizzes] = useState([]);
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -31,13 +25,12 @@ const Home = ({
         // Convert querySnapshot into a Map
         const quizzesData = {};
         querySnapshot.forEach((doc) => {
-          quizzesData[doc.id] = doc.data();
+            quizzesData[doc.id] = doc.data();
         });
         // Sort quizzesData by lastAccessed in descending order
         const sortedQuizzesData = Object.fromEntries(
-          Object.entries(quizzesData).sort(
-            ([, a], [, b]) =>
-              new Date(b.lastAccessed) - new Date(a.lastAccessed)
+          Object.entries(quizzesData).sort(([, a], [, b]) => 
+            new Date(b.lastAccessed) - new Date(a.lastAccessed)
           )
         );
         setQuizzes(sortedQuizzesData);
@@ -60,9 +53,7 @@ const Home = ({
   };
 
   const handleNextQuestion = () => {
-    setCurrentQuestionIndex((prevIndex) =>
-      Math.min(prevIndex + 1, selectedQuiz.length - 1)
-    );
+    setCurrentQuestionIndex((prevIndex) => Math.min(prevIndex + 1, selectedQuiz.length - 1));
     setShowAnswer(false); // Hide answer when navigating to next question
   };
 
@@ -77,16 +68,16 @@ const Home = ({
   //     </div>
   //   );
 
+
   const handleFilterChange = (newFilter) => {
     setFilter(newFilter);
   };
 
-  const filteredQuizzes =
-    filter === 'all'
-      ? quizzes
-      : Object.fromEntries(
-          Object.entries(quizzes).filter(([, quiz]) => quiz.spacedLearning)
-        );
+  const filteredQuizzes = filter === 'all'
+    ? quizzes
+    : Object.fromEntries(
+        Object.entries(quizzes).filter(([, quiz]) => quiz.spacedLearning)
+      );
   if (!selectedQuiz) {
     return (
       <div className="main-content">
@@ -105,12 +96,7 @@ const Home = ({
           </button>
         </div>
         <div className="main-content">
-          <QuizBoxes
-            quizzes={filteredQuizzes}
-            setSelectedQuiz={setSelectedQuiz}
-            setSelectedTitle={setSelectedTitle}
-            spacedLearning={filter === 'spacedLearning'}
-          />
+          <QuizBoxes quizzes={filteredQuizzes} setSelectedQuiz={setSelectedQuiz} setSelectedTitle={setSelectedTitle} spacedLearning = {filter==='spacedLearning'} />
         </div>
       </div>
     );
@@ -128,19 +114,21 @@ const Home = ({
         handleNextQuestion={handleNextQuestion}
         toggleAnswerVisibility={toggleAnswerVisibility}
         showAnswer={showAnswer}
-        email={email}
-      />
-
-      <AddQuiz
+        email={email} />
+        
+      <AddQuiz 
         email={email}
         quizData={{
           title: selectedTitle,
           questions: selectedQuiz,
-          lastAccessed: selectedQuiz.lastAccessed,
+          lastAccessed: selectedQuiz.lastAccessed
         }}
       />
     </div>
   );
-};
+  }
 
-export default Home;
+
+
+
+export default MainContent;

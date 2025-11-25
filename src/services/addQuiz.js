@@ -227,12 +227,9 @@ const AddQuiz = ({ email, quizData }) => {
             <div className="qa-fields">
               <div className="question-labels">
                 <label className="question-number">
-                  Q{index + 1}: {q.starred ? '★' : '☆'}{' '}
-                  {/* Display star icon */}
+                   {q.starred ? '★' : '☆'} Q{index + 1} {/* Display star icon */}
                 </label>
-                <label className="question-pass">
-                  {q.passed ? 'Passed' : 'Not Passed'}
-                </label>
+                {/* <label className="question-pass">{q.passed ? 'Passed' : 'Not Passed'}</label> */}
               </div>
               <textarea
                 placeholder="Question"
