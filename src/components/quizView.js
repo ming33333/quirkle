@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../utils/firebase/firebaseDB'; // Adjust the path if needed
-import { appendToMapField } from '../utils/firebase/firebaseServices';
+import { doc } from 'firebase/firestore';
+import { db } from '../utils/firebase/firebaseDB';
+import { updateDocument,getDocument,setDocument,appendToMapField } from '../utils/firebase/firebaseServices';
 const QuizView = ({
   selectedQuiz,
   selectedTitle,
@@ -84,8 +84,7 @@ const QuizView = ({
     );
   };
   const handleAnswerChoice = async (choice) => {
-    const levelTypes = doc(db, 'configs', 'levelTypes');
-    const levelTypesDoc = await getDoc(levelTypes);
+    const levelTypesDoc = await getDocument('configs/levelTypes');
     let levelTypesDataStandard;
     levelTypesDataStandard = levelTypesDoc.data()['standard'];
 
@@ -126,31 +125,24 @@ const QuizView = ({
           currentQuestion.activeTime
         );
       }
-      const quizDocRef = doc(
-        db,
-        'users',
-        email,
-        'quizCollection',
-        selectedTitle
-      );
-      await updateDoc(quizDocRef, { questions: updatedQuestions }); //TODO update single question, rn updating whole quiz
+      await updateDocument(
+        `users/${email}/quizCollection/${selectedTitle}`,
+        { questions: updatedQuestions }
+      ); //TODO update single question, rn updating whole quiz
     } catch (error) {
       console.error('Error updating question in Firestore:', error);
     }
   };
-  // console.log('QuizView props:')
   const currentQuestion = selectedQuiz[currentQuestionIndex];
+  // Points for completing quiz
   const handleAwardPoint = async () => {
     try {
-      const pointsDocRef = doc(db, 'users', email, 'pointSystem', 'points');
-      const pointsDoc = await getDoc(pointsDocRef);
-
+      const pointsDoc = await getDocument(`users/${email}/pointSystem/points`);
       if (pointsDoc.exists()) {
         const currentPoints = pointsDoc.data().value || 0;
-        await updateDoc(pointsDocRef, { value: currentPoints + 1 }); // Increment points by 1
+        await updateDocument(`users/${email}/pointSystem/points`, { value: currentPoints + 1 }); // Increment points by 1
       } else {
-        // console.log('Points document does not exist. Creating it with a value of 1...');
-        await setDoc(pointsDocRef, { value: 1 }); // Create the document and set its value to 1
+        await setDocument(`users/${email}/pointSystem/points`, { value: 1 }); // Create the document and set its value to 1
       }
     } catch (err) {
       console.error('Error updating points:', err);
