@@ -86,7 +86,7 @@ const QuizView = ({
   const handleAnswerChoice = async (choice) => {
     const levelTypesDoc = await getDocument('configs/levelTypes');
     let levelTypesDataStandard;
-    levelTypesDataStandard = levelTypesDoc.data()['standard'];
+    levelTypesDataStandard = levelTypesDoc['standard'];
 
     try {
       const updatedQuestions = [...selectedQuiz]; // Create a copy of the questions array
