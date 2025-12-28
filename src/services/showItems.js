@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../utils/firebase/firebaseDB'; // Adjust the path to your Firestore setup
+import { getDocument } from '../utils/firebase/firebaseServices';
 
 const ShowItems = ({ email }) => {
   const [purchasedItems, setPurchasedItems] = useState([]); // State to store purchased items
@@ -10,9 +9,7 @@ const ShowItems = ({ email }) => {
   useEffect(() => {
     const fetchPurchasedItems = async () => {
       try {
-        console.log('Fetching purchased items for user:', email);
-        const itemsDocRef = doc(db, 'users', email, 'pointSystem', 'items');
-        const itemsDoc = await getDoc(itemsDocRef);
+        const itemsDoc = await getDocument(`users/${email}/pointSystem/items`);
 
         if (itemsDoc.exists()) {
           setPurchasedItems(itemsDoc.data().list || []); // Set purchased items from Firestore
@@ -30,7 +27,6 @@ const ShowItems = ({ email }) => {
 
     fetchPurchasedItems();
   }, [email]);
-  console.log('purchasedItems:', purchasedItems);
   if (loading) {
     return <div>Loading purchased items...</div>;
   }

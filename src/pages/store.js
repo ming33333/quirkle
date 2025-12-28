@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
-import { db } from '../utils/firebase/firebaseDB'; // Adjust the path if needed
+import {getDocument,updateDocument,setDocument } from '../utils/firebase/firebaseServices';
 
 const Store = ({ email }) => {
   const [points, setPoints] = useState(0); // User's current points
@@ -18,10 +17,7 @@ const Store = ({ email }) => {
   useEffect(() => {
     const fetchPoints = async () => {
       try {
-        console.log('Fetching points for user:', email);
-        const pointsDocRef = doc(db, 'users', email, 'pointSystem', 'points');
-        console.log('Fetching points from:', pointsDocRef.path);
-        const pointsDoc = await getDoc(pointsDocRef);
+        const pointsDoc = await getDocument(`users/${email}/pointSystem/points`);
 
         if (pointsDoc.exists()) {
           setPoints(pointsDoc.data().value || 0);
@@ -30,8 +26,7 @@ const Store = ({ email }) => {
           setPoints(0);
         }
         // Fetch purchased items
-        const itemsDocRef = doc(db, 'users', email, 'pointSystem', 'items');
-        const itemsDoc = await getDoc(itemsDocRef);
+        const itemsDoc = await getDocument(`users/${email}/pointSystem/items`);
 
         if (itemsDoc.exists()) {
           setPurchasedItems(itemsDoc.data().list || []);
@@ -58,32 +53,27 @@ const Store = ({ email }) => {
       alert('Not enough points to purchase this item.');
       return;
     }
-    const itemsDocRef = doc(db, 'users', email, 'pointSystem', 'items');
     // Fetch the updated items list from Firestore
-    const updatedItemsDoc = await getDoc(itemsDocRef);
+    const updatedItemsDoc = await getDocument(`users/${email}/pointSystem/items`);
     if (purchasedItems.includes(itemName)) {
       alert(`You already own the ${itemName}.`);
       return;
     }
 
     try {
-      const pointsDocRef = doc(db, 'users', email, 'pointSystem', 'points');
-      await updateDoc(pointsDocRef, { value: points - 1 }); // Deduct 1 point
+      await updateDocument(`users/${email}/pointSystem/points`, { value: points - 1 }); // Deduct 1 point
       setPoints(points - 1); // Update local state
       // Add the purchased item to the 'items' list in Firestore
 
-      const itemsDoc = await getDoc(itemsDocRef);
+      const itemsDoc = await getDocument(`users/${email}/pointSystem/points`);
 
       if (itemsDoc.exists()) {
         const currentItems = itemsDoc.data().list || [];
-        await updateDoc(itemsDocRef, { list: [...currentItems, itemPath] });
-        console.log(`update items doc ${updatedItemsDoc.data().list}`);
+        await updateDocument(`users/${email}/pointSystem/items`, { list: [...currentItems, itemPath] });
       } else {
-        await setDoc(itemsDocRef, { list: [itemPath] }); // Initialize the list with the purchased item
+        await setDocument(`users/${email}/pointSystem/items`, { list: [itemPath] }); // Initialize the list with the purchased item
       }
       setPurchasedItems(updatedItemsDoc.data().list || []); // Update local state with the latest items
-      console.log('Purchased items:', purchasedItems);
-
       alert(`You have successfully purchased the ${itemName}!`);
     } catch (err) {
       console.error('Error updating points:', err);

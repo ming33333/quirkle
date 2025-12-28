@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../utils/firebase/firebaseDB'; // Import your Firestore setup
+import {getDocument,setDocument } from '../utils/firebase/firebaseServices';
 
 const ShowPoints = ({ email }) => {
   const [points, setPoints] = useState(null); // State to store the user's points
@@ -10,14 +9,12 @@ const ShowPoints = ({ email }) => {
   useEffect(() => {
     const fetchPoints = async () => {
       try {
-        const pointsDocRef = doc(db, 'users', email, 'pointSystem', 'points');
-        const pointsDoc = await getDoc(pointsDocRef);
+        const pointsDoc = await getDocument(`users/${email}/pointSystem/points`);
 
-        if (pointsDoc.exists()) {
-          setPoints(pointsDoc.data().value || 0); // Retrieve the points value
+        if (pointsDoc) {
+          setPoints(pointsDoc.value || 0); // Retrieve the points value
         } else {
-          console.log('Points document does not exist.');
-          await setDoc(pointsDocRef, { value: 0 }); // Create the document and set its value to 0
+          await setDocument(`users/${email}/pointSystem/points`, { value: 0 }); // Create the document and set its value to 0
           setPoints(0); // Default to 0 if the document doesn't exist
         }
       } catch (err) {

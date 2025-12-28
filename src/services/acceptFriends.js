@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
-import { db } from '../utils/firebase/firebaseDB';
+import {getDocument,setDocument } from '../utils/firebase/firebaseServices';
 
 const AcceptFriends = ({ currentUserEmail }) => {
   const [friends, setFriends] = useState([]); // Store current friends
@@ -13,18 +12,10 @@ const AcceptFriends = ({ currentUserEmail }) => {
   useEffect(() => {
     const fetchFriendsAndRequests = async () => {
       try {
-        // Fetch current friends
-        const friendsDocRef = doc(
-          db,
-          'users',
-          currentUserEmail,
-          'friendCollection',
-          'friends'
-        );
-        const friendsDoc = await getDoc(friendsDocRef);
+        const friendsDoc = await getDocument(`users/${currentUserEmail}/friendCollection/friends`);
 
-        if (friendsDoc.exists()) {
-          const friendsData = friendsDoc.data();
+        if (friendsDoc) {
+          const friendsData = friendsDoc;
           const friendKeys = Object.keys(friendsData); // Get all keys (friend emails)
           setFriends(friendKeys);
         } else {
@@ -32,18 +23,10 @@ const AcceptFriends = ({ currentUserEmail }) => {
           setFriends([]);
         }
 
-        // Fetch friend requests
-        const requestDocRef = doc(
-          db,
-          'users',
-          currentUserEmail,
-          'friendCollection',
-          'requests'
-        );
-        const requestDoc = await getDoc(requestDocRef);
+        const requestDoc = await getDocument(`users/${currentUserEmail}/friendCollection/requests`);
 
-        if (requestDoc.exists()) {
-          const requests = Object.keys(requestDoc.data() || {}); // Get the 'requests' array
+        if (requestDoc) {
+          const requests = Object.keys(requestDoc || {}); // Get the 'requests' array
           setFriendRequests(requests);
         } else {
           console.log('No friend requests found.');
@@ -80,56 +63,31 @@ const AcceptFriends = ({ currentUserEmail }) => {
         },
       };
       setFriendRequests(updatedRequests);
-
-      // Update the Firestore document user request
-      const requestDocRef = doc(
-        db,
-        'users',
-        currentUserEmail,
-        'friendCollection',
-        'requests'
-      );
-      await setDoc(requestDocRef, updatedRequests, { merge: true });
+      await setDocument(
+        `users/${currentUserEmail}/friendCollection/requests`,
+        updatedRequests, 
+        { merge: true });
 
       // Add the friend to the user's friend list
-      const friendListDocRef = doc(
-        db,
-        'users',
-        currentUserEmail,
-        'friendCollection',
-        'friends'
-      );
-      await setDoc(
-        friendListDocRef,
+
+      await setDocument(
+        `users/${currentUserEmail}/friendCollection/friends`,
         { [friendEmail]: 'email' },
         { merge: true }
       );
-
-      // Update the Firestore document
-      const senderDocRef = doc(
-        db,
-        'users',
-        friendEmail,
-        'friendCollection',
-        'requests'
-      );
-      await setDoc(senderDocRef, senderUpdatedRequests, { merge: true });
+      // Update the Firestore document sender request
+      await setDocument(
+        `users/${friendEmail}/friendCollection/requests`, 
+        senderUpdatedRequests, 
+        { merge: true });
 
       // Add the friend to the user's friend list
-      const senderFriendListDocRef = doc(
-        db,
-        'users',
-        friendEmail,
-        'friendCollection',
-        'friends'
-      );
-      await setDoc(
-        senderFriendListDocRef,
+      await setDocument(
+        `users/${friendEmail}/friendCollection/friends`,
         { [currentUserEmail]: 'email' },
         { merge: true }
       );
 
-      console.log(`Accepted friend request from ${friendEmail}`);
     } catch (err) {
       console.error('Error accepting friend request:', err);
       setError('Failed to accept friend request.');

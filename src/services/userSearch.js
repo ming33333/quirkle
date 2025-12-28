@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
-import { db } from '../utils/firebase/firebaseDB';
+import {getDocuments,setDocument } from '../utils/firebase/firebaseServices';
 
 const UserSearch = ({ email }) => {
   const [searchTerm, setSearchTerm] = useState(''); // Input value for the search
@@ -12,8 +11,7 @@ const UserSearch = ({ email }) => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const usersCollection = collection(db, 'users');
-        const querySnapshot = await getDocs(usersCollection);
+        const querySnapshot = await getDocuments('users');
         const userNames = querySnapshot.docs.map((doc) => doc.id); // Get document names (user names)
         console.log('User Names:', userNames);
         setUsers(userNames);
@@ -41,10 +39,8 @@ const UserSearch = ({ email }) => {
     try {
       // Reference the 'friendRequests' subcollection under the recipient's document
       console.log('Recipient Email:', recipientEmail);
-      const recipientDocRef = doc(db, 'users', recipientEmail);
-      const friendRequestRef = collection(recipientDocRef, 'friendCollection');
-      await setDoc(
-        doc(friendRequestRef, 'requests'),
+      await setDocument(
+        `users/${recipientEmail}/friendCollection/requests`,
         {
           [email]: {
             response: false,

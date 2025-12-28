@@ -1,5 +1,5 @@
 import { db } from './firebaseDB';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, getDocs, setDoc, collection } from 'firebase/firestore';
 import { arrayUnion } from 'firebase/firestore';
 
 /**
@@ -11,12 +11,74 @@ import { arrayUnion } from 'firebase/firestore';
  */
 export const updateDocument = async (docPath, data) => {
   try {
-    console.log('Updating document at path:', docPath, 'with data:', data);
     const documentRef = doc(db, docPath);
     await updateDoc(documentRef, data);
-    // console.log(`Document at ${docPath} updated successfully.`);
   } catch (error) {
     console.error(`Error updating document at ${JSON.stringify(docPath)}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Creates or overwrites a document in the Firestore database.
+ *
+ * @param {string} docPath - The path to the document in the Firestore database.
+ * @param {Object} data - The data to set in the document.
+ * @param {boolean} [merge=false] - Whether to merge the data with the existing document.
+ * @returns {Promise<void>} - A promise that resolves when the document is set.
+ */
+export const setDocument = async (docPath, data, merge = false) => {
+  try {
+    const documentRef = doc(db, docPath);
+    await setDoc(documentRef, data, { merge });
+    console.log(`Document at ${docPath} set successfully.`);
+  } catch (error) {
+    console.error(`Error setting document at ${docPath}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Retrieves a document from the Firestore database.
+ *
+ * @param {string} docPath - The path to the document in the Firestore database.
+ * @returns {Promise<Object>} - A promise that resolves with the document data, or null if the document does not exist.
+ */
+export const getDocument = async (docPath) => {
+  try {
+    const documentRef = doc(db, docPath);
+    const documentSnapshot = await getDoc(documentRef);
+
+    if (documentSnapshot.exists()) {
+      return documentSnapshot.data(); // Return the document data
+    } else {
+      console.warn(`Document at ${docPath} does not exist.`);
+      return null; // Return null if the document does not exist
+    }
+  } catch (error) {
+    console.error(`Error fetching document at ${docPath}:`, error);
+    throw error;
+  }
+};
+/**
+ * Retrieves a document from the Firestore database.
+ *
+ * @param {string} docPath - The path to the document in the Firestore database.
+ * @returns {Promise<Object>} - A promise that resolves with the document data, or null if the document does not exist.
+ */
+export const getDocuments = async (docPath) => {
+  try {
+    const documentRef = collection(db, docPath);
+    const documentSnapshot = await getDocs(documentRef);
+
+    if (documentSnapshot) {
+      return documentSnapshot; // Return the document data
+    } else {
+      console.warn(`Document at ${docPath} does not exist.`);
+      return null; // Return null if the document does not exist
+    }
+  } catch (error) {
+    console.error(`Error fetching document at ${docPath}:`, error);
     throw error;
   }
 };

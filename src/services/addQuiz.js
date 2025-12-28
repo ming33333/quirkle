@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   collection,
-  getDoc,
-  setDoc,
   doc,
   deleteDoc,
   and,
@@ -10,7 +8,7 @@ import {
 import { useLocation } from 'react-router-dom';
 import { db } from '../utils/firebase/firebaseDB';
 import { useNavigate } from 'react-router-dom';
-import { updateDocument } from '../utils/firebase/firebaseServices';
+import { getDocument,setDocument,updateDocument } from '../utils/firebase/firebaseServices';
 
 const AddQuiz = ({ email, quizData }) => {
   const location = useLocation();
@@ -139,16 +137,17 @@ const AddQuiz = ({ email, quizData }) => {
       const subcollectionRef = collection(docRef, 'quizCollection');
 
       // Check if the user document exists
-      const docSnap = await getDoc(docRef);
-      if (!docSnap.exists()) {
+      const docSnap = await getDocument(`users/${email}`);
+      console.log(`docsnap`,docSnap)
+      if (!docSnap) {
         console.log(
           'User document does not exist. Creating a new user document...'
         );
-        await setDoc(docRef, {}); // Create the user document if it doesn't exist
+        await setDocument(`users/${email}/`, {}); // Create the user document if it doesn't exist
       }
       console.log('User document exists or created successfully!');
       // Add or update the quiz document in the 'quizCollection' subcollection
-      await setDoc(doc(subcollectionRef, title), {
+      await setDocument(`users/${email}/quizCollection/${title}`, {
         title: title,
         questions: questions,
       });
