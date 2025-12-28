@@ -11,14 +11,16 @@ import { arrayUnion } from 'firebase/firestore';
  */
 export const updateDocument = async (docPath, data) => {
   try {
+    console.log('Updating document at path:', docPath, 'with data:', data);
     const documentRef = doc(db, docPath);
     await updateDoc(documentRef, data);
     // console.log(`Document at ${docPath} updated successfully.`);
   } catch (error) {
-    console.error(`Error updating document at ${docPath}:`, error);
+    console.error(`Error updating document at ${JSON.stringify(docPath)}:`, error);
     throw error;
   }
 };
+
 /**
  * Appends data to a map field in a Firestore document.
  *

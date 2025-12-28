@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../utils/firebase/firebaseDB'; // Adjust the path if needed
-import { appendToMapField } from '../utils/firebase/firebaseServices';
+import { updateDocument,appendToMapField } from '../utils/firebase/firebaseServices';
 const QuizView = ({
   selectedQuiz,
   selectedTitle,
@@ -126,14 +126,10 @@ const QuizView = ({
           currentQuestion.activeTime
         );
       }
-      const quizDocRef = doc(
-        db,
-        'users',
-        email,
-        'quizCollection',
-        selectedTitle
-      );
-      await updateDoc(quizDocRef, { questions: updatedQuestions }); //TODO update single question, rn updating whole quiz
+      await updateDocument(
+        `users/${email}/quizCollection/${selectedTitle}`,
+        { questions: updatedQuestions }
+      ); //TODO update single question, rn updating whole quiz
     } catch (error) {
       console.error('Error updating question in Firestore:', error);
     }

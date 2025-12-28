@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../utils/firebase/firebaseDB';
 import QuizBoxes from './quizzes';
-import QuizView from './quiz';
+import QuizView from './quizView';
 import { collection, getDocs, doc } from 'firebase/firestore';
 import AddQuiz from '../services/addQuiz';
 
@@ -103,7 +103,6 @@ const MainContent = ({ email, selectedQuiz, setSelectedQuiz, selectedTitle,setSe
   }
 
   return (
-    //TODO add filter here for spacedlearning view
     <div className="main-content">
       <QuizView
         selectedQuiz={selectedQuiz}
