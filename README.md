@@ -79,3 +79,12 @@ run command: ipconfig getifaddr en0
 use that internal IP adresss and port on mobile ex. xxx.xxx.xxx.xx:3000
 
 can also be seen when you do "npm start" . should say "On your local network"
+
+## Features and Bugs
+- Features
+- - Must Haves
+- - Nice to Have
+
+- Bugs
+- - Big
+- - Small
