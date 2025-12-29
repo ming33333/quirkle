@@ -174,10 +174,6 @@ const QuizView = ({
     return (
       <div className="quiz-container">
         <h2>Choose Your Quiz Mode</h2>
-        <p>
-          Do you want to take only questions marked as passed or those not
-          marked as passed?
-        </p>
         <button
           onClick={() => handleExitQuiz((immediateExit = true))}
           className="question-button"
@@ -213,7 +209,7 @@ const QuizView = ({
       style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
     >
       <button
-        onClick={() => handleExitQuiz(false)}
+        onClick={() => handleExitQuiz(true)}
         style={{ marginBottom: '1em' }}
         className="question-button"
       >
