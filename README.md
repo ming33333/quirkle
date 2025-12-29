@@ -82,9 +82,18 @@ can also be seen when you do "npm start" . should say "On your local network"
 
 ## Features and Bugs
 - Features
-- - Must Haves
-- - Nice to Have
+    - Must Haves (Before first launch)
+        - advertisement 
+        - subscribe for no ads
+        - admin to see how much data used and spent 
+    - Nice to Have
+        - Move questions to buckets
+        - label spaced learning buckets with number of active questions
+        - users activity (maybe can use third party)
+        - active store for study room upgrades
 
 - Bugs
-- - Big
-- - Small
+    - Big (Before first launch)
+        - infinite
+    - Small
+        - add question not align with quiz box borders
