@@ -64,6 +64,10 @@ const SpacedLearningQuiz = ({
   }, [selectedQuiz, email, selectedTitle]);
 
   const handleBucketClick = (level, email, title) => {
+    selectedQuiz = selectedQuiz.map((question, index) => ({
+      ...question,
+      index: index,
+    }));
     if (!selectedQuiz.SpacedLearning)
       updateDocument(`users/${email}/quizCollection/${title}`, {
         spacedLearning: 'standard',

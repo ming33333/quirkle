@@ -128,7 +128,7 @@ const QuizView = ({
       await updateDocument(
         `users/${email}/quizCollection/${selectedTitle}`,
         { questions: updatedQuestions }
-      ); //TODO update single question, rn updating whole quiz
+      ); //update whole question just need the one when it get answered
     } catch (error) {
       console.error('Error updating question in Firestore:', error);
     }
