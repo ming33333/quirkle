@@ -1,27 +1,60 @@
-import React, { useState, useEffect } from 'react';
-import { updateDocument } from '../utils/firebase/firebaseServices';
-import { calculateActiveQuestions } from '../utils/helpers/quizHelpers';
-import QuizView from '../components/quizView';
+import React, { useState, useEffect } from "react";
+import { updateDocument } from "../utils/firebase/firebaseServices";
+import { calculateActiveQuestions } from "../utils/helpers/quizHelpers";
+import QuizView from "../components/quizView";
 
 const checkAndUpdateLevels = async (selectedQuiz, email, title) => {
-  let isUpdated = false;
   try {
-    const updatedQuestions = selectedQuiz.map((question) => {
-      if (!question.hasOwnProperty('level')) {
-        isUpdated = true;
-        return { ...question, level: 1 }; // Add level property with default value 1
+    // Convert questions from map to array, preserving original map keys as originalIndex
+    let questionsArray;
+    if (Array.isArray(selectedQuiz)) {
+      // If already an array, preserve existing originalIndex or add it
+      questionsArray = selectedQuiz.map((question, index) => ({
+        ...question,
+        originalIndex:
+          question.originalIndex !== undefined
+            ? question.originalIndex
+            : String(index),
+      }));
+    } else {
+      // If it's a map, preserve the original keys
+      questionsArray = Object.entries(selectedQuiz || {}).map(
+        ([key, question]) => ({
+          ...question,
+          originalIndex:
+            question.originalIndex !== undefined
+              ? question.originalIndex
+              : String(key),
+        })
+      );
+    }
+
+    // Build update object with only questions that need level property added
+    const updateData = {};
+    let hasUpdates = false;
+
+    questionsArray.forEach((question, arrayIndex) => {
+      if (!question.hasOwnProperty("level")) {
+        // Use originalIndex if available, otherwise fall back to array index
+        const questionIndex =
+          question.originalIndex !== undefined
+            ? String(question.originalIndex)
+            : String(arrayIndex);
+        updateData[`questions.${questionIndex}.level`] = 1; // Add level property with default value 1
+        hasUpdates = true;
       }
-      return question;
     });
-    if (isUpdated) {
-      // Update the database
-      await updateDocument(`users/${email}/quizCollection/${title}`, {
-        questions: updatedQuestions,
-      });
-      console.log('Firestore updated with level property for questions.');
+
+    if (hasUpdates) {
+      // Update only the specific questions that need the level property
+      await updateDocument(
+        `users/${email}/quizCollection/${title}`,
+        updateData
+      );
+      console.log("Firestore updated with level property for questions.");
     }
   } catch (error) {
-    console.error('Error updating level property in Firestore:', error);
+    console.error("Error updating level property in Firestore:", error);
   }
 };
 
@@ -45,9 +78,13 @@ const SpacedLearningQuiz = ({
   };
 
   const handleNextQuestion = () => {
-    console.log('next question');
+    console.log("next question");
+    // Ensure selectedQuiz is an array
+    const questionsArray = Array.isArray(selectedQuiz)
+      ? selectedQuiz
+      : Object.values(selectedQuiz || {});
     setCurrentQuestionIndex((prevIndex) =>
-      Math.min(prevIndex + 1, selectedQuiz.length - 1)
+      Math.min(prevIndex + 1, questionsArray.length - 1)
     );
     setShowAnswer(false); // Hide answer when navigating to next question
   };
@@ -58,29 +95,71 @@ const SpacedLearningQuiz = ({
 
   React.useEffect(() => {
     const updateQuiz = async () => {
-      setUpdatedQuiz(selectedQuiz);
+      // Convert questions from map to array, preserving original map keys as originalIndex
+      let questionsArray;
+      if (Array.isArray(selectedQuiz)) {
+        questionsArray = selectedQuiz.map((question, index) => ({
+          ...question,
+          originalIndex:
+            question.originalIndex !== undefined
+              ? question.originalIndex
+              : String(index),
+        }));
+      } else {
+        // If it's a map, preserve the original keys
+        questionsArray = Object.entries(selectedQuiz || {}).map(
+          ([key, question]) => ({
+            ...question,
+            originalIndex:
+              question.originalIndex !== undefined
+                ? question.originalIndex
+                : String(key),
+          })
+        );
+      }
+      setUpdatedQuiz(questionsArray);
     };
     updateQuiz();
   }, [selectedQuiz, email, selectedTitle]);
 
   const handleBucketClick = (level, email, title) => {
-    selectedQuiz = selectedQuiz.map((question, index) => ({
-      ...question,
-      index: index,
-    }));
+    // Convert questions from map to array, preserving original map keys as originalIndex
+    let questionsArray;
+    if (Array.isArray(selectedQuiz)) {
+      questionsArray = selectedQuiz.map((question, index) => ({
+        ...question,
+        originalIndex:
+          question.originalIndex !== undefined
+            ? question.originalIndex
+            : String(index),
+      }));
+    } else {
+      // If it's a map, preserve the original keys
+      questionsArray = Object.entries(selectedQuiz || {}).map(
+        ([key, question]) => ({
+          ...question,
+          originalIndex:
+            question.originalIndex !== undefined
+              ? question.originalIndex
+              : String(key),
+        })
+      );
+    }
     if (!selectedQuiz.SpacedLearning)
       updateDocument(`users/${email}/quizCollection/${title}`, {
-        spacedLearning: 'standard',
+        spacedLearning: "standard",
       });
 
-    checkAndUpdateLevels(selectedQuiz, email, selectedTitle)
+    checkAndUpdateLevels(questionsArray, email, selectedTitle);
     // Filter questions for the selected level
     setLevelSelected(true);
     levelTitle = `${selectedTitle} - Level ${level}`;
-    if (level === 'active') {
-      filteredQuestions = calculateActiveQuestions({ questions: selectedQuiz });
+    if (level === "active") {
+      filteredQuestions = calculateActiveQuestions({
+        questions: questionsArray,
+      });
     } else {
-      filteredQuestions = selectedQuiz.filter(
+      filteredQuestions = questionsArray.filter(
         (question) => question.level === level
       );
     }
@@ -122,7 +201,7 @@ const SpacedLearningQuiz = ({
         ))}
         <div
           className="bucket"
-          onClick={() => handleBucketClick('active', email, selectedTitle)} // Handle bucket click
+          onClick={() => handleBucketClick("active", email, selectedTitle)} // Handle bucket click
         >
           <h3>All Active</h3>
         </div>

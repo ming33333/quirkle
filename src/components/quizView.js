@@ -1,7 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { doc } from 'firebase/firestore';
-import { db } from '../utils/firebase/firebaseDB';
-import { updateDocument,getDocument,setDocument,appendToMapField } from '../utils/firebase/firebaseServices';
+import React, { useEffect, useState } from "react";
+import { doc } from "firebase/firestore";
+import { db } from "../utils/firebase/firebaseDB";
+import {
+  updateDocument,
+  getDocument,
+  setDocument,
+  appendToMapField,
+} from "../utils/firebase/firebaseServices";
 const QuizView = ({
   selectedQuiz,
   selectedTitle,
@@ -26,16 +31,20 @@ const QuizView = ({
   // });
   const [filterChoice, setFilterChoice] = useState(null); // Track the user's filter choice
   const [showExitPopup, setShowExitPopup] = useState(false); // Track whether the exit popup is visible
-  let immediateExit;
 
   const handleExitQuiz = (immediateExit = false) => {
     if (immediateExit) {
       setSelectedQuiz(null); // Exit the quiz if it's completed
       setFilterChoice(null); // Reset filterChoice to null
-      window.location.href = '#/home'; // Redirect to /home
+      window.location.href = "#/home"; // Redirect to /home
       return;
     }
-    if (currentQuestionIndex + 1 < selectedQuiz.length) {
+    // Ensure selectedQuiz is an array to check length
+    const questionsArray = Array.isArray(selectedQuiz)
+      ? selectedQuiz
+      : Object.values(selectedQuiz || {});
+
+    if (currentQuestionIndex + 1 < questionsArray.length) {
       setShowExitPopup(true); // Show the popup if the user hasn't finished the quiz
     } else {
       setSelectedQuiz(null); // Exit the quiz if it's completed
@@ -52,30 +61,54 @@ const QuizView = ({
     setSelectedQuiz(null); // Exit the quiz
   };
   const handleFilterChoice = (choice) => {
-    if (choice === 'passed') {
-      // Filter questions that are marked as passed
-      const filteredQuestions = selectedQuiz.filter((q) => q.passed === true);
+    // Convert questions from map to array, preserving original map keys as originalIndex
+    let questionsArray;
+    if (Array.isArray(selectedQuiz)) {
+      // If already an array, preserve existing originalIndex or add it
+      questionsArray = selectedQuiz.map((question, index) => ({
+        ...question,
+        originalIndex:
+          question.originalIndex !== undefined
+            ? question.originalIndex
+            : String(index),
+      }));
+    } else {
+      // If it's a map, preserve the original keys
+      questionsArray = Object.entries(selectedQuiz || {}).map(
+        ([key, question]) => ({
+          ...question,
+          originalIndex:
+            question.originalIndex !== undefined
+              ? question.originalIndex
+              : String(key),
+        })
+      );
+    }
+
+    if (choice === "passed") {
+      // Filter questions that are marked as passed (preserving originalIndex)
+      const filteredQuestions = questionsArray.filter((q) => q.passed === true);
       setSelectedQuiz(filteredQuestions);
-    } else if (choice === 'notPassed') {
-      // Filter questions that do not have a passed key or are not passed
-      const filteredQuestions = selectedQuiz.filter((q) => q.passed !== true);
+    } else if (choice === "notPassed") {
+      // Filter questions that do not have a passed key or are not passed (preserving originalIndex)
+      const filteredQuestions = questionsArray.filter((q) => q.passed !== true);
       setSelectedQuiz(filteredQuestions);
     } else {
-      setSelectedQuiz(selectedQuiz);
+      setSelectedQuiz(questionsArray);
     }
     setFilterChoice(choice); // Save the user's choice
     console.log(`title ${selectedTitle} email ${email}`);
     const quizStatsDocRef = doc(
       db,
-      'users',
+      "users",
       email,
       selectedTitle,
-      'quizCollection'
+      "quizCollection"
     );
     const startTime = new Date().toISOString(); // Get the current time in ISO format
     appendToMapField(
       `users/${email}/quizCollection/${selectedTitle}`,
-      'quizStats',
+      "quizStats",
       {
         start: startTime,
         filterChoice: choice,
@@ -84,84 +117,124 @@ const QuizView = ({
     );
   };
   const handleAnswerChoice = async (choice) => {
-    const levelTypesDoc = await getDocument('configs/levelTypes');
+    const levelTypesDoc = await getDocument("configs/levelTypes");
     let levelTypesDataStandard;
-    levelTypesDataStandard = levelTypesDoc['standard'];
+    levelTypesDataStandard = levelTypesDoc["standard"];
 
     try {
-      const updatedQuestions = [...selectedQuiz]; // Create a copy of the questions array
-      const currentQuestion = updatedQuestions[currentQuestionIndex]; // Get the current question
-      currentQuestion.passed = choice === 'right';
-      currentQuestion.lastAnswered = new Date().toISOString(); // Record the time of answering
-      if (choice === 'right') {
-        currentQuestion.level = currentQuestion.level
+      // Ensure selectedQuiz is an array for accessing the current question
+      const questionsArray = Array.isArray(selectedQuiz)
+        ? selectedQuiz
+        : Object.values(selectedQuiz || {});
+
+      const currentQuestion = questionsArray[currentQuestionIndex]; // Get the current question
+
+      // Use originalIndex if available (for filtered questions), otherwise use currentQuestionIndex
+      const originalIndex =
+        currentQuestion?.originalIndex !== undefined
+          ? String(currentQuestion.originalIndex)
+          : String(currentQuestionIndex);
+
+      // Calculate updated values
+      const passed = choice === "right";
+      const lastAnswered = new Date().toISOString();
+      let level, activeTime;
+
+      if (choice === "right") {
+        level = currentQuestion.level
           ? Math.min(currentQuestion.level + 1, 4)
           : 2;
-        const addedDays =
-          levelTypesDataStandard[Math.min(currentQuestion.level, 4)]; //TODO possible bug here if a days does not exist
+        const addedDays = levelTypesDataStandard[Math.min(level, 4)]; //TODO possible bug here if a days does not exist
         const nextActiveDate = new Date();
         nextActiveDate.setDate(nextActiveDate.getDate() + addedDays); // Add the days to the current date
-        currentQuestion.activeTime = nextActiveDate.toISOString(); // Update activeTime when the question needs to be seen next
+        activeTime = nextActiveDate.toISOString(); // Update activeTime when the question needs to be seen next
         console.log(
-          'Answered right, setting level to',
-          currentQuestion.level,
-          'next active time to',
-          currentQuestion.activeTime
+          "Answered right, setting level to",
+          level,
+          "next active time to",
+          activeTime
         );
       } else {
-        currentQuestion.level =
+        level =
           currentQuestion.level && currentQuestion.level - 1 > 0
             ? currentQuestion.level - 1
             : 1; // Reset level to 1 if answered wrong
-        const subtractedDays =
-          levelTypesDataStandard[Math.max(currentQuestion.level, 1)];
+        const subtractedDays = levelTypesDataStandard[Math.max(level, 1)];
         const nextActiveDate = new Date();
         nextActiveDate.setDate(nextActiveDate.getDate() + subtractedDays); // Add the days to the current date
-        currentQuestion.activeTime = nextActiveDate.toISOString(); // Update activeTime when question need to be seen next
+        activeTime = nextActiveDate.toISOString(); // Update activeTime when question need to be seen next
         console.log(
-          'Answered wrong, setting level to',
-          currentQuestion.level,
-          'next active time to',
-          currentQuestion.activeTime
+          "Answered wrong, setting level to",
+          level,
+          "next active time to",
+          activeTime
         );
       }
+
+      // Update only the specific question using dot notation with originalIndex
+      // questions map structure: { "0": {...}, "1": {...} }
+      const questionIndex = originalIndex;
+      const updateData = {
+        [`questions.${questionIndex}.passed`]: passed,
+        [`questions.${questionIndex}.lastAnswered`]: lastAnswered,
+        [`questions.${questionIndex}.level`]: level,
+        [`questions.${questionIndex}.activeTime`]: activeTime,
+      };
+
       await updateDocument(
         `users/${email}/quizCollection/${selectedTitle}`,
-        { questions: updatedQuestions }
-      ); //update whole question just need the one when it get answered
+        updateData
+      ); // Update only the specific question fields
+
+      // Update local state to reflect changes immediately
+      const updatedQuestions = [...questionsArray];
+      updatedQuestions[currentQuestionIndex] = {
+        ...currentQuestion,
+        passed,
+        lastAnswered,
+        level,
+        activeTime,
+      };
+      setSelectedQuiz(updatedQuestions);
     } catch (error) {
-      console.error('Error updating question in Firestore:', error);
+      console.error("Error updating question in Firestore:", error);
     }
   };
-  const currentQuestion = selectedQuiz[currentQuestionIndex];
+  // Ensure selectedQuiz is an array for component logic
+  const questionsArray = Array.isArray(selectedQuiz)
+    ? selectedQuiz
+    : Object.values(selectedQuiz || {});
+  const currentQuestion = questionsArray[currentQuestionIndex];
   // Points for completing quiz
   const handleAwardPoint = async () => {
     try {
       const pointsDoc = await getDocument(`users/${email}/pointSystem/points`);
-      if (pointsDoc.exists()) {
-        const currentPoints = pointsDoc.data().value || 0;
-        await updateDocument(`users/${email}/pointSystem/points`, { value: currentPoints + 1 }); // Increment points by 1
+      if (pointsDoc && pointsDoc.value !== undefined) {
+        const currentPoints = pointsDoc.value || 0;
+        await updateDocument(`users/${email}/pointSystem/points`, {
+          value: currentPoints + 1,
+        }); // Increment points by 1
       } else {
         await setDocument(`users/${email}/pointSystem/points`, { value: 1 }); // Create the document and set its value to 1
       }
     } catch (err) {
-      console.error('Error updating points:', err);
+      console.error("Error updating points:", err);
     }
   };
 
   useEffect(() => {
-    if (currentQuestionIndex === selectedQuiz.length) {
+    if (currentQuestionIndex === questionsArray.length) {
       handleAwardPoint(); // Award the point when the user finishes the quiz
     }
-  }, [currentQuestionIndex, selectedQuiz.length]);
+  }, [currentQuestionIndex, questionsArray.length]);
 
-  if (currentQuestionIndex === selectedQuiz.length) {
+  if (currentQuestionIndex === questionsArray.length) {
     return (
       <div className="quiz-container">
         <h2>Congrats, you are done!</h2>
         <p>You have completed the quiz and earned 1 point!</p>
         <button
-          onClick={() => handleExitQuiz((immediateExit = true))}
+          onClick={() => handleExitQuiz(true)}
           className="question-button"
         >
           Back to Quiz List
@@ -175,26 +248,26 @@ const QuizView = ({
       <div className="quiz-container">
         <h2>Choose Your Quiz Mode</h2>
         <button
-          onClick={() => handleExitQuiz((immediateExit = true))}
+          onClick={() => handleExitQuiz(true)}
           className="question-button"
         >
           Back to Quiz List
         </button>
-        <div style={{ marginTop: '1em' }}>
+        <div style={{ marginTop: "1em" }}>
           <button
-            onClick={() => handleFilterChoice('passed')}
+            onClick={() => handleFilterChoice("passed")}
             className="question-button"
           >
             Passed Questions
           </button>
           <button
-            onClick={() => handleFilterChoice('notPassed')}
+            onClick={() => handleFilterChoice("notPassed")}
             className="question-button"
           >
             Not Passed Questions
           </button>
           <button
-            onClick={() => handleFilterChoice('all')}
+            onClick={() => handleFilterChoice("all")}
             className="question-button"
           >
             All
@@ -206,11 +279,11 @@ const QuizView = ({
   return (
     <div
       className="quiz-container"
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+      style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
     >
       <button
         onClick={() => handleExitQuiz(true)}
-        style={{ marginBottom: '1em' }}
+        style={{ marginBottom: "1em" }}
         className="question-button"
       >
         Back to Quiz List
@@ -219,18 +292,18 @@ const QuizView = ({
       <div
         className="question-navigation"
         style={{
-          textAlign: 'center',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          textAlign: "center",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
         }}
       >
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '1em',
-            marginBottom: '1em',
+            display: "flex",
+            justifyContent: "center",
+            gap: "1em",
+            marginBottom: "1em",
           }}
         >
           <button
@@ -242,7 +315,7 @@ const QuizView = ({
           </button>
           <button
             onClick={handleNextQuestion}
-            disabled={currentQuestionIndex === selectedQuiz.length - 1}
+            disabled={currentQuestionIndex === questionsArray.length - 1}
             className="question-button navigation-button"
           >
             Next &gt;
@@ -268,19 +341,19 @@ const QuizView = ({
         </div>
         <div
           className="quiz-box"
-          style={{ margin: '1em 0', textAlign: 'center' }}
+          style={{ margin: "1em 0", textAlign: "center" }}
         >
           <strong>
-            Q{currentQuestionIndex + 1}/{selectedQuiz.length}:
-          </strong>{' '}
+            Q{currentQuestionIndex + 1}/{questionsArray.length}:
+          </strong>{" "}
           {currentQuestion.question}
           <br />
           <button
             onClick={toggleAnswerVisibility}
             className="question-button answer-toggle"
-            style={{ marginTop: '1em' }}
+            style={{ marginTop: "1em" }}
           >
-            {showAnswer ? 'Hide Answer' : 'Show Answer'}
+            {showAnswer ? "Hide Answer" : "Show Answer"}
           </button>
           {showAnswer && (
             <div>
@@ -288,20 +361,20 @@ const QuizView = ({
               <div
                 className="answer-buttons"
                 style={{
-                  marginTop: '1em',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  gap: '1em',
+                  marginTop: "1em",
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: "1em",
                 }}
               >
                 <button
-                  onClick={() => handleAnswerChoice('right')}
+                  onClick={() => handleAnswerChoice("right")}
                   className="question-button right-button"
                 >
                   Right
                 </button>
                 <button
-                  onClick={() => handleAnswerChoice('wrong')}
+                  onClick={() => handleAnswerChoice("wrong")}
                   className="question-button wrong-button"
                 >
                   Wrong

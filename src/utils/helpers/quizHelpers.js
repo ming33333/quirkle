@@ -9,7 +9,13 @@ const calculateActiveQuestions = (quiz) => {
   const currentDate = new Date();
   currentDate.setHours(23, 59, 59, 59);
   let activeQuestions = [];
-  quiz.questions.forEach((question) => {
+
+  // Convert questions map to array if needed
+  const questionsArray = Array.isArray(quiz.questions)
+    ? quiz.questions
+    : Object.values(quiz.questions || {});
+
+  questionsArray.forEach((question) => {
     if (!question.activeTime) {
       activeQuestions.push(question); // Add question to activeQuestions if no activeTime
     } else {
