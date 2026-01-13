@@ -2,12 +2,27 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { calculateActiveQuestions } from "../utils/helpers/quizHelpers";
 
+/**
+ * QuizBoxes Component
+ * 
+ * This component renders a collection of quiz boxes, allowing users to view, select, and interact with quizzes. 
+ * It also includes an option to add new quizzes and supports spaced learning functionality.
+ * 
+ * @param {Object} props - The props object.
+ * @param {Object} props.quizzes - An object containing quiz data, where each key represents a quiz title and its value contains quiz details.
+ * @param {Function} props.setSelectedQuiz - A function to set the currently selected quiz questions.
+ * @param {Function} props.setSelectedTitle - A function to set the currently selected quiz title.
+ * @param {boolean} [props.spacedLearning=false] - A flag to enable or disable spaced learning mode.
+ * 
+ * @returns {JSX.Element} The rendered QuizBoxes component.
+ */
 const QuizBoxes = ({
   quizzes,
   setSelectedQuiz,
   setSelectedTitle,
   spacedLearning = false,
 }) => {
+
   const navigate = useNavigate(); // Hook to navigate to different routes
   const [clickedQuiz, setClickedQuiz] = useState(null); // Track which quiz box is clicked
   const [showTooltip, setShowTooltip] = useState(null); // Track which tooltip is visible
