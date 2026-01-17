@@ -94,6 +94,11 @@ const AddQuiz = ({ email, quizData }) => {
   });
   const [bulkInput, setBulkInput] = useState(""); // State for bulk input
   const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [showSpacedLearningPopup, setShowSpacedLearningPopup] = useState(false);
+  const [currentSpacedLearning, setCurrentSpacedLearning] = useState(
+    initialData?.spacedLearning || null
+  );
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     // Adjust the height of all textareas based on their content
@@ -141,6 +146,33 @@ const AddQuiz = ({ email, quizData }) => {
 
   const confirmDeleteQuiz = () => {
     setShowDeletePopup(true); // Show the confirmation popup
+  };
+
+  const handleAddToSpacedLearning = () => {
+    setShowSpacedLearningPopup(true); // Show the confirmation popup
+  };
+
+  const confirmAddToSpacedLearning = () => {
+    updateDocument(`users/${email}/quizCollection/${title}`, {
+      spacedLearning: "standard",
+    });
+    setCurrentSpacedLearning("standard");
+    setShowSpacedLearningPopup(false); // Hide the confirmation popup
+    navigate("/spaced-learning", {
+      state: { initialData, email, title }, // Pass initialData to /spaced-learning
+    });
+  };
+
+  const handleChangeSpacedLearning = async (value) => {
+    await updateDocument(`users/${email}/quizCollection/${title}`, {
+      spacedLearning: value,
+    });
+    setCurrentSpacedLearning(value);
+    setShowSpacedLearningPopup(false);
+  };
+
+  const cancelAddToSpacedLearning = () => {
+    setShowSpacedLearningPopup(false); // Hide the confirmation popup
   };
 
   const cancelDeleteQuiz = () => {
@@ -196,131 +228,243 @@ const AddQuiz = ({ email, quizData }) => {
     setQuestions([...questions, ...newQuestions]); // Add new questions to the existing list
     setBulkInput(""); // Clear the bulk input field
   };
-
+  console.log(`initialData`, initialData);
   return (
     <div className="main-content">
       <div className="add-quiz-container">
-        <h2>{initialData ? "Edit Quiz" : "Add New Quiz"}</h2>
-        {!initialDataEmpty && (
-          <div className="button-group">
-            <button onClick={confirmDeleteQuiz} className="delete-quiz-button">
-              Delete Quiz
-            </button>
-            <button
-              onClick={() =>
-                navigate("/spaced-learning", {
-                  state: { initialData, email, title }, // Pass initialData to /spaced-learning
-                })
-              }
-              className="spaced-learning-button"
-            >
-              Spaced Learning
-            </button>
-          </div>
-        )}
-        {/* Delete Confirmation Popup */}
-        {showDeletePopup && (
-          <div className="popup-overlay">
-            <div className="popup-content">
-              <h3>Are you sure you want to delete the quiz "{title}"?</h3>
-              <button
-                onClick={handleDeleteQuiz}
-                className="confirm-delete-button"
-              >
-                Yes, Delete
-              </button>
-              <button
-                onClick={cancelDeleteQuiz}
-                className="cancel-delete-button"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-        <input
-          type="text"
-          placeholder="Quiz Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="quiz-input"
-        />
-        {questions.map((q, index) => (
-          <div key={index} className="question-container">
-            <div className="qa-fields">
-              <div className="question-labels">
-                <label className="question-number">
-                  {q.starred ? "★" : "☆"} Q{index + 1} {/* Display star icon */}
-                </label>
-                {/* <label className="question-pass">{q.passed ? 'Passed' : 'Not Passed'}</label> */}
-              </div>
-              <textarea
-                placeholder="Question"
-                value={q.question}
-                onChange={(e) =>
-                  handleInputChange(index, "question", e.target.value)
-                }
-                onBlur={() => handleAutoUpdate(index, "question")} // Trigger auto-update on blur
-                className="quiz-textarea"
-              />
-              <textarea
-                placeholder="Answer"
-                value={q.answer}
-                onChange={(e) =>
-                  handleInputChange(index, "answer", e.target.value)
-                }
-                onBlur={() => handleAutoUpdate(index, "answer")} // Trigger auto-update on blur
-                className="quiz-textarea"
-              />
-            </div>
-            <div className="options-menu">
-              <button
-                className="options-button"
-                onClick={() => {
-                  const menu = document.getElementById(`menu-${index}`);
-                  menu.style.display =
-                    menu.style.display === "block" ? "none" : "block";
+        <h2>{initialData ?  `Edit Quiz: ${title}` : "Add New Quiz"}</h2>
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          style={{
+            float: "right",
+            padding: "4px 8px",
+            marginTop: "-40px",
+            cursor: "pointer",
+            backgroundColor: "#f0f0f0",
+            border: "1px solid #ccc",
+            borderRadius: "4px",
+            fontSize: "0.9em",
+          }}
+        >
+          {isExpanded ? "−" : "+"}
+        </button>
+        {isExpanded && (
+          <>
+            {!initialDataEmpty && (
+              <div
+                className="button-group"
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
-                ⋮
-              </button>
-              <div id={`menu-${index}`} className="options-dropdown">
                 <button
-                  onClick={() => handleRemoveQuestion(index)}
-                  className="remove-button"
+                  onClick={confirmDeleteQuiz}
+                  className="delete-quiz-button"
                 >
-                  Remove Question
+                  Delete Quiz
                 </button>
-                <button
-                  onClick={() => handleAddQuestionBelow(index)}
-                  className="add-button"
-                >
-                  Add Question Below
-                </button>
-                <button
-                  onClick={() => handleToggleStar(index)}
-                  className="star-button"
-                >
-                  {q.starred ? "Unstar Question" : "Star Question"}
-                </button>
+                {currentSpacedLearning && currentSpacedLearning !== "all" ? (
+                  <button
+                    onClick={() => setShowSpacedLearningPopup(true)}
+                    className="spaced-learning-button"
+                  >
+                    Change Learning Style
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleAddToSpacedLearning}
+                    className="spaced-learning-button"
+                  >
+                    Add to Spaced Learning
+                  </button>
+                )}
               </div>
-            </div>
-          </div>
-        ))}
+            )}
+            {/* Delete Confirmation Popup */}
+            {showDeletePopup && (
+              <div className="popup-overlay">
+                <div className="popup-content">
+                  <h3>Are you sure you want to delete the quiz "{title}"?</h3>
+                  <button
+                    onClick={handleDeleteQuiz}
+                    className="confirm-delete-button"
+                  >
+                    Yes, Delete
+                  </button>
+                  <button
+                    onClick={cancelDeleteQuiz}
+                    className="cancel-delete-button"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+            {showSpacedLearningPopup && (
+              <div className="popup-overlay">
+                <div className="popup-content">
+                  {currentSpacedLearning && currentSpacedLearning !== "all" ? (
+                    <>
+                      <h3>Change spaced learning for "{title}"</h3>
+                      <p>Current Style: {currentSpacedLearning}</p>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "8px",
+                          marginTop: "16px",
+                          flexDirection: "column",
+                        }}
+                      >
+                        <button
+                          onClick={() => handleChangeSpacedLearning("all")}
+                          className="confirm-add-to-spaced-learning-button"
+                          style={{
+                            backgroundColor:
+                              currentSpacedLearning != "all"
+                                ? "#4CAF50"
+                                : "#2196F3",
+                          }}
+                        >
+                          Change to None
+                        </button>
+                        <button
+                          onClick={() => handleChangeSpacedLearning("green")}
+                          className="confirm-add-to-spaced-learning-button"
+                          style={{
+                            backgroundColor:
+                              currentSpacedLearning === "green"
+                                ? "#4CAF50"
+                                : "#4CAF50",
+                          }}
+                        >
+                          Change to Green
+                        </button>
+                        <button
+                          onClick={cancelAddToSpacedLearning}
+                          className="cancel-add-to-spaced-learning-button"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <h3>
+                        Are you sure you want to add the quiz "{title}" to
+                        spaced learning?
+                      </h3>
+                      <button
+                        onClick={confirmAddToSpacedLearning}
+                        className="confirm-add-to-spaced-learning-button"
+                      >
+                        Yes, Add to Spaced Learning
+                      </button>
+                      <button
+                        onClick={cancelAddToSpacedLearning}
+                        className="cancel-add-to-spaced-learning-button"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+            <input
+              type="text"
+              placeholder="Quiz Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="quiz-input"
+            />
+            {questions.map((q, index) => (
+              <div key={index} className="question-container">
+                <div className="qa-fields">
+                  <div className="question-labels">
+                    <label className="question-number">
+                      {q.starred ? "★" : "☆"} Q{index + 1}{" "}
+                      {/* Display star icon */}
+                    </label>
+                    {/* <label className="question-pass">{q.passed ? 'Passed' : 'Not Passed'}</label> */}
+                  </div>
+                  <textarea
+                    placeholder="Question"
+                    value={q.question}
+                    onChange={(e) =>
+                      handleInputChange(index, "question", e.target.value)
+                    }
+                    onBlur={() => handleAutoUpdate(index, "question")} // Trigger auto-update on blur
+                    className="quiz-textarea"
+                  />
+                  <textarea
+                    placeholder="Answer"
+                    value={q.answer}
+                    onChange={(e) =>
+                      handleInputChange(index, "answer", e.target.value)
+                    }
+                    onBlur={() => handleAutoUpdate(index, "answer")} // Trigger auto-update on blur
+                    className="quiz-textarea"
+                  />
+                </div>
+                <div className="options-menu">
+                  <button
+                    className="options-button"
+                    onClick={() => {
+                      const menu = document.getElementById(`menu-${index}`);
+                      menu.style.display =
+                        menu.style.display === "block" ? "none" : "block";
+                    }}
+                  >
+                    ⋮
+                  </button>
+                  <div id={`menu-${index}`} className="options-dropdown">
+                    <button
+                      onClick={() => handleRemoveQuestion(index)}
+                      className="remove-button"
+                    >
+                      Remove Question
+                    </button>
+                    <button
+                      onClick={() => handleAddQuestionBelow(index)}
+                      className="add-button"
+                    >
+                      Add Question Below
+                    </button>
+                    <button
+                      onClick={() => handleToggleStar(index)}
+                      className="star-button"
+                    >
+                      {q.starred ? "Unstar Question" : "Star Question"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
 
-        <textarea
-          placeholder="Paste questions and answers here (tab-separated, one per line)"
-          value={bulkInput}
-          onChange={(e) => setBulkInput(e.target.value)}
-          className="bulk-input"
-        />
-        <button onClick={handleBulkAdd} className="quiz-button bulk-add-button">
-          Add Bulk Questions
-        </button>
-        {initialDataEmpty && (
-          <button onClick={handleSubmit} className="quiz-button submit-button">
-            {"Submit Quiz"}
-          </button>
+            <textarea
+              placeholder="Paste questions and answers here (tab-separated, one per line)"
+              value={bulkInput}
+              onChange={(e) => setBulkInput(e.target.value)}
+              className="bulk-input"
+            />
+            <button
+              onClick={handleBulkAdd}
+              className="quiz-button bulk-add-button"
+            >
+              Add Bulk Questions
+            </button>
+            {initialDataEmpty && (
+              <button
+                onClick={handleSubmit}
+                className="quiz-button submit-button"
+              >
+                {"Submit Quiz"}
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

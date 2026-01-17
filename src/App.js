@@ -26,8 +26,11 @@ function App() {
   };
 
   const handleNextQuestion = () => {
+    const questions = Array.isArray(selectedQuiz)
+      ? selectedQuiz
+      : selectedQuiz?.questions || [];
     setCurrentQuestionIndex((prevIndex) =>
-      Math.min(prevIndex + 1, selectedQuiz.length - 1)
+      Math.min(prevIndex + 1, questions.length - 1)
     );
     setShowAnswer(false);
   };
@@ -65,6 +68,7 @@ function App() {
               selectedTitle,
               setSelectedTitle,
               currentQuestionIndex,
+              setCurrentQuestionIndex,
               handlePrevQuestion,
               handleNextQuestion,
               toggleAnswerVisibility,

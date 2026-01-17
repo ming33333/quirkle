@@ -60,8 +60,9 @@ const Home = ({
   };
 
   const handleNextQuestion = () => {
+    const questions = Array.isArray(selectedQuiz) ? selectedQuiz : selectedQuiz?.questions || [];
     setCurrentQuestionIndex((prevIndex) =>
-      Math.min(prevIndex + 1, selectedQuiz.length - 1)
+      Math.min(prevIndex + 1, questions.length - 1)
     );
     setShowAnswer(false); // Hide answer when navigating to next question
   };
@@ -85,7 +86,12 @@ const Home = ({
     filter === 'all'
       ? quizzes
       : Object.fromEntries(
-          Object.entries(quizzes).filter(([, quiz]) => quiz.spacedLearning)
+          Object.entries(quizzes).filter(
+            ([, quiz]) =>
+              quiz.spacedLearning &&
+              typeof quiz.spacedLearning === 'string' &&
+              ['blue', 'green', 'standard'].includes(quiz.spacedLearning)
+          )
         );
   if (!selectedQuiz) {
     return (
@@ -123,6 +129,7 @@ const Home = ({
         selectedQuiz={selectedQuiz}
         selectedTitle={selectedTitle}
         currentQuestionIndex={currentQuestionIndex}
+        setCurrentQuestionIndex={setCurrentQuestionIndex}
         setSelectedQuiz={setSelectedQuiz}
         handlePrevQuestion={handlePrevQuestion}
         handleNextQuestion={handleNextQuestion}
@@ -135,8 +142,9 @@ const Home = ({
         email={email}
         quizData={{
           title: selectedTitle,
-          questions: selectedQuiz,
-          lastAccessed: selectedQuiz.lastAccessed,
+          questions: Array.isArray(selectedQuiz) ? selectedQuiz : selectedQuiz?.questions,
+          lastAccessed: selectedQuiz?.lastAccessed,
+          spacedLearning: selectedQuiz?.spacedLearning,
         }}
       />
     </div>

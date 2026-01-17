@@ -11,6 +11,7 @@ const QuizView = ({
   selectedQuiz,
   selectedTitle,
   currentQuestionIndex,
+  setCurrentQuestionIndex,
   setSelectedQuiz,
   handlePrevQuestion,
   handleNextQuestion,
@@ -31,6 +32,7 @@ const QuizView = ({
   // });
   const [filterChoice, setFilterChoice] = useState(null); // Track the user's filter choice
   const [showExitPopup, setShowExitPopup] = useState(false); // Track whether the exit popup is visible
+  const [showQuizCompletion, setShowQuizCompletion] = useState(false); // Track quiz completion popup for cumulative test
 
   const handleExitQuiz = (immediateExit = false) => {
     if (immediateExit) {
@@ -39,10 +41,12 @@ const QuizView = ({
       window.location.href = "#/home"; // Redirect to /home
       return;
     }
-    // Ensure selectedQuiz is an array to check length
+    // Extract questions from selectedQuiz (handle both object and array formats)
     const questionsArray = Array.isArray(selectedQuiz)
       ? selectedQuiz
-      : Object.values(selectedQuiz || {});
+      : selectedQuiz?.questions
+        ? selectedQuiz.questions
+        : Object.values(selectedQuiz || {});
 
     if (currentQuestionIndex + 1 < questionsArray.length) {
       setShowExitPopup(true); // Show the popup if the user hasn't finished the quiz
@@ -61,11 +65,25 @@ const QuizView = ({
     setSelectedQuiz(null); // Exit the quiz
   };
   const handleFilterChoice = (choice) => {
+    // Check if this is a cumulative test BEFORE modifying selectedQuiz
+    // Check both the isCumulativeTest flag and the selectedTitle
+    const isCumulativeTest =
+      selectedQuiz?.isCumulativeTest ||
+      selectedTitle === "Cumulative Test" ||
+      false;
+
+    // Extract questions from selectedQuiz (handle both object and array formats)
+    const questionsForFiltering = Array.isArray(selectedQuiz)
+      ? selectedQuiz
+      : selectedQuiz?.questions
+        ? selectedQuiz.questions
+        : Object.values(selectedQuiz || {});
+
     // Convert questions from map to array, preserving original map keys as originalIndex
     let questionsArray;
-    if (Array.isArray(selectedQuiz)) {
+    if (Array.isArray(questionsForFiltering)) {
       // If already an array, preserve existing originalIndex or add it
-      questionsArray = selectedQuiz.map((question, index) => ({
+      questionsArray = questionsForFiltering.map((question, index) => ({
         ...question,
         originalIndex:
           question.originalIndex !== undefined
@@ -74,7 +92,7 @@ const QuizView = ({
       }));
     } else {
       // If it's a map, preserve the original keys
-      questionsArray = Object.entries(selectedQuiz || {}).map(
+      questionsArray = Object.entries(questionsForFiltering || {}).map(
         ([key, question]) => ({
           ...question,
           originalIndex:
@@ -85,36 +103,50 @@ const QuizView = ({
       );
     }
 
+    // Preserve metadata from selectedQuiz if it's an object
+    const metadata = Array.isArray(selectedQuiz) ? {} : { ...selectedQuiz };
+    // Remove questions to avoid duplication, but preserve other metadata
+    delete metadata.questions;
+
     if (choice === "passed") {
       // Filter questions that are marked as passed (preserving originalIndex)
       const filteredQuestions = questionsArray.filter((q) => q.passed === true);
-      setSelectedQuiz(filteredQuestions);
+      setSelectedQuiz({ ...metadata, questions: filteredQuestions });
     } else if (choice === "notPassed") {
       // Filter questions that do not have a passed key or are not passed (preserving originalIndex)
       const filteredQuestions = questionsArray.filter((q) => q.passed !== true);
-      setSelectedQuiz(filteredQuestions);
+      setSelectedQuiz({ ...metadata, questions: filteredQuestions });
     } else {
-      setSelectedQuiz(questionsArray);
+      setSelectedQuiz({ ...metadata, questions: questionsArray });
     }
     setFilterChoice(choice); // Save the user's choice
-    console.log(`title ${selectedTitle} email ${email}`);
-    const quizStatsDocRef = doc(
-      db,
-      "users",
-      email,
-      selectedTitle,
-      "quizCollection"
-    );
-    const startTime = new Date().toISOString(); // Get the current time in ISO format
-    appendToMapField(
-      `users/${email}/quizCollection/${selectedTitle}`,
-      "quizStats",
-      {
-        start: startTime,
-        filterChoice: choice,
-        complete: false,
+
+    // Skip quizStats for cumulative test (it doesn't have a document)
+    // Double-check: don't update if it's a cumulative test OR if selectedTitle is "Cumulative Test"
+    if (
+      !isCumulativeTest &&
+      selectedTitle &&
+      selectedTitle !== "Cumulative Test"
+    ) {
+      try {
+        const startTime = new Date().toISOString(); // Get the current time in ISO format
+        appendToMapField(
+          `users/${email}/quizCollection/${selectedTitle}`,
+          "quizStats",
+          {
+            start: startTime,
+            filterChoice: choice,
+            complete: false,
+          }
+        ).catch((error) => {
+          console.error("Error appending quiz stats:", error);
+        });
+      } catch (error) {
+        console.error("Error in quiz stats append:", error);
       }
-    );
+    } else {
+      console.log("Skipping quizStats update for cumulative test");
+    }
   };
   const handleAnswerChoice = async (choice) => {
     const levelTypesDoc = await getDocument("configs/levelTypes");
@@ -122,10 +154,12 @@ const QuizView = ({
     levelTypesDataStandard = levelTypesDoc["standard"];
 
     try {
-      // Ensure selectedQuiz is an array for accessing the current question
+      // Extract questions from selectedQuiz (handle both object and array formats)
       const questionsArray = Array.isArray(selectedQuiz)
         ? selectedQuiz
-        : Object.values(selectedQuiz || {});
+        : selectedQuiz?.questions
+          ? selectedQuiz.questions
+          : Object.values(selectedQuiz || {});
 
       const currentQuestion = questionsArray[currentQuestionIndex]; // Get the current question
 
@@ -171,6 +205,12 @@ const QuizView = ({
         );
       }
 
+      // For cumulative test, use the current quiz title from metadata
+      const isCumulativeTest = selectedQuiz?.isCumulativeTest || false;
+      const quizTitleToUpdate = isCumulativeTest
+        ? selectedQuiz.currentQuizTitle
+        : selectedTitle;
+
       // Update only the specific question using dot notation with originalIndex
       // questions map structure: { "0": {...}, "1": {...} }
       const questionIndex = originalIndex;
@@ -182,11 +222,17 @@ const QuizView = ({
       };
 
       await updateDocument(
-        `users/${email}/quizCollection/${selectedTitle}`,
+        `users/${email}/quizCollection/${quizTitleToUpdate}`,
         updateData
       ); // Update only the specific question fields
 
       // Update local state to reflect changes immediately
+      // Preserve metadata from selectedQuiz if it's an object
+      const metadata = Array.isArray(selectedQuiz)
+        ? {}
+        : { ...selectedQuiz, questions: undefined };
+      delete metadata.questions; // Ensure questions is not in metadata
+
       const updatedQuestions = [...questionsArray];
       updatedQuestions[currentQuestionIndex] = {
         ...currentQuestion,
@@ -195,16 +241,69 @@ const QuizView = ({
         level,
         activeTime,
       };
-      setSelectedQuiz(updatedQuestions);
+      setSelectedQuiz({ ...metadata, questions: updatedQuestions });
     } catch (error) {
       console.error("Error updating question in Firestore:", error);
     }
   };
-  // Ensure selectedQuiz is an array for component logic
+
+  // Extract questions from selectedQuiz (handle both object and array formats)
   const questionsArray = Array.isArray(selectedQuiz)
     ? selectedQuiz
-    : Object.values(selectedQuiz || {});
+    : selectedQuiz?.questions
+      ? selectedQuiz.questions
+      : Object.values(selectedQuiz || {});
+
   const currentQuestion = questionsArray[currentQuestionIndex];
+  const isCumulativeTest = selectedQuiz?.isCumulativeTest || false;
+  const currentQuizTitle = isCumulativeTest
+    ? selectedQuiz.currentQuizTitle
+    : selectedTitle;
+  const quizList = isCumulativeTest ? selectedQuiz.quizList : null;
+  const currentQuizIndex = isCumulativeTest ? selectedQuiz.currentQuizIndex : 0;
+
+  // Check if current quiz is completed and move to next quiz in cumulative test
+  useEffect(() => {
+    if (
+      isCumulativeTest &&
+      quizList &&
+      currentQuestionIndex === questionsArray.length &&
+      questionsArray.length > 0
+    ) {
+      // Current quiz is completed
+      setShowQuizCompletion(true);
+    }
+  }, [currentQuestionIndex, questionsArray.length, isCumulativeTest, quizList]);
+
+  // Handler to move to next quiz in cumulative test
+  const handleNextQuiz = () => {
+    if (isCumulativeTest && quizList && setCurrentQuestionIndex) {
+      const nextQuizIndex = currentQuizIndex + 1;
+      if (nextQuizIndex < quizList.length) {
+        // Move to next quiz
+        setSelectedQuiz({
+          ...selectedQuiz,
+          currentQuizIndex: nextQuizIndex,
+          questions: quizList[nextQuizIndex].questions,
+          currentQuizTitle: quizList[nextQuizIndex].title,
+        });
+        setCurrentQuestionIndex(0); // Reset to first question of next quiz
+        setShowQuizCompletion(false);
+      } else {
+        // All quizzes completed
+        setShowQuizCompletion(false);
+        // Will show final completion message
+      }
+    }
+  };
+
+  // Handler to exit cumulative test after quiz completion
+  const handleExitCumulativeTest = () => {
+    setShowQuizCompletion(false);
+    setSelectedQuiz(null);
+    setFilterChoice(null);
+  };
+
   // Points for completing quiz
   const handleAwardPoint = async () => {
     try {
@@ -228,11 +327,71 @@ const QuizView = ({
     }
   }, [currentQuestionIndex, questionsArray.length]);
 
+  // Show quiz completion popup for cumulative test
+  if (showQuizCompletion && isCumulativeTest && quizList) {
+    const isLastQuiz = currentQuizIndex + 1 >= quizList.length;
+    return (
+      <div className="popup-overlay">
+        <div className="popup-content">
+          <h2>
+            {isLastQuiz
+              ? "🎉 Cumulative Test Complete!"
+              : `Quiz "${currentQuizTitle}" Complete!`}
+          </h2>
+          <p>
+            {isLastQuiz
+              ? "You have completed all quizzes in the cumulative test and earned 1 point!"
+              : `You've finished all questions in "${currentQuizTitle}". Moving to the next quiz...`}
+          </p>
+          <div
+            style={{
+              display: "flex",
+              gap: "12px",
+              justifyContent: "center",
+              marginTop: "20px",
+            }}
+          >
+            {isLastQuiz ? (
+              <button
+                onClick={handleExitCumulativeTest}
+                className="question-button"
+              >
+                Back to Quiz List
+              </button>
+            ) : (
+              <>
+                <button onClick={handleNextQuiz} className="question-button">
+                  Continue to Next Quiz
+                </button>
+                <button
+                  onClick={handleExitCumulativeTest}
+                  className="question-button"
+                >
+                  Exit Cumulative Test
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show final completion for regular quiz or cumulative test
   if (currentQuestionIndex === questionsArray.length) {
+    const isLastQuizInCumulative =
+      isCumulativeTest && quizList && currentQuizIndex + 1 >= quizList.length;
+
     return (
       <div className="quiz-container">
         <h2>Congrats, you are done!</h2>
-        <p>You have completed the quiz and earned 1 point!</p>
+        <p>
+          {isCumulativeTest
+            ? isLastQuizInCumulative
+              ? "You have completed the cumulative test and earned 1 point!"
+              : "You have completed this quiz!"
+            : "You have completed the quiz and earned 1 point!"}
+        </p>
         <button
           onClick={() => handleExitQuiz(true)}
           className="question-button"
@@ -276,6 +435,7 @@ const QuizView = ({
       </div>
     );
   }
+
   return (
     <div
       className="quiz-container"
@@ -288,7 +448,24 @@ const QuizView = ({
       >
         Back to Quiz List
       </button>
-      <h2>{selectedTitle}</h2> {/* Display the selected title */}
+      <h2>
+        {isCumulativeTest && currentQuizTitle
+          ? `${selectedTitle} - ${currentQuizTitle}`
+          : selectedTitle}
+      </h2>
+      {isCumulativeTest && quizList && (
+        <p
+          style={{
+            fontSize: "0.9em",
+            color: "#666",
+            marginTop: "-10px",
+            marginBottom: "10px",
+          }}
+        >
+          Question {currentQuestionIndex + 1} of {questionsArray.length} in "
+          {currentQuizTitle}" | Quiz {currentQuizIndex + 1} of {quizList.length}
+        </p>
+      )}
       <div
         className="question-navigation"
         style={{

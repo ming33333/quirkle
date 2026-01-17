@@ -37,6 +37,7 @@ export const createAppRoutes = ({
   selectedTitle,
   setSelectedTitle,
   currentQuestionIndex,
+  setCurrentQuestionIndex,
   handlePrevQuestion,
   handleNextQuestion,
   toggleAnswerVisibility,
@@ -77,6 +78,7 @@ export const createAppRoutes = ({
             selectedQuiz={selectedQuiz}
             selectedTitle={selectedTitle}
             currentQuestionIndex={currentQuestionIndex}
+            setCurrentQuestionIndex={setCurrentQuestionIndex}
             setSelectedQuiz={setSelectedQuiz}
             handlePrevQuestion={handlePrevQuestion}
             handleNextQuestion={handleNextQuestion}
@@ -106,6 +108,8 @@ export const createAppRoutes = ({
             selectedQuiz={selectedQuiz}
             selectedTitle={selectedTitle}
             setSelectedQuiz={setSelectedQuiz}
+            currentQuestionIndex={currentQuestionIndex}
+            setCurrentQuestionIndex={setCurrentQuestionIndex}
             handlePrevQuestion={handlePrevQuestion}
             handleNextQuestion={handleNextQuestion}
             toggleAnswerVisibility={toggleAnswerVisibility}

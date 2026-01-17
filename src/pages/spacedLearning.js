@@ -63,35 +63,57 @@ const SpacedLearningQuiz = ({
   email,
   selectedTitle,
   setSelectedQuiz,
+  currentQuestionIndex,
+  setCurrentQuestionIndex,
+  handlePrevQuestion,
+  handleNextQuestion,
+  toggleAnswerVisibility,
+  showAnswer,
 }) => {
   const [updatedQuiz, setUpdatedQuiz] = React.useState([]);
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [showAnswer, setShowAnswer] = useState(false);
+  const [localCurrentQuestionIndex, setLocalCurrentQuestionIndex] = useState(0);
+  const [localShowAnswer, setLocalShowAnswer] = useState(false);
   const [loading, setLoading] = useState(true);
   let filteredQuestions, levelTitle;
   const [levelSelected, setLevelSelected] = React.useState(false);
 
-  const handlePrevQuestion = () => {
-    setCurrentQuestionIndex((prevIndex) => Math.max(prevIndex - 1, 0));
-    setShowAnswer(false); // Hide answer when navigating to previous question
-  };
+  // Use passed handlers if available, otherwise use local state
+  const effectiveCurrentQuestionIndex =
+    currentQuestionIndex !== undefined
+      ? currentQuestionIndex
+      : localCurrentQuestionIndex;
+  const effectiveSetCurrentQuestionIndex =
+    setCurrentQuestionIndex || setLocalCurrentQuestionIndex;
+  const effectiveShowAnswer =
+    showAnswer !== undefined ? showAnswer : localShowAnswer;
 
-  const handleNextQuestion = () => {
-    console.log("next question");
-    // Ensure selectedQuiz is an array
-    const questionsArray = Array.isArray(selectedQuiz)
-      ? selectedQuiz
-      : Object.values(selectedQuiz || {});
-    setCurrentQuestionIndex((prevIndex) =>
-      Math.min(prevIndex + 1, questionsArray.length - 1)
-    );
-    setShowAnswer(false); // Hide answer when navigating to next question
-  };
+  const localHandlePrevQuestion =
+    handlePrevQuestion ||
+    (() => {
+      effectiveSetCurrentQuestionIndex((prevIndex) =>
+        Math.max(prevIndex - 1, 0)
+      );
+      if (!showAnswer) setLocalShowAnswer(false);
+    });
 
-  const toggleAnswerVisibility = () => {
-    setShowAnswer((prevShowAnswer) => !prevShowAnswer);
-  };
+  const localHandleNextQuestion =
+    handleNextQuestion ||
+    (() => {
+      const questionsArray = Array.isArray(updatedQuiz)
+        ? updatedQuiz
+        : Object.values(updatedQuiz || {});
+      effectiveSetCurrentQuestionIndex((prevIndex) =>
+        Math.min(prevIndex + 1, questionsArray.length - 1)
+      );
+      if (!showAnswer) setLocalShowAnswer(false);
+    });
+
+  const localToggleAnswerVisibility =
+    toggleAnswerVisibility ||
+    (() => {
+      setLocalShowAnswer((prev) => !prev);
+    });
 
   React.useEffect(() => {
     const updateQuiz = async () => {
@@ -175,12 +197,13 @@ const SpacedLearningQuiz = ({
       <QuizView
         selectedQuiz={updatedQuiz}
         selectedTitle={selectedTitle}
-        currentQuestionIndex={currentQuestionIndex}
+        currentQuestionIndex={effectiveCurrentQuestionIndex}
+        setCurrentQuestionIndex={effectiveSetCurrentQuestionIndex}
         setSelectedQuiz={setSelectedQuiz}
-        handlePrevQuestion={handlePrevQuestion}
-        handleNextQuestion={handleNextQuestion}
-        toggleAnswerVisibility={toggleAnswerVisibility}
-        showAnswer={showAnswer}
+        handlePrevQuestion={localHandlePrevQuestion}
+        handleNextQuestion={localHandleNextQuestion}
+        toggleAnswerVisibility={localToggleAnswerVisibility}
+        showAnswer={effectiveShowAnswer}
         email={email}
       />
     );
