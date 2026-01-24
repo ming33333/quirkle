@@ -21,7 +21,7 @@ const db = {
         requests: {}, // document for friend requests},
       },
       pointSystem: {
-        collectionName: "pointSystem", // Subcollection name
+        collectionName: 'pointSystem', // Subcollection name
         points: { value: 0 }, // Document for points
       },
       quizCollection: {

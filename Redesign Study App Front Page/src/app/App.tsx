@@ -27,13 +27,9 @@ export default function App() {
       <main className="max-w-4xl mx-auto px-6 py-12">
         {/* Welcome Section */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
-            <Heart className="w-4 h-4" />
-            Welcome Back!
-          </div>
           
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Ready to learn something new?
+            Welcome back! Ready to learn something new?
           </h2>
           
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">

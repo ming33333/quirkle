@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faStar } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import ProfileOverlay from './profileOverlay';
 import { GlobalContext } from '../context/GlobalContext';
@@ -15,11 +15,13 @@ const Header = ({ user }) => {
     <header className="header">
       <div className="header-content">
         <nav>
+          
           <h1
             onClick={() => navigate('/')} // Navigate to '/' when clicked
             className="header-title"
             style={{ cursor: 'pointer' }}
           >
+            <FontAwesomeIcon icon={faStar} style={{ width: '1.5rem', height: '1.5rem', color: '#FFFFFF' }} />
             {config.name}
           </h1>
         </nav>

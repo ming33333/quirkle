@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { updateDocument } from "../utils/firebase/firebaseServices";
 import { calculateActiveQuestions } from "../utils/helpers/quizHelpers";
 import QuizView from "../components/quizView";
@@ -59,9 +60,9 @@ const checkAndUpdateLevels = async (selectedQuiz, email, title) => {
 };
 
 const SpacedLearningQuiz = ({
-  selectedQuiz,
-  email,
-  selectedTitle,
+  selectedQuiz: selectedQuizProp,
+  email: emailProp,
+  selectedTitle: selectedTitleProp,
   setSelectedQuiz,
   currentQuestionIndex,
   setCurrentQuestionIndex,
@@ -70,12 +71,30 @@ const SpacedLearningQuiz = ({
   toggleAnswerVisibility,
   showAnswer,
 }) => {
+  const location = useLocation();
+  // Get data from navigation state if available, otherwise use props
+  const navigationState = location.state || {};
+  const initialData = navigationState.initialData || {};
+  
+  // Use navigation state data if available, otherwise fall back to props
+  // If coming from navigation state, construct selectedQuiz from initialData
+  let selectedQuiz = selectedQuizProp;
+  if (!selectedQuiz && initialData.questions) {
+    // If questions is an array, wrap it in an object with questions property
+    selectedQuiz = Array.isArray(initialData.questions) 
+      ? { questions: initialData.questions }
+      : { questions: initialData.questions };
+  }
+  
+  const email = emailProp || navigationState.email || "";
+  const selectedTitle = selectedTitleProp || navigationState.title || initialData.title || "";
+  
   const [updatedQuiz, setUpdatedQuiz] = React.useState([]);
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [localCurrentQuestionIndex, setLocalCurrentQuestionIndex] = useState(0);
   const [localShowAnswer, setLocalShowAnswer] = useState(false);
   const [loading, setLoading] = useState(true);
-  let filteredQuestions, levelTitle;
+  const [levelTitle, setLevelTitle] = useState("");
   const [levelSelected, setLevelSelected] = React.useState(false);
 
   // Use passed handlers if available, otherwise use local state
@@ -117,10 +136,25 @@ const SpacedLearningQuiz = ({
 
   React.useEffect(() => {
     const updateQuiz = async () => {
+      if (!selectedQuiz) {
+        setLoading(false);
+        return;
+      }
+      
+      // Extract questions from selectedQuiz
+      let questionsToProcess;
+      if (Array.isArray(selectedQuiz)) {
+        questionsToProcess = selectedQuiz;
+      } else if (selectedQuiz.questions) {
+        questionsToProcess = selectedQuiz.questions;
+      } else {
+        questionsToProcess = selectedQuiz;
+      }
+      
       // Convert questions from map to array, preserving original map keys as originalIndex
       let questionsArray;
-      if (Array.isArray(selectedQuiz)) {
-        questionsArray = selectedQuiz.map((question, index) => ({
+      if (Array.isArray(questionsToProcess)) {
+        questionsArray = questionsToProcess.map((question, index) => ({
           ...question,
           originalIndex:
             question.originalIndex !== undefined
@@ -129,7 +163,7 @@ const SpacedLearningQuiz = ({
         }));
       } else {
         // If it's a map, preserve the original keys
-        questionsArray = Object.entries(selectedQuiz || {}).map(
+        questionsArray = Object.entries(questionsToProcess || {}).map(
           ([key, question]) => ({
             ...question,
             originalIndex:
@@ -140,15 +174,31 @@ const SpacedLearningQuiz = ({
         );
       }
       setUpdatedQuiz(questionsArray);
+      setLoading(false);
     };
     updateQuiz();
   }, [selectedQuiz, email, selectedTitle]);
 
   const handleBucketClick = (level, email, title) => {
+    if (!selectedQuiz) {
+      console.error("No quiz data available");
+      return;
+    }
+    
+    // Extract questions from selectedQuiz
+    let questionsToProcess;
+    if (Array.isArray(selectedQuiz)) {
+      questionsToProcess = selectedQuiz;
+    } else if (selectedQuiz.questions) {
+      questionsToProcess = selectedQuiz.questions;
+    } else {
+      questionsToProcess = selectedQuiz;
+    }
+    
     // Convert questions from map to array, preserving original map keys as originalIndex
     let questionsArray;
-    if (Array.isArray(selectedQuiz)) {
-      questionsArray = selectedQuiz.map((question, index) => ({
+    if (Array.isArray(questionsToProcess)) {
+      questionsArray = questionsToProcess.map((question, index) => ({
         ...question,
         originalIndex:
           question.originalIndex !== undefined
@@ -157,7 +207,7 @@ const SpacedLearningQuiz = ({
       }));
     } else {
       // If it's a map, preserve the original keys
-      questionsArray = Object.entries(selectedQuiz || {}).map(
+      questionsArray = Object.entries(questionsToProcess || {}).map(
         ([key, question]) => ({
           ...question,
           originalIndex:
@@ -174,8 +224,12 @@ const SpacedLearningQuiz = ({
 
     checkAndUpdateLevels(questionsArray, email, selectedTitle);
     // Filter questions for the selected level
-    setLevelSelected(true);
-    levelTitle = `${selectedTitle} - Level ${level}`;
+    const titleForLevel = level === "active" 
+      ? `${selectedTitle} - All Active`
+      : `${selectedTitle} - Level ${level}`;
+    setLevelTitle(titleForLevel);
+    
+    let filteredQuestions;
     if (level === "active") {
       filteredQuestions = calculateActiveQuestions({
         questions: questionsArray,
@@ -185,18 +239,24 @@ const SpacedLearningQuiz = ({
         (question) => question.level === level
       );
     }
+    
     setUpdatedQuiz(filteredQuestions);
+    setLevelSelected(true);
     console.log(`Filtered Questions for Level ${level}:`, filteredQuestions);
-
-    // Update the quiz state with filtered questions
-    setUpdatedQuiz(filteredQuestions);
   };
 
-  if (levelSelected && updatedQuiz) {
+  if (levelSelected && updatedQuiz && updatedQuiz.length > 0) {
+    // Format the quiz data properly for QuizView
+    const quizDataForView = {
+      questions: updatedQuiz,
+      spacedLearning: selectedQuiz?.spacedLearning || initialData?.spacedLearning,
+      lastAccessed: selectedQuiz?.lastAccessed || initialData?.lastAccessed,
+    };
+    
     return (
       <QuizView
-        selectedQuiz={updatedQuiz}
-        selectedTitle={selectedTitle}
+        selectedQuiz={quizDataForView}
+        selectedTitle={levelTitle || selectedTitle}
         currentQuestionIndex={effectiveCurrentQuestionIndex}
         setCurrentQuestionIndex={effectiveSetCurrentQuestionIndex}
         setSelectedQuiz={setSelectedQuiz}
@@ -205,7 +265,31 @@ const SpacedLearningQuiz = ({
         toggleAnswerVisibility={localToggleAnswerVisibility}
         showAnswer={effectiveShowAnswer}
         email={email}
+        skipFilterChoice={true} // Skip the filter choice screen
       />
+    );
+  }
+  
+  // Show message if no questions found
+  if (levelSelected && updatedQuiz && updatedQuiz.length === 0) {
+    return (
+      <div className="spaced-learning-container">
+        <h2>No Questions Found</h2>
+        <p>There are no questions available for the selected level.</p>
+        <button
+          onClick={() => {
+            setLevelSelected(false);
+            setUpdatedQuiz([]);
+          }}
+          style={{
+            padding: "10px 20px",
+            marginTop: "20px",
+            cursor: "pointer",
+          }}
+        >
+          Back to Level Selection
+        </button>
+      </div>
     );
   }
 

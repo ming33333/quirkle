@@ -96,7 +96,7 @@ export const createAppRoutes = ({
     <Route
       key="/add-questions"
       path="/add-questions"
-      element={user ? <AddQuiz email={user.email} /> : <Navigate to="/login" />}
+      element={user ? <AddQuiz email={user.email} showDropdown={false} /> : <Navigate to="/login" />}
     />,
     <Route
       key="/spaced-learning"

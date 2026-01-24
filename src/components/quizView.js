@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { doc } from "firebase/firestore";
 import { db } from "../utils/firebase/firebaseDB";
 import {
@@ -18,6 +19,7 @@ const QuizView = ({
   toggleAnswerVisibility,
   showAnswer,
   email, // Pass the user's email as a prop
+  skipFilterChoice = false, // Skip the filter choice screen if true
 }) => {
   // console.log('all the props',{
   //   selectedQuiz,
@@ -30,7 +32,8 @@ const QuizView = ({
   //   showAnswer,
   //   email,
   // });
-  const [filterChoice, setFilterChoice] = useState(null); // Track the user's filter choice
+  const navigate = useNavigate();
+  const [filterChoice, setFilterChoice] = useState(skipFilterChoice ? "all" : null); // Track the user's filter choice
   const [showExitPopup, setShowExitPopup] = useState(false); // Track whether the exit popup is visible
   const [showQuizCompletion, setShowQuizCompletion] = useState(false); // Track quiz completion popup for cumulative test
 
@@ -404,33 +407,150 @@ const QuizView = ({
   // Show the filter prompt if the user hasn't made a choice yet
   if (filterChoice === null) {
     return (
-      <div className="quiz-container">
-        <h2>Choose Your Quiz Mode</h2>
-        <button
-          onClick={() => handleExitQuiz(true)}
-          className="question-button"
+      <div 
+        className="quiz-container"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "60vh",
+          padding: "2em",
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: "#ffffff",
+            borderRadius: "16px",
+            padding: "2.5em 3em",
+            boxShadow: "0 8px 24px rgba(0, 0, 0, 0.12)",
+            border: "1px solid #e0e0e0",
+            maxWidth: "500px",
+            width: "100%",
+            textAlign: "center",
+          }}
         >
-          Back to Quiz List
-        </button>
-        <div style={{ marginTop: "1em" }}>
-          <button
-            onClick={() => handleFilterChoice("passed")}
-            className="question-button"
+          <h2
+            style={{
+              color: "#333",
+              marginBottom: "1.5em",
+              fontSize: "1.8em",
+              fontWeight: "600",
+            }}
           >
-            Passed Questions
-          </button>
-          <button
-            onClick={() => handleFilterChoice("notPassed")}
-            className="question-button"
+            Choose Your Quiz Mode
+          </h2>
+          <div
+            style={{
+              display: "flex",
+              gap: "1em",
+              justifyContent: "center",
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
           >
-            Not Passed Questions
-          </button>
-          <button
-            onClick={() => handleFilterChoice("all")}
-            className="question-button"
-          >
-            All
-          </button>
+            <button
+              onClick={() => handleExitQuiz(true)}
+              className="question-button"
+              style={{
+                padding: "12px 24px",
+                fontSize: "1em",
+                borderRadius: "8px",
+                border: "2px solid #ccc",
+                backgroundColor: "#f5f5f5",
+                color: "#333",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = "#e8e8e8";
+                e.target.style.transform = "translateY(-2px)";
+                e.target.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.15)";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = "#f5f5f5";
+                e.target.style.transform = "translateY(0)";
+                e.target.style.boxShadow = "none";
+              }}
+            >
+              Back to Quiz List
+            </button>
+            <button
+              onClick={() => handleFilterChoice("all")}
+              className="question-button"
+              style={{
+                padding: "14px 32px",
+                fontSize: "1.1em",
+                fontWeight: "600",
+                borderRadius: "10px",
+                border: "none",
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                color: "white",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+                boxShadow: "0 4px 15px rgba(102, 126, 234, 0.4)",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = "translateY(-2px)";
+                e.target.style.boxShadow = "0 6px 20px rgba(102, 126, 234, 0.5)";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = "translateY(0)";
+                e.target.style.boxShadow = "0 4px 15px rgba(102, 126, 234, 0.4)";
+              }}
+            >
+              View Questions
+            </button>
+            {/* Start Spaced Learning button - only show if quiz has spaced learning enabled */}
+            {selectedQuiz?.spacedLearning && selectedQuiz.spacedLearning !== "all" && (
+              <button
+                onClick={() => {
+                  // Extract questions from selectedQuiz
+                  const questionsArray = Array.isArray(selectedQuiz)
+                    ? selectedQuiz
+                    : selectedQuiz?.questions
+                      ? selectedQuiz.questions
+                      : Object.values(selectedQuiz || {});
+                  
+                  navigate("/spaced-learning", {
+                    state: {
+                      initialData: {
+                        title: selectedTitle,
+                        questions: questionsArray,
+                        lastAccessed: selectedQuiz?.lastAccessed,
+                        spacedLearning: selectedQuiz.spacedLearning,
+                      },
+                      email,
+                      title: selectedTitle,
+                    },
+                  });
+                }}
+                className="question-button"
+                style={{
+                  padding: "14px 32px",
+                  fontSize: "1.1em",
+                  fontWeight: "600",
+                  borderRadius: "10px",
+                  border: "none",
+                  backgroundColor: "#4CAF50",
+                  color: "white",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  boxShadow: "0 4px 15px rgba(76, 175, 80, 0.4)",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow = "0 6px 20px rgba(76, 175, 80, 0.5)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "translateY(0)";
+                  e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.4)";
+                }}
+              >
+                Start Spaced Learning
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );

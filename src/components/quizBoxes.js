@@ -79,8 +79,176 @@ const QuizBoxes = ({
   const isSpacedLearningView =
     spacedLearning === "spacedLearning" || spacedLearning === true;
 
+  // Calculate totals for tracker box (all view)
+  const calculateTotals = () => {
+    let totalQuizzes = 0;
+    let totalQuestions = 0;
+    
+    Object.keys(quizzes).forEach((key) => {
+      const quiz = quizzes[key];
+      totalQuizzes++;
+      const questions = Array.isArray(quiz.questions)
+        ? quiz.questions
+        : Object.values(quiz.questions || {});
+      totalQuestions += questions.length;
+    });
+    
+    return { totalQuizzes, totalQuestions };
+  };
+
+  const { totalQuizzes, totalQuestions } = calculateTotals();
+  const [showSpacedLearningModal, setShowSpacedLearningModal] = useState(false);
+
   return (
     <div className="quiz-boxes-container">
+      {/* Tracker Box for "all" view */}
+      {!isSpacedLearningView && (
+        <div
+          className="quiz-option"
+          style={{
+            cursor: "default",
+            border: "2px solid #4CAF50",
+          }}
+        >
+          <h3 style={{ color: "#4CAF50", marginBottom: "12px", fontSize: "1.2em", textAlign: "center", width: "100%", margin: "0 0 12px 0" }}>
+            📊 Quiz Tracker
+          </h3>
+          {totalQuizzes === 0 || totalQuestions === 0 ? (
+            <p style={{ color: "#666", fontSize: "0.95em", textAlign: "center", margin: 0, width: "100%" }}>
+              Let's start adding some quizzes!!
+            </p>
+          ) : (
+            <div style={{ textAlign: "center", color: "#333", width: "100%" }}>
+              <p style={{ margin: "0", fontSize: "1em", textAlign: "center", width: "100%" }}>
+                <strong>Total Quizzes:</strong> {totalQuizzes}
+              </p>
+              <p style={{ margin: "8px 0 0 0", fontSize: "1em", textAlign: "center", width: "100%" }}>
+                <strong>Total Questions:</strong> {totalQuestions}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Info Box for "spacedLearning" view */}
+      {isSpacedLearningView && (
+        <>
+          <div
+            className="quiz-option"
+            onClick={() => setShowSpacedLearningModal(true)}
+            style={{
+              backgroundColor: "#E3F2FD",
+              border: "2px solid #2196F3",
+              cursor: "pointer",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              padding: "20px",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#BBDEFB";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#E3F2FD";
+            }}
+          >
+            <h3 style={{ color: "#2196F3", marginBottom: "8px", fontSize: "1.2em", textAlign: "left", width: "100%", margin: "0 0 8px 0" }}>
+              ℹ️ Learn about Spaced Learning
+            </h3>
+            <p style={{ color: "#1976D2", fontSize: "0.9em", margin: 0, textAlign: "left", width: "100%" }}>
+              Click to learn how spaced learning works
+            </p>
+          </div>
+
+          {/* Spaced Learning Modal */}
+          {showSpacedLearningModal && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: 1000,
+              }}
+              onClick={() => setShowSpacedLearningModal(false)}
+            >
+              <div
+                style={{
+                  backgroundColor: "white",
+                  borderRadius: "12px",
+                  padding: "30px",
+                  maxWidth: "600px",
+                  maxHeight: "80vh",
+                  overflow: "auto",
+                  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+                  position: "relative",
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => setShowSpacedLearningModal(false)}
+                  style={{
+                    position: "absolute",
+                    top: "10px",
+                    right: "10px",
+                    background: "none",
+                    border: "none",
+                    fontSize: "24px",
+                    cursor: "pointer",
+                    color: "#666",
+                    padding: "0",
+                    width: "30px",
+                    height: "30px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  ×
+                </button>
+                <h2 style={{ color: "#2196F3", marginTop: 0, marginBottom: "20px" }}>
+                  What is Spaced Learning?
+                </h2>
+                <div style={{ color: "#333", lineHeight: "1.6" }}>
+                  <p style={{ marginBottom: "15px" }}>
+                    Spaced Learning is a scientifically-proven learning technique that helps you
+                    retain information more effectively by reviewing material at increasing intervals.
+                  </p>
+                  <h3 style={{ color: "#1976D2", marginTop: "20px", marginBottom: "10px" }}>
+                    How It Works:
+                  </h3>
+                  <ul style={{ marginLeft: "20px", marginBottom: "15px" }}>
+                    <li style={{ marginBottom: "10px" }}>
+                      <strong>Level 1:</strong> Questions you answer correctly move to Level 2, 
+                      and you'll see them again soon.
+                    </li>
+                    <li style={{ marginBottom: "10px" }}>
+                      <strong>Level 2:</strong> Correct answers advance to Level 3, with longer 
+                      intervals between reviews.
+                    </li>
+                    <li style={{ marginBottom: "10px" }}>
+                      <strong>Level 3:</strong> Questions here are reviewed less frequently, 
+                      helping solidify your memory.
+                    </li>
+                    <li style={{ marginBottom: "10px" }}>
+                      <strong>Level 4:</strong> Mastered questions! These are reviewed very 
+                      infrequently, as you've demonstrated strong retention.
+                    </li>
+                  </ul>
+                  <p style={{ marginTop: "20px", fontStyle: "italic", color: "#666" }}>
+                    The system automatically schedules questions based on your performance, 
+                    ensuring you review material at optimal intervals for long-term retention.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
       {/* Render quiz boxes */}
       {isSpacedLearningView &&
         (() => {

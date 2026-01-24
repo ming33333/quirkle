@@ -3,13 +3,15 @@ import { collection, doc, deleteDoc, and } from "firebase/firestore";
 import { useLocation } from "react-router-dom";
 import { db } from "../utils/firebase/firebaseDB";
 import { useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronUp, faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import {
   getDocument,
   setDocument,
   updateDocument,
 } from "../utils/firebase/firebaseServices";
 
-const AddQuiz = ({ email, quizData }) => {
+const AddQuiz = ({ email, quizData, showDropdown = true }) => {
   const location = useLocation();
   const [initialDataEmpty, setInitialDataEmpty] = useState(false);
   const initialData = quizData || {}; // Retrieve initialData from the state
@@ -98,7 +100,7 @@ const AddQuiz = ({ email, quizData }) => {
   const [currentSpacedLearning, setCurrentSpacedLearning] = useState(
     initialData?.spacedLearning || null
   );
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(() => !showDropdown); // Always expanded when dropdown is hidden
 
   useEffect(() => {
     // Adjust the height of all textareas based on their content
@@ -233,22 +235,29 @@ const AddQuiz = ({ email, quizData }) => {
     <div className="main-content">
       <div className="add-quiz-container">
         <h2>{initialData ?  `Edit Quiz: ${title}` : "Add New Quiz"}</h2>
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          style={{
-            float: "right",
-            padding: "4px 8px",
-            marginTop: "-40px",
-            cursor: "pointer",
-            backgroundColor: "#f0f0f0",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            fontSize: "0.9em",
-          }}
-        >
-          {isExpanded ? "−" : "+"}
-        </button>
-        {isExpanded && (
+        {showDropdown && (
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            style={{
+              float: "right",
+              padding: "4px 8px",
+              marginTop: "-40px",
+              cursor: "pointer",
+              border: "1px solid #ccc",
+              borderRadius: "4px",
+              fontSize: "0.9em",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <FontAwesomeIcon 
+              icon={isExpanded ? faChevronUp : faChevronDown} 
+              style={{ width: "12px", height: "12px" }}
+            />
+          </button>
+        )}
+        {(!showDropdown || isExpanded) && (
           <>
             {!initialDataEmpty && (
               <div
