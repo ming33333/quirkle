@@ -328,42 +328,94 @@ h2 {
 
 
 .options-menu {
-  position: relative; /* Position relative to allow absolute positioning of the dropdown */
-  flex-shrink: 0; /* Prevent the options menu from resizing */
-  display: inline-block; /* Keep the options button inline */
+  position: relative;
+  flex-shrink: 0;
+  display: inline-block;
 }
 
 .options-button {
-  background: grey; /* Remove default button styling */
-  border: none;
-  font-size: 1.5em; /* Make the ⋮ icon larger */
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(255, 154, 60, 0.2), rgba(255, 110, 196, 0.2));
+  border: 1px solid rgba(255, 154, 60, 0.35);
+  border-radius: 12px;
   cursor: pointer;
-  padding: 5px;
+  padding: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.options-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 110, 196, 0.25);
+  background: linear-gradient(135deg, rgba(255, 154, 60, 0.3), rgba(255, 110, 196, 0.3));
+}
+
+.options-button-dots {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #c45d7a;
+  line-height: 1;
 }
 
 .options-dropdown {
-  display: none; /* Initially hide the dropdown */
-  position: absolute; /* Position the dropdown relative to the options button */
-  top: 100%; /* Position it directly below the options button */
-  left: 0; /* Align it to the left of the options button */
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 200px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(255, 154, 60, 0.2);
+  border-radius: 14px;
+  box-shadow: 0 12px 28px rgba(15, 15, 15, 0.12), 0 4px 12px rgba(255, 110, 196, 0.08);
   z-index: 1000;
-  padding: 5px;
+  padding: 6px;
+  overflow: hidden;
 }
 
-.options-dropdown .remove-button:hover {
-  background-color: #d32f2f; /* Darker red on hover */
+.options-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: left;
+  transition: background 0.2s ease, transform 0.15s ease;
 }
+
+.options-dropdown-item:hover {
+  transform: translateX(2px);
+}
+
+.options-dropdown-icon {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  flex-shrink: 0;
+}
+
 .remove-button {
-  background-color: #f44336; /* Red background for delete button */
-  color: white; /* White text */
-  padding: 5px 10px; /* Add padding for better spacing */
-  border: none; /* Remove border */
-  border-radius: 4px; /* Add rounded corners */
-  cursor: pointer; /* Change cursor to pointer */
+  background: transparent;
+  color: #c62828;
+}
+
+.remove-button:hover {
+  background: rgba(198, 40, 40, 0.1);
+}
+
+.star-button {
+  background: transparent;
+  color: #2b1f1c;
+}
+
+.star-button:hover {
+  background: linear-gradient(135deg, rgba(255, 154, 60, 0.15), rgba(255, 110, 196, 0.15));
 }
 
 .quiz-button {
@@ -612,14 +664,7 @@ code {
   cursor: pointer;
 }
 
-.options-dropdown .star-button {
-  color: #ffa500; /* Orange color for the star button */
-  font-weight: bold;
-}
-
-.options-dropdown .star-button:hover {
-  background-color: #f0f0f0;
-}
+/* star-button styles for options dropdown are above with .options-dropdown-item */
 
 .flashcard:hover {
   transform: scale(1.05);
@@ -631,6 +676,28 @@ code {
 
 .flashcard.flipped .flashcard-back {
   transform: rotateY(0deg);
+}
+
+/* Quiz view redesign (match reference layout) */
+.quiz-view-redesign .quiz-view-top-btn:hover {
+  background: #ddd !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+}
+.quiz-view-redesign .quiz-view-show-answer-btn:hover {
+  background: #ddd !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+}
+.quiz-view-redesign .quiz-view-feedback-btn.right:hover {
+  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.5) !important;
+  transform: translateY(-2px);
+}
+.quiz-view-redesign .quiz-view-feedback-btn.wrong:hover {
+  box-shadow: 0 8px 24px rgba(239, 71, 111, 0.45) !important;
+  transform: translateY(-2px);
+}
+.quiz-view-redesign .quiz-view-nav-btn:not(:disabled):hover {
+  background: #ddd !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
 }
 
 .flashcard-front,
@@ -995,5 +1062,27 @@ code {
 
 .flashcard.flipped .flashcard-back {
   transform: rotateY(0deg);
+}
+
+/* Quiz view redesign (match reference layout) */
+.quiz-view-redesign .quiz-view-top-btn:hover {
+  background: #ddd !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+}
+.quiz-view-redesign .quiz-view-show-answer-btn:hover {
+  background: #ddd !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+}
+.quiz-view-redesign .quiz-view-feedback-btn.right:hover {
+  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.5) !important;
+  transform: translateY(-2px);
+}
+.quiz-view-redesign .quiz-view-feedback-btn.wrong:hover {
+  box-shadow: 0 8px 24px rgba(239, 71, 111, 0.45) !important;
+  transform: translateY(-2px);
+}
+.quiz-view-redesign .quiz-view-nav-btn:not(:disabled):hover {
+  background: #ddd !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
 }
 

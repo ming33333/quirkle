@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { updateDocument } from "../utils/firebase/firebaseServices";
 import { calculateActiveQuestions } from "../utils/helpers/quizHelpers";
@@ -72,29 +72,32 @@ const SpacedLearningQuiz = ({
   showAnswer,
 }) => {
   const location = useLocation();
-  // Get data from navigation state if available, otherwise use props
   const navigationState = location.state || {};
   const initialData = navigationState.initialData || {};
-  
-  // Use navigation state data if available, otherwise fall back to props
-  // If coming from navigation state, construct selectedQuiz from initialData
-  let selectedQuiz = selectedQuizProp;
-  if (!selectedQuiz && initialData.questions) {
-    // If questions is an array, wrap it in an object with questions property
-    selectedQuiz = Array.isArray(initialData.questions) 
-      ? { questions: initialData.questions }
-      : { questions: initialData.questions };
-  }
-  
   const email = emailProp || navigationState.email || "";
   const selectedTitle = selectedTitleProp || navigationState.title || initialData.title || "";
-  
+
+  // Store quiz from navigation in state so we don't create a new object every render (avoids "Maximum update depth exceeded")
+  const [quizFromNav, setQuizFromNav] = useState(null);
+  const quizFromNavInitialized = useRef(false);
+  useEffect(() => {
+    if (selectedQuizProp || !initialData.questions) return;
+    if (quizFromNavInitialized.current) return;
+    quizFromNavInitialized.current = true;
+    setQuizFromNav(
+      Array.isArray(initialData.questions)
+        ? { questions: initialData.questions }
+        : { questions: initialData.questions }
+    );
+  }, [selectedQuizProp, initialData.questions]);
+
+  const selectedQuiz = selectedQuizProp ?? quizFromNav;
+
   const [updatedQuiz, setUpdatedQuiz] = React.useState([]);
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [localCurrentQuestionIndex, setLocalCurrentQuestionIndex] = useState(0);
   const [localShowAnswer, setLocalShowAnswer] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [levelTitle, setLevelTitle] = useState("");
   const [levelSelected, setLevelSelected] = React.useState(false);
 
   // Use passed handlers if available, otherwise use local state
@@ -223,11 +226,6 @@ const SpacedLearningQuiz = ({
       });
 
     checkAndUpdateLevels(questionsArray, email, selectedTitle);
-    // Filter questions for the selected level
-    const titleForLevel = level === "active" 
-      ? `${selectedTitle} - All Active`
-      : `${selectedTitle} - Level ${level}`;
-    setLevelTitle(titleForLevel);
     
     let filteredQuestions;
     if (level === "active") {
@@ -256,7 +254,7 @@ const SpacedLearningQuiz = ({
     return (
       <QuizView
         selectedQuiz={quizDataForView}
-        selectedTitle={levelTitle || selectedTitle}
+        selectedTitle={selectedTitle}
         currentQuestionIndex={effectiveCurrentQuestionIndex}
         setCurrentQuestionIndex={effectiveSetCurrentQuestionIndex}
         setSelectedQuiz={setSelectedQuiz}

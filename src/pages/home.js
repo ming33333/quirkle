@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../utils/firebase/firebaseDB';
 import QuizBoxes from '../components/quizBoxes';
 import QuizView from '../components/quizView';
-import { collection, getDocs, doc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import AddQuiz from '../services/addQuiz';
+
+const USER_SETTING_DOC_ID = 'settings';
+const SUBSCRIPTION_FIELD = 'subscription status';
+const FREE_PLAN_MAX_QUIZZES = 10;
 
 const Home = ({
   email,
@@ -13,11 +17,15 @@ const Home = ({
   setSelectedTitle,
 }) => {
   const [quizzes, setQuizzes] = useState([]);
+  const [subscriptionStatus, setSubscriptionStatus] = useState(null);
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // 'all' or 'spacedLearning'
+  const addQuizRef = useRef(null);
+
+  const isFreePlan = subscriptionStatus !== 'basic';
 
   useEffect(() => {
     const fetchQuizzes = async () => {
@@ -49,6 +57,22 @@ const Home = ({
 
     fetchQuizzes();
   }, []);
+
+  useEffect(() => {
+    if (!email) return;
+    const loadSubscription = async () => {
+      try {
+        const ref = doc(db, 'users', email, 'userSetting', USER_SETTING_DOC_ID);
+        const snapshot = await getDoc(ref);
+        const data = snapshot.exists() ? snapshot.data() : {};
+        setSubscriptionStatus(data[SUBSCRIPTION_FIELD] ?? 'free');
+      } catch (err) {
+        console.error('Error loading subscription:', err);
+        setSubscriptionStatus('free');
+      }
+    };
+    loadSubscription();
+  }, [email]);
 
   if (loading) {
     return <div className="main-content">Loading...</div>;
@@ -93,6 +117,15 @@ const Home = ({
               ['blue', 'green', 'standard'].includes(quiz.spacedLearning)
           )
         );
+
+  const quizzesToShow =
+    isFreePlan && Object.keys(filteredQuizzes).length > FREE_PLAN_MAX_QUIZZES
+      ? Object.fromEntries(
+          Object.entries(filteredQuizzes).slice(0, FREE_PLAN_MAX_QUIZZES)
+        )
+      : filteredQuizzes;
+  const maxReachedFree = isFreePlan && Object.keys(filteredQuizzes).length >= FREE_PLAN_MAX_QUIZZES;
+
   if (!selectedQuiz) {
     return (
       <div className="main-content">
@@ -112,10 +145,13 @@ const Home = ({
         </div>
         <div className="main-content">
           <QuizBoxes
-            quizzes={filteredQuizzes}
+            quizzes={quizzesToShow}
             setSelectedQuiz={setSelectedQuiz}
             setSelectedTitle={setSelectedTitle}
             spacedLearning={filter === 'spacedLearning'}
+            isFreePlan={isFreePlan}
+            maxReachedFree={maxReachedFree}
+            freePlanMax={FREE_PLAN_MAX_QUIZZES}
           />
         </div>
       </div>
@@ -136,9 +172,11 @@ const Home = ({
         toggleAnswerVisibility={toggleAnswerVisibility}
         showAnswer={showAnswer}
         email={email}
+        onEditQuiz={() => addQuizRef.current?.scrollIntoView({ behavior: 'smooth' })}
       />
 
-      <AddQuiz
+      <div ref={addQuizRef}>
+        <AddQuiz
         email={email}
         quizData={{
           title: selectedTitle,
@@ -147,6 +185,7 @@ const Home = ({
           spacedLearning: selectedQuiz?.spacedLearning,
         }}
       />
+      </div>
     </div>
   );
 };

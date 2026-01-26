@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { db } from "../utils/firebase/firebaseDB";
 import QuizBoxes from "./quizBoxes";
 import QuizView from "./quizView";
-import { collection, getDocs, doc } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import AddQuiz from "../services/addQuiz";
+
+const USER_SETTING_DOC_ID = "settings";
+const SUBSCRIPTION_FIELD = "subscription status";
+const FREE_PLAN_MAX_QUIZZES = 10;
 
 const MainContent = ({
   email,
@@ -17,7 +21,11 @@ const MainContent = ({
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [subscriptionStatus, setSubscriptionStatus] = useState(null);
   const [filter, setFilter] = useState("all"); // 'all' or 'spacedLearning'
+  const addQuizRef = useRef(null);
+
+  const isFreePlan = subscriptionStatus !== "basic";
 
   useEffect(() => {
     const fetchQuizzes = async () => {
@@ -31,13 +39,13 @@ const MainContent = ({
         // Convert querySnapshot into a Map
         const quizzesData = {};
         querySnapshot.forEach((doc) => {
-          quizzesData[doc.id] = doc.data();
+            quizzesData[doc.id] = doc.data();
         });
         // Sort quizzesData by lastAccessed in descending order
         const sortedQuizzesData = Object.fromEntries(
           Object.entries(quizzesData).sort(
             ([, a], [, b]) =>
-              new Date(b.lastAccessed) - new Date(a.lastAccessed)
+            new Date(b.lastAccessed) - new Date(a.lastAccessed)
           )
         );
         setQuizzes(sortedQuizzesData);
@@ -49,6 +57,22 @@ const MainContent = ({
 
     fetchQuizzes();
   }, []);
+
+  useEffect(() => {
+    if (!email) return;
+    const loadSubscription = async () => {
+      try {
+        const ref = doc(db, "users", email, "userSetting", USER_SETTING_DOC_ID);
+        const snapshot = await getDoc(ref);
+        const data = snapshot.exists() ? snapshot.data() : {};
+        setSubscriptionStatus(data[SUBSCRIPTION_FIELD] ?? "free");
+      } catch (err) {
+        console.error("Error loading subscription:", err);
+        setSubscriptionStatus("free");
+      }
+    };
+    loadSubscription();
+  }, [email]);
 
   if (loading) {
     return <div className="main-content">Loading...</div>;
@@ -95,6 +119,16 @@ const MainContent = ({
               ["blue", "green", "standard"].includes(quiz.spacedLearning)
           )
         );
+
+  const quizzesToShow =
+    isFreePlan && Object.keys(filteredQuizzes).length > FREE_PLAN_MAX_QUIZZES
+      ? Object.fromEntries(
+          Object.entries(filteredQuizzes).slice(0, FREE_PLAN_MAX_QUIZZES)
+        )
+      : filteredQuizzes;
+  const maxReachedFree =
+    isFreePlan && Object.keys(filteredQuizzes).length >= FREE_PLAN_MAX_QUIZZES;
+
   if (!selectedQuiz) {
     return (
       <div className="main-content">
@@ -157,10 +191,13 @@ const MainContent = ({
         </div>
         <div className="main-content">
           <QuizBoxes
-            quizzes={filteredQuizzes}
+            quizzes={quizzesToShow}
             setSelectedQuiz={setSelectedQuiz}
             setSelectedTitle={setSelectedTitle}
             spacedLearning={filter === "spacedLearning"}
+            isFreePlan={isFreePlan}
+            maxReachedFree={maxReachedFree}
+            freePlanMax={FREE_PLAN_MAX_QUIZZES}
           />
         </div>
       </div>
@@ -180,9 +217,11 @@ const MainContent = ({
         toggleAnswerVisibility={toggleAnswerVisibility}
         showAnswer={showAnswer}
         email={email}
+        onEditQuiz={() => addQuizRef.current?.scrollIntoView({ behavior: "smooth" })}
       />
 
-      <AddQuiz
+      <div ref={addQuizRef}>
+        <AddQuiz 
         email={email}
         quizData={{
           title: selectedTitle,
@@ -193,6 +232,7 @@ const MainContent = ({
           spacedLearning: selectedQuiz?.spacedLearning,
         }}
       />
+      </div>
     </div>
   );
 };

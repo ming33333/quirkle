@@ -8,6 +8,22 @@ import {
   setDocument,
   appendToMapField,
 } from "../utils/firebase/firebaseServices";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faArrowLeft,
+  faPen,
+  faEye,
+  faEyeSlash,
+  faCheck,
+  faXmark,
+  faChevronLeft,
+  faChevronRight,
+  faStar,
+} from "@fortawesome/free-solid-svg-icons";
+
+const STUDY_TIP =
+  "Try to recall the answer before revealing it. Active recall strengthens your memory! 💪";
+
 const QuizView = ({
   selectedQuiz,
   selectedTitle,
@@ -18,8 +34,9 @@ const QuizView = ({
   handleNextQuestion,
   toggleAnswerVisibility,
   showAnswer,
-  email, // Pass the user's email as a prop
-  skipFilterChoice = false, // Skip the filter choice screen if true
+  email,
+  skipFilterChoice = false,
+  onEditQuiz, // optional: called when "Edit Quiz" is clicked (e.g. scroll to AddQuiz)
 }) => {
   // console.log('all the props',{
   //   selectedQuiz,
@@ -152,6 +169,7 @@ const QuizView = ({
     }
   };
   const handleAnswerChoice = async (choice) => {
+    console.log("handleAnswerChoice", choice);
     const levelTypesDoc = await getDocument("configs/levelTypes");
     let levelTypesDataStandard;
     levelTypesDataStandard = levelTypesDoc["standard"];
@@ -208,12 +226,6 @@ const QuizView = ({
         );
       }
 
-      // For cumulative test, use the current quiz title from metadata
-      const isCumulativeTest = selectedQuiz?.isCumulativeTest || false;
-      const quizTitleToUpdate = isCumulativeTest
-        ? selectedQuiz.currentQuizTitle
-        : selectedTitle;
-
       // Update only the specific question using dot notation with originalIndex
       // questions map structure: { "0": {...}, "1": {...} }
       const questionIndex = originalIndex;
@@ -223,9 +235,9 @@ const QuizView = ({
         [`questions.${questionIndex}.level`]: level,
         [`questions.${questionIndex}.activeTime`]: activeTime,
       };
-
+      console.log("selectedTitle", selectedTitle);
       await updateDocument(
-        `users/${email}/quizCollection/${quizTitleToUpdate}`,
+        `users/${email}/quizCollection/${selectedTitle}`,
         updateData
       ); // Update only the specific question fields
 
@@ -259,11 +271,21 @@ const QuizView = ({
 
   const currentQuestion = questionsArray[currentQuestionIndex];
   const isCumulativeTest = selectedQuiz?.isCumulativeTest || false;
+  const isSpacedLearningQuiz =
+    Boolean(selectedQuiz?.spacedLearning) &&
+    selectedQuiz.spacedLearning !== "all";
   const currentQuizTitle = isCumulativeTest
     ? selectedQuiz.currentQuizTitle
     : selectedTitle;
   const quizList = isCumulativeTest ? selectedQuiz.quizList : null;
   const currentQuizIndex = isCumulativeTest ? selectedQuiz.currentQuizIndex : 0;
+
+  // Non–spaced-learning quizzes skip the mode choice and go straight to the quiz
+  useEffect(() => {
+    if (!isSpacedLearningQuiz && filterChoice === null) {
+      setFilterChoice("all");
+    }
+  }, [isSpacedLearningQuiz, filterChoice]);
 
   // Check if current quiz is completed and move to next quiz in cumulative test
   useEffect(() => {
@@ -404,8 +426,8 @@ const QuizView = ({
       </div>
     );
   }
-  // Show the filter prompt if the user hasn't made a choice yet
-  if (filterChoice === null) {
+  // Show the filter prompt only for spaced learning quizzes when the user hasn't chosen yet
+  if (filterChoice === null && isSpacedLearningQuiz) {
     return (
       <div 
         className="quiz-container"
@@ -499,7 +521,7 @@ const QuizView = ({
                 e.target.style.boxShadow = "0 4px 15px rgba(102, 126, 234, 0.4)";
               }}
             >
-              View Questions
+              View All Questions
             </button>
             {/* Start Spaced Learning button - only show if quiz has spaced learning enabled */}
             {selectedQuiz?.spacedLearning && selectedQuiz.spacedLearning !== "all" && (
@@ -556,131 +578,392 @@ const QuizView = ({
     );
   }
 
+  const progressPercent =
+    questionsArray.length > 0
+      ? Math.round(((currentQuestionIndex + 1) / questionsArray.length) * 100)
+      : 0;
+  const displayTitle =
+    isCumulativeTest && currentQuizTitle
+      ? `${selectedTitle} - ${currentQuizTitle}`
+      : selectedTitle;
+  const isSpacedLearning =
+    selectedQuiz?.spacedLearning && selectedQuiz.spacedLearning !== "all";
+
   return (
     <div
-      className="quiz-container"
-      style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+      className="quiz-container quiz-view-redesign"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        padding: "24px 16px 48px",
+        maxWidth: "680px",
+        margin: "0 auto",
+      }}
     >
-      <button
-        onClick={() => handleExitQuiz(true)}
-        style={{ marginBottom: "1em" }}
-        className="question-button"
+      {/* Top bar: Back to Quiz List | Edit Quiz */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          width: "100%",
+          marginBottom: "20px",
+        }}
       >
-        Back to Quiz List
-      </button>
-      <h2>
-        {isCumulativeTest && currentQuizTitle
-          ? `${selectedTitle} - ${currentQuizTitle}`
-          : selectedTitle}
-      </h2>
-      {isCumulativeTest && quizList && (
-        <p
+        <button
+          type="button"
+          onClick={() => handleExitQuiz(true)}
+          className="quiz-view-top-btn"
           style={{
-            fontSize: "0.9em",
-            color: "#666",
-            marginTop: "-10px",
-            marginBottom: "10px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "10px 16px",
+            borderRadius: "12px",
+            border: "none",
+            background: "#e8e8e8",
+            color: "#333",
+            fontWeight: 600,
+            cursor: "pointer",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
           }}
         >
-          Question {currentQuestionIndex + 1} of {questionsArray.length} in "
-          {currentQuizTitle}" | Quiz {currentQuizIndex + 1} of {quizList.length}
-        </p>
-      )}
+          <FontAwesomeIcon icon={faArrowLeft} style={{ width: "16px" }} />
+          Back to Quiz List
+        </button>
+      </div>
+
+      {/* Quiz tag pill */}
       <div
-        className="question-navigation"
         style={{
-          textAlign: "center",
-          display: "flex",
-          flexDirection: "column",
+          display: "inline-flex",
           alignItems: "center",
+          gap: "8px",
+          padding: "8px 20px",
+          borderRadius: "999px",
+          background: "linear-gradient(135deg, #ef476f 0%, #ff6ec4 100%)",
+          color: "#fff",
+          fontWeight: 600,
+          marginBottom: "6px",
+          boxShadow: "0 4px 14px rgba(239, 71, 111, 0.35)",
+        }}
+      >
+        <FontAwesomeIcon icon={faStar} style={{ width: "14px" }} />
+        {displayTitle}
+      </div>
+
+      {/* Progress: Question X of Y | bar | % */}
+      <div
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          marginBottom: "24px",
+        }}
+      >
+        <span
+          style={{
+            fontSize: "0.9rem",
+            color: "rgba(255,255,255,0.95)",
+            minWidth: "100px",
+          }}
+        >
+          Question {currentQuestionIndex + 1} of {questionsArray.length}
+        </span>
+        <div
+          style={{
+            flex: 1,
+            height: "10px",
+            borderRadius: "999px",
+            background: "rgba(255,255,255,0.35)",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              height: "100%",
+              width: `${progressPercent}%`,
+              borderRadius: "999px",
+              background: "linear-gradient(90deg, #ff9a3c 0%, #ff6ec4 50%, #ef476f 100%)",
+              transition: "width 0.3s ease",
+            }}
+          />
+        </div>
+        <span
+          style={{
+            fontSize: "0.9rem",
+            color: "rgba(255,255,255,0.95)",
+            minWidth: "36px",
+            textAlign: "right",
+          }}
+        >
+          {progressPercent}%
+        </span>
+      </div>
+
+      {/* Question card */}
+      <div
+        className="quiz-view-question-card"
+        style={{
+          width: "100%",
+          background: "#fff",
+          borderRadius: "20px",
+          padding: "28px 24px",
+          boxShadow: "0 12px 32px rgba(0,0,0,0.1)",
+          border: "1px solid rgba(0,0,0,0.06)",
+          marginBottom: "20px",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "0.75rem",
+            fontWeight: 700,
+            letterSpacing: "0.05em",
+            color: "#c45d7a",
+            marginBottom: "8px",
+          }}
+        >
+          QUESTION
+        </div>
+        <div
+          style={{
+            fontSize: "1.35rem",
+            fontWeight: 700,
+            color: "#2b1f1c",
+            lineHeight: 1.4,
+            marginBottom: "8px",
+          }}
+        >
+          {currentQuestion.question}
+        </div>
+      </div>
+
+      {/* Show Answer */}
+      <button
+        type="button"
+        onClick={toggleAnswerVisibility}
+        className="quiz-view-show-answer-btn"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px",
+          padding: "12px 24px",
+          marginBottom: "24px",
+          borderRadius: "12px",
+          border: "none",
+          background: "#e8e8e8",
+          color: "#333",
+          fontWeight: 600,
+          cursor: "pointer",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+        }}
+      >
+        <FontAwesomeIcon icon={showAnswer ? faEyeSlash : faEye} style={{ width: "18px" }} />
+        {showAnswer ? "Hide Answer" : "Show Answer"}
+      </button>
+
+      {/* Answer + feedback (when revealed) */}
+      {showAnswer && (
+        <>
+          <div
+            className="quiz-view-answer-card"
+            style={{
+              width: "100%",
+              background: "#f8f8f8",
+              borderRadius: "16px",
+              padding: "20px 24px",
+              marginBottom: "24px",
+              border: "1px solid #eee",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "0.75rem",
+                fontWeight: 700,
+                letterSpacing: "0.05em",
+                color: "#c45d7a",
+                marginBottom: "6px",
+              }}
+            >
+              ANSWER
+            </div>
+            <div style={{ fontSize: "1.05rem", color: "#2b1f1c", lineHeight: 1.5 }}>
+              {currentQuestion.answer}
+            </div>
+          </div>
+          {/* Feedback buttons: go through handleAnswerChoice so choices are persisted to DB (passed, level, activeTime, etc.) */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: "16px",
+              flexWrap: "wrap",
+              marginBottom: "24px",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => handleAnswerChoice("right")}
+              className="quiz-view-feedback-btn right"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                padding: "14px 28px",
+                borderRadius: "14px",
+                border: "none",
+                background: "linear-gradient(90deg, #4CAF50 0%, #81c784 100%)",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "1.05rem",
+                cursor: "pointer",
+                boxShadow: "0 6px 20px rgba(76, 175, 80, 0.4)",
+              }}
+            >
+              <FontAwesomeIcon icon={faCheck} style={{ width: "20px" }} />
+              Got It Right!
+              <span style={{ opacity: 0.9 }}>⭐</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleAnswerChoice("wrong")}
+              className="quiz-view-feedback-btn wrong"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                padding: "14px 28px",
+                borderRadius: "14px",
+                border: "none",
+                background: "linear-gradient(90deg, #ff9a3c 0%, #ef476f 100%)",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "1.05rem",
+                cursor: "pointer",
+                boxShadow: "0 6px 20px rgba(239, 71, 111, 0.35)",
+              }}
+            >
+              <FontAwesomeIcon icon={faXmark} style={{ width: "20px" }} />
+              Need Review
+              <span style={{ opacity: 0.9 }}>📖</span>
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Previous / Next */}
+      <div style={{ display: "flex", gap: "12px", marginBottom: "28px" }}>
+        <button
+          type="button"
+          onClick={handlePrevQuestion}
+          disabled={currentQuestionIndex === 0}
+          className="quiz-view-nav-btn"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            padding: "10px 18px",
+            borderRadius: "10px",
+            border: "none",
+            background: "#e8e8e8",
+            color: "#333",
+            fontWeight: 600,
+            cursor: currentQuestionIndex === 0 ? "not-allowed" : "pointer",
+            opacity: currentQuestionIndex === 0 ? 0.6 : 1,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+          }}
+        >
+          <FontAwesomeIcon icon={faChevronLeft} style={{ width: "14px" }} />
+          Previous
+        </button>
+        <button
+          type="button"
+          onClick={handleNextQuestion}
+          disabled={currentQuestionIndex === questionsArray.length - 1}
+          className="quiz-view-nav-btn"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            padding: "10px 18px",
+            borderRadius: "10px",
+            border: "none",
+            background: "#e8e8e8",
+            color: "#333",
+            fontWeight: 600,
+            cursor:
+              currentQuestionIndex === questionsArray.length - 1
+                ? "not-allowed"
+                : "pointer",
+            opacity:
+              currentQuestionIndex === questionsArray.length - 1 ? 0.6 : 1,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+          }}
+        >
+          Next
+          <FontAwesomeIcon icon={faChevronRight} style={{ width: "14px" }} />
+        </button>
+      </div>
+
+      {/* Study Tip card */}
+      <div
+        className="quiz-view-study-tip"
+        style={{
+          width: "100%",
+          background: "#fff",
+          borderRadius: "20px",
+          padding: "20px 24px",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+          border: "1px solid rgba(0,0,0,0.06)",
         }}
       >
         <div
           style={{
             display: "flex",
-            justifyContent: "center",
-            gap: "1em",
-            marginBottom: "1em",
+            alignItems: "center",
+            gap: "8px",
+            marginBottom: "8px",
+            fontSize: "0.85rem",
+            fontWeight: 700,
+            color: "#c45d7a",
           }}
         >
-          <button
-            onClick={handlePrevQuestion}
-            disabled={currentQuestionIndex === 0}
-            className="question-button navigation-button"
-          >
-            &lt; Prev
-          </button>
-          <button
-            onClick={handleNextQuestion}
-            disabled={currentQuestionIndex === questionsArray.length - 1}
-            className="question-button navigation-button"
-          >
-            Next &gt;
-          </button>
-          {/* Exit Confirmation Popup */}
-          {showExitPopup && (
-            <div className="popup-overlay">
-              <div className="popup-content">
-                <h3>You haven't finished the quiz yet!</h3>
-                <p>Do you want to continue or exit?</p>
-                <button
-                  onClick={handleContinueQuiz}
-                  className="question-button"
-                >
-                  Continue Quiz
-                </button>
-                <button onClick={handleConfirmExit} className="question-button">
-                  Exit Quiz
-                </button>
-              </div>
-            </div>
-          )}
+          <FontAwesomeIcon icon={faStar} style={{ width: "14px" }} />
+          <span>Study Tip</span>
         </div>
-        <div
-          className="quiz-box"
-          style={{ margin: "1em 0", textAlign: "center" }}
+        <p
+          style={{
+            margin: 0,
+            fontSize: "0.95rem",
+            color: "#444",
+            lineHeight: 1.5,
+          }}
         >
-          <strong>
-            Q{currentQuestionIndex + 1}/{questionsArray.length}:
-          </strong>{" "}
-          {currentQuestion.question}
-          <br />
-          <button
-            onClick={toggleAnswerVisibility}
-            className="question-button answer-toggle"
-            style={{ marginTop: "1em" }}
-          >
-            {showAnswer ? "Hide Answer" : "Show Answer"}
-          </button>
-          {showAnswer && (
-            <div>
-              <strong>A:</strong> {currentQuestion.answer}
-              <div
-                className="answer-buttons"
-                style={{
-                  marginTop: "1em",
-                  display: "flex",
-                  justifyContent: "center",
-                  gap: "1em",
-                }}
-              >
-                <button
-                  onClick={() => handleAnswerChoice("right")}
-                  className="question-button right-button"
-                >
-                  Right
-                </button>
-                <button
-                  onClick={() => handleAnswerChoice("wrong")}
-                  className="question-button wrong-button"
-                >
-                  Wrong
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+          {STUDY_TIP}
+        </p>
       </div>
+
+      {/* Exit Confirmation Popup */}
+      {showExitPopup && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <h3>You haven&apos;t finished the quiz yet!</h3>
+            <p>Do you want to continue or exit?</p>
+            <button
+              onClick={handleContinueQuiz}
+              className="question-button"
+            >
+              Continue Quiz
+            </button>
+            <button onClick={handleConfirmExit} className="question-button">
+              Exit Quiz
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

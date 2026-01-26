@@ -20,9 +20,20 @@
 import React from "react";
 import { Route } from "react-router-dom";
 import AdminRoute from "./AdminRoute";
+import Admin from "../pages/admin";
+import AdminDashboard from "../pages/AdminDashboard";
 
 export const createAdminRoutes = ({ user }) => {
   return [
-    <Route key="/admin" path="/admin" element={<AdminRoute user={user} />} />,
+    <Route
+      key="/admin"
+      path="/admin"
+      element={<AdminRoute user={user} component={Admin} />}
+    />,
+    <Route
+      key="/admin-dashboard"
+      path="/admin-dashboard"
+      element={<AdminRoute user={user} component={AdminDashboard} />}
+    />,
   ];
 };

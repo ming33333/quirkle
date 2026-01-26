@@ -6,7 +6,10 @@ const QuizBoxes = ({
   quizzes,
   setSelectedQuiz,
   setSelectedTitle,
-  spacedLearning = "all", // Accept 'all', 'spacedLearning', or boolean (for backward compatibility)
+  spacedLearning = "all",
+  isFreePlan = false,
+  maxReachedFree = false,
+  freePlanMax = 10,
 }) => {
   const navigate = useNavigate(); // Hook to navigate to different routes
   const [clickedQuiz, setClickedQuiz] = useState(null); // Track which quiz box is clicked
@@ -384,7 +387,19 @@ const QuizBoxes = ({
             });
             setSelectedTitle(key); // Set the selected title
           }}
-          style={{ position: "relative", cursor: "pointer" }}
+          style={{
+            position: "relative",
+            cursor: "pointer",
+            transition: "all 0.3s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.15)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "none";
+          }}
         >
           <div className="quiz-header">
             {/* Stats in top left corner */}
@@ -601,18 +616,49 @@ const QuizBoxes = ({
       {/* Add an empty box for "Add Questions" */}
       <div
         className="quiz-box add-quiz-box"
-        onClick={() => navigate("/add-questions")} // Navigate to the Add Questions route
+        onClick={() => {
+          if (maxReachedFree) return;
+          navigate("/add-questions");
+        }}
+        role="button"
+        tabIndex={maxReachedFree ? -1 : 0}
+        onKeyDown={(e) => {
+          if (maxReachedFree) return;
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            navigate("/add-questions");
+          }
+        }}
         style={{
-          cursor: "pointer",
-          backgroundColor: "#f0f0f0",
+          cursor: maxReachedFree ? "not-allowed" : "pointer",
+          backgroundColor: maxReachedFree ? "#e8e8e8" : "#f0f0f0",
           border: "2px dashed #ccc",
           display: "flex",
+          flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
           fontFamily: "Caveat",
+          transition: "all 0.3s ease",
+          opacity: maxReachedFree ? 0.8 : 1,
+        }}
+        onMouseEnter={(e) => {
+          if (maxReachedFree) return;
+          e.currentTarget.style.backgroundColor = "#e8e8e8";
+          e.currentTarget.style.transform = "translateY(-2px)";
+          e.currentTarget.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.15)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = maxReachedFree ? "#e8e8e8" : "#f0f0f0";
+          e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.boxShadow = "none";
         }}
       >
         <h3 style={{ color: "#888" }}>+ Add Quiz</h3>
+        {isFreePlan && (
+          <p style={{ fontSize: "0.75rem", color: "#888", margin: "4px 0 0", fontFamily: "Arial, sans-serif" }}>
+            Max {freePlanMax} quizzes on the free plan
+          </p>
+        )}
       </div>
     </div>
   );

@@ -1,15 +1,30 @@
 import React, { useState, useEffect } from "react";
-import { collection, doc, deleteDoc, and } from "firebase/firestore";
+import { collection, doc, deleteDoc, getDoc } from "firebase/firestore";
 import { useLocation } from "react-router-dom";
 import { db } from "../utils/firebase/firebaseDB";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronUp, faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import {
+  faChevronUp,
+  faChevronDown,
+  faSparkles,
+  faPlus,
+  faFileLines,
+} from "@fortawesome/free-solid-svg-icons";
 import {
   getDocument,
   setDocument,
   updateDocument,
 } from "../utils/firebase/firebaseServices";
+
+/** Plan limits: update here to change max questions / chars per plan */
+const PLAN_LIMITS = {
+  free: { maxQuestions: 10, maxChars: 500 },
+  basic: { maxQuestions: 50, maxChars: 500 },
+  // Add more plans as needed, e.g. pro: { maxQuestions: 200, maxChars: 2000 },
+};
+const USER_SETTING_DOC_ID = "settings";
+const SUBSCRIPTION_FIELD = "subscription status";
 
 const AddQuiz = ({ email, quizData, showDropdown = true }) => {
   const location = useLocation();
@@ -45,12 +60,12 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
       // TODO optimize data  update by only updating the changed field, currently updates entire questions map
       await updateDocument(
         `users/${email}/quizCollection/${initialData.title}`,
-        { lastAccessed: new Date().toISOString(), questions: questionsMap }
+        { lastAccessed: new Date().toISOString(), questions: questionsMap },
       );
 
       console.log(
         `Question ${index + 1} updated successfully on.`,
-        questionField
+        questionField,
       );
     } catch (error) {
       console.error("Error updating question in Firestore:", error);
@@ -98,9 +113,30 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [showSpacedLearningPopup, setShowSpacedLearningPopup] = useState(false);
   const [currentSpacedLearning, setCurrentSpacedLearning] = useState(
-    initialData?.spacedLearning || null
+    initialData?.spacedLearning || null,
   );
   const [isExpanded, setIsExpanded] = useState(() => !showDropdown); // Always expanded when dropdown is hidden
+  const [showBulkInput, setShowBulkInput] = useState(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState("free");
+
+  const planLimits = PLAN_LIMITS[subscriptionStatus] ?? PLAN_LIMITS.free;
+  const atQuestionLimit = questions.length >= planLimits.maxQuestions;
+
+  useEffect(() => {
+    if (!email) return;
+    const loadSubscription = async () => {
+      try {
+        const ref = doc(db, "users", email, "userSetting", USER_SETTING_DOC_ID);
+        const snapshot = await getDoc(ref);
+        const data = snapshot.exists() ? snapshot.data() : {};
+        setSubscriptionStatus(data[SUBSCRIPTION_FIELD] ?? "free");
+      } catch (err) {
+        console.error("Error loading subscription:", err);
+        setSubscriptionStatus("free");
+      }
+    };
+    loadSubscription();
+  }, [email]);
 
   useEffect(() => {
     // Adjust the height of all textareas based on their content
@@ -112,21 +148,28 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
   }, [questions]); // Run whenever questions change
 
   const handleInputChange = (index, field, value) => {
+    const capped = value.length > planLimits.maxChars ? value.slice(0, planLimits.maxChars) : value;
     const updatedQuestions = [...questions];
-    updatedQuestions[index][field] = value;
-    console.log(
-      `Updated question at index total ${index} ${JSON.stringify(updatedQuestions)}:`
-    );
+    updatedQuestions[index][field] = capped;
     setQuestions(updatedQuestions);
   };
   const handleAddQuestionBelow = (index) => {
-    const newQuestion = { question: "", answer: "" }; // Create a new empty question
+    if (atQuestionLimit) return;
+    const newQuestion = { question: "", answer: "" };
     const updatedQuestions = [
-      ...questions.slice(0, index + 1), // Keep all questions up to the current index
-      newQuestion, // Insert the new question
-      ...questions.slice(index + 1), // Keep all questions after the current index
+      ...questions.slice(0, index + 1),
+      newQuestion,
+      ...questions.slice(index + 1),
     ];
-    setQuestions(updatedQuestions); // Update the state
+    setQuestions(updatedQuestions);
+  };
+
+  const handleAddNewQuestion = () => {
+    if (atQuestionLimit) return;
+    setQuestions([
+      ...questions,
+      { question: "", answer: "", starred: false, passed: false },
+    ]);
   };
 
   const handleRemoveQuestion = (index) => {
@@ -192,7 +235,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
       console.log(`docsnap`, docSnap);
       if (!docSnap) {
         console.log(
-          "User document does not exist. Creating a new user document..."
+          "User document does not exist. Creating a new user document...",
         );
         await setDocument(`users/${email}/`, {}); // Create the user document if it doesn't exist
       }
@@ -208,6 +251,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
       await setDocument(`users/${email}/quizCollection/${title}`, {
         title: title,
         questions: questionsMap,
+        lastAccessed: new Date().toISOString(),
       });
 
       console.log("Quiz added/updated successfully!");
@@ -232,46 +276,121 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
   };
   console.log(`initialData`, initialData);
   return (
-    <div className="main-content">
-      <div className="add-quiz-container">
-        <h2>{initialData ?  `Edit Quiz: ${title}` : "Add New Quiz"}</h2>
-        {showDropdown && (
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "salmon",
+        padding: "48px 16px 64px",
+        display: "flex",
+        justifyContent: "center",
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: "1020px" }}>
+        <div
+          style={{
+            position: "relative",
+            marginBottom: "20px",
+          }}
+        >
+          <div style={{ textAlign: "center" }}>
+            <h1
+              style={{
+                fontSize: "2.4rem",
+                fontWeight: 700,
+                margin: "12px 0 4px",
+                color: "white",
+              }}
+            >
+              {initialData?.title ? `Edit Quiz` : "Create Quiz"}
+            </h1>
+            <p
+              style={{
+                margin: "0 auto",
+                color: "white",
+                fontSize: "1rem",
+                maxWidth: "560px",
+              }}
+            >
+              Build a study set with smart question cards, spaced learning
+              hooks, and instant additions.
+            </p>
+          </div>
+          {showDropdown && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              style={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                padding: "6px 12px",
+                cursor: "pointer",
+                border: "1px solid rgba(0,0,0,0.1)",
+                borderRadius: "12px",
+                background: "#fff",
+                boxShadow: "0 8px 15px rgba(15, 15, 15, 0.15)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minWidth: "42px",
+              }}
+            >
+              <FontAwesomeIcon
+                icon={isExpanded ? faChevronUp : faChevronDown}
+                style={{ width: "16px", height: "16px" }}
+                color="salmon"
+              />
+            </button>
+          )}
+        </div>
+
+        {(!showDropdown || isExpanded) && (
+          <div
             style={{
-              float: "right",
-              padding: "4px 8px",
-              marginTop: "-40px",
-              cursor: "pointer",
-              border: "1px solid #ccc",
-              borderRadius: "4px",
-              fontSize: "0.9em",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              background: "rgba(255,255,255,0.9)",
+              borderRadius: "32px",
+              padding: "40px",
+              boxShadow: "0 40px 80px rgba(15, 15, 15, 0.08)",
+              border: "1px solid rgba(255,255,255,0.6)",
             }}
           >
-            <FontAwesomeIcon 
-              icon={isExpanded ? faChevronUp : faChevronDown} 
-              style={{ width: "12px", height: "12px" }}
-            />
-          </button>
-        )}
-        {(!showDropdown || isExpanded) && (
-          <>
+            {subscriptionStatus === "free" && (
+              <div
+                style={{
+                  padding: "12px 16px",
+                  marginBottom: "24px",
+                  borderRadius: "12px",
+                  background: "rgba(255, 193, 7, 0.2)",
+                  border: "1px solid rgba(255, 152, 0, 0.5)",
+                  fontSize: "0.9rem",
+                  color: "#5d4e37",
+                }}
+              >
+                <strong>Free plan:</strong> Max {planLimits.maxQuestions} questions per quiz and {planLimits.maxChars} characters per question/answer. Upgrade for more.
+              </div>
+            )}
             {!initialDataEmpty && (
               <div
-                className="button-group"
                 style={{
                   display: "flex",
-                  gap: "8px",
-                  alignItems: "center",
                   justifyContent: "center",
+                  gap: "12px",
+                  flexWrap: "wrap",
+                  marginBottom: "28px",
                 }}
               >
                 <button
                   onClick={confirmDeleteQuiz}
                   className="delete-quiz-button"
+                  style={{
+                    padding: "10px 18px",
+                    borderRadius: "18px",
+                    border: "none",
+                    background: "#ffe6e6",
+                    color: "#c62828",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    boxShadow: "0 10px 20px rgba(198, 40, 40, 0.2)",
+                  }}
                 >
                   Delete Quiz
                 </button>
@@ -279,6 +398,16 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                   <button
                     onClick={() => setShowSpacedLearningPopup(true)}
                     className="spaced-learning-button"
+                    style={{
+                      padding: "10px 18px",
+                      borderRadius: "18px",
+                      border: "1px solid rgba(255,255,255,0.6)",
+                      background:
+                        "linear-gradient(90deg, #67b26f, #4ca2cd, #3b8ad9)",
+                      color: "#fff",
+                      fontWeight: 600,
+                      boxShadow: "0 10px 20px rgba(59, 138, 217, 0.25)",
+                    }}
                   >
                     Change Learning Style
                   </button>
@@ -286,12 +415,23 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                   <button
                     onClick={handleAddToSpacedLearning}
                     className="spaced-learning-button"
+                    style={{
+                      padding: "10px 18px",
+                      borderRadius: "18px",
+                      border: "1px solid rgba(255,255,255,0.6)",
+                      background:
+                        "linear-gradient(90deg, #ff9a3c, #ff6ec4, #ef476f)",
+                      color: "#fff",
+                      fontWeight: 600,
+                      boxShadow: "0 10px 20px rgba(239, 71, 111, 0.25)",
+                    }}
                   >
                     Add to Spaced Learning
                   </button>
                 )}
               </div>
             )}
+
             {/* Delete Confirmation Popup */}
             {showDeletePopup && (
               <div className="popup-overlay">
@@ -382,98 +522,422 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                 </div>
               </div>
             )}
-            <input
-              type="text"
-              placeholder="Quiz Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="quiz-input"
-            />
-            {questions.map((q, index) => (
-              <div key={index} className="question-container">
-                <div className="qa-fields">
-                  <div className="question-labels">
-                    <label className="question-number">
-                      {q.starred ? "★" : "☆"} Q{index + 1}{" "}
-                      {/* Display star icon */}
-                    </label>
-                    {/* <label className="question-pass">{q.passed ? 'Passed' : 'Not Passed'}</label> */}
-                  </div>
-                  <textarea
-                    placeholder="Question"
-                    value={q.question}
-                    onChange={(e) =>
-                      handleInputChange(index, "question", e.target.value)
-                    }
-                    onBlur={() => handleAutoUpdate(index, "question")} // Trigger auto-update on blur
-                    className="quiz-textarea"
-                  />
-                  <textarea
-                    placeholder="Answer"
-                    value={q.answer}
-                    onChange={(e) =>
-                      handleInputChange(index, "answer", e.target.value)
-                    }
-                    onBlur={() => handleAutoUpdate(index, "answer")} // Trigger auto-update on blur
-                    className="quiz-textarea"
-                  />
-                </div>
-                <div className="options-menu">
-                  <button
-                    className="options-button"
-                    onClick={() => {
-                      const menu = document.getElementById(`menu-${index}`);
-                      menu.style.display =
-                        menu.style.display === "block" ? "none" : "block";
+
+            <div style={{ marginBottom: "32px" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "12px",
+                  fontSize: "0.95rem",
+                  fontWeight: 600,
+                  color: "#564f4a",
+                }}
+              >
+                Quiz Title
+              </label>
+              <input
+                type="text"
+                placeholder="Enter a catchy quiz title..."
+                value={title}
+                onChange={(e) => setTitle(e.target.value.slice(0, 100))}
+                maxLength={100}
+                className="quiz-input"
+                style={{
+                  width: "100%",
+                  padding: "14px 18px",
+                  borderRadius: "20px",
+                  border: "1px solid rgba(0, 0, 0, 0.08)",
+                  background: "rgba(255,255,255,0.8)",
+                  fontSize: "1rem",
+                  boxShadow: "inset 0 1px 4px rgba(15,15,15,0.05)",
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: "36px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "18px",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "1rem",
+                    fontWeight: 600,
+                    color: "#403636",
+                  }}
+                >
+                  Questions
+                </span>
+                <span
+                  style={{
+                    fontSize: "0.9rem",
+                    color: "#7b6f6a",
+                  }}
+                >
+                  {questions.length} cards
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "20px",
+                }}
+              >
+                {questions.map((q, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      background:
+                        "linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255, 228, 243, 0.8))",
+                      borderRadius: "24px",
+                      padding: "22px",
+                      boxShadow: "0 25px 40px rgba(15, 15, 15, 0.08)",
+                      border: "1px solid rgba(255,255,255,0.6)",
                     }}
                   >
-                    ⋮
-                  </button>
-                  <div id={`menu-${index}`} className="options-dropdown">
-                    <button
-                      onClick={() => handleRemoveQuestion(index)}
-                      className="remove-button"
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        justifyContent: "space-between",
+                        marginBottom: "14px",
+                      }}
                     >
-                      Remove Question
-                    </button>
-                    <button
-                      onClick={() => handleAddQuestionBelow(index)}
-                      className="add-button"
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "12px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: "38px",
+                            height: "38px",
+                            borderRadius: "50%",
+                            background:
+                              "linear-gradient(135deg, #ff9a3c, #ff6ec4)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "#fff",
+                            fontWeight: 700,
+                            fontSize: "1rem",
+                            boxShadow: "0 12px 18px rgba(239, 71, 111, 0.25)",
+                          }}
+                        >
+                          {index + 1}
+                        </div>
+                        <span
+                          style={{
+                            fontWeight: 600,
+                            color: "#2b1f1c",
+                          }}
+                        >
+                          {q.starred ? "★" : "☆"} Q{index + 1}
+                        </span>
+                      </div>
+                      <div className="options-menu">
+                        <button
+                          type="button"
+                          className="options-button"
+                          onClick={() => {
+                            const menu = document.getElementById(
+                              `menu-${index}`,
+                            );
+                            menu.style.display =
+                              menu.style.display === "block" ? "none" : "block";
+                          }}
+                          aria-label="Question options"
+                        >
+                          <span className="options-button-dots">⋯</span>
+                        </button>
+                        <div id={`menu-${index}`} className="options-dropdown">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveQuestion(index)}
+                            className="options-dropdown-item remove-button"
+                          >
+                            <span className="options-dropdown-icon">×</span>
+                            Remove Question
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleStar(index)}
+                            className="options-dropdown-item star-button"
+                          >
+                            <span className="options-dropdown-icon">
+                              {q.starred ? "★" : "☆"}
+                            </span>
+                            {q.starred ? "Unstar Question" : "Star Question"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "12px",
+                      }}
                     >
-                      Add Question Below
-                    </button>
-                    <button
-                      onClick={() => handleToggleStar(index)}
-                      className="star-button"
+                      <div>
+                        <textarea
+                          placeholder="Type your question..."
+                          value={q.question}
+                          onChange={(e) =>
+                            handleInputChange(index, "question", e.target.value)
+                          }
+                          onBlur={() => handleAutoUpdate(index, "question")}
+                          className="quiz-textarea"
+                          maxLength={planLimits.maxChars}
+                          style={{
+                            width: "100%",
+                            padding: "16px",
+                            borderRadius: "22px",
+                            border: "2px dashed rgba(233, 185, 224, 0.8)",
+                            background: "rgba(255,255,255,0.7)",
+                            fontSize: "1rem",
+                            fontWeight: 600,
+                            color: "#7d6077",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "8px",
+                          }}
+                        />
+                        {q.question.length >= planLimits.maxChars && (
+                          <div
+                            role="alert"
+                            style={{
+                              color: "#b91c1c",
+                              fontSize: "0.875rem",
+                              marginTop: "6px",
+                              fontWeight: 600,
+                              padding: "6px 10px",
+                              background: "rgba(185, 28, 28, 0.12)",
+                              borderRadius: "8px",
+                              border: "1px solid rgba(185, 28, 28, 0.4)",
+                            }}
+                          >
+                            Character limit reached ({planLimits.maxChars} chars). You cannot type or paste more.
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <textarea
+                          placeholder="Type the answer..."
+                          value={q.answer}
+                          onChange={(e) =>
+                            handleInputChange(index, "answer", e.target.value)
+                          }
+                          onBlur={() => handleAutoUpdate(index, "answer")}
+                          className="quiz-textarea"
+                          maxLength={planLimits.maxChars}
+                          style={{
+                        width: "100%",
+                    padding: "16px",
+                    borderRadius: "22px",
+                    border: "2px dashed rgba(233, 185, 224, 0.8)",
+                    background: "rgba(255,255,255,0.7)",
+                    fontSize: "1rem",
+                    fontWeight: 600,
+                    color: "#7d6077",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                          }}
+                        />
+                        {q.answer.length >= planLimits.maxChars && (
+                          <div
+                            role="alert"
+                            style={{
+                              color: "#b91c1c",
+                              fontSize: "0.875rem",
+                              marginTop: "6px",
+                              fontWeight: 600,
+                              padding: "6px 10px",
+                              background: "rgba(185, 28, 28, 0.12)",
+                              borderRadius: "8px",
+                              border: "1px solid rgba(185, 28, 28, 0.4)",
+                            }}
+                          >
+                            Character limit reached ({planLimits.maxChars} chars). You cannot type or paste more.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={handleAddNewQuestion}
+                className="quiz-button add-new-question-button"
+                style={{
+                  marginTop: "24px",
+                  width: "100%",
+                  padding: "14px",
+                  borderRadius: "22px",
+                  fontWeight: 600,
+                  border: "none",
+                  background:
+                    "linear-gradient(90deg, #ffe29f 0%, #ff6ec4 50%, #ef476f 100%)",
+                  color: "white",
+                  fontSize: "1.05rem",
+                  boxShadow: "0 15px 30px rgba(239, 71, 111, 0.25)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "10px",
+                }}
+              >
+                <FontAwesomeIcon icon={faPlus} />
+                Add New Question
+              </button>
+            </div>
+
+            <div style={{ marginBottom: "32px" }}>
+              {!showBulkInput ? (
+                <button
+                  onClick={() => setShowBulkInput(true)}
+                  style={{
+                    width: "100%",
+                    padding: "16px",
+                    borderRadius: "22px",
+                    border: "2px dashed rgba(233, 185, 224, 0.8)",
+                    background: "rgba(255,255,255,0.7)",
+                    fontSize: "1rem",
+                    fontWeight: 600,
+                    color: "#7d6077",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <FontAwesomeIcon icon={faFileLines} />
+                  Add Bulk Questions
+                </button>
+              ) : (
+                <div
+                  style={{
+                    background: "rgba(237, 231, 255, 0.8)",
+                    borderRadius: "22px",
+                    padding: "18px",
+                    border: "1px solid rgba(149, 114, 222, 0.5)",
+                    boxShadow: "0 25px 35px rgba(98, 58, 150, 0.15)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontWeight: 600,
+                        color: "#4c3c6d",
+                      }}
                     >
-                      {q.starred ? "Unstar Question" : "Star Question"}
+                      Paste questions and answers (tab-separated, one per line)
+                    </span>
+                    <button
+                      onClick={() => setShowBulkInput(false)}
+                      style={{
+                        border: "none",
+                        background: "transparent",
+                        cursor: "pointer",
+                        fontWeight: 600,
+                        color: "#4c3c6d",
+                      }}
+                    >
+                      Close
                     </button>
                   </div>
+                  <textarea
+                    value={bulkInput}
+                    onChange={(e) => setBulkInput(e.target.value)}
+                    placeholder="Question 1	Answer 1&#10;Question 2	Answer 2"
+                    className="bulk-input"
+                    style={{
+                      borderRadius: "16px",
+                      border: "1px solid rgba(124, 103, 183, 0.4)",
+                      padding: "14px",
+                      minHeight: "120px",
+                      fontSize: "0.95rem",
+                      resize: "vertical",
+                      background: "#fff",
+                      boxShadow: "inset 0 2px 6px rgba(86, 61, 124, 0.1)",
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      handleBulkAdd();
+                      setShowBulkInput(false);
+                    }}
+                    style={{
+                      padding: "12px",
+                      borderRadius: "18px",
+                      border: "none",
+                      background:
+                        "linear-gradient(90deg, #6a5af9, #ee6ba3, #ff9760)",
+                      color: "#fff",
+                      fontWeight: 600,
+                      fontSize: "1rem",
+                      boxShadow: "0 12px 25px rgba(123, 58, 210, 0.35)",
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faPlus} />
+                    Add Questions
+                  </button>
                 </div>
-              </div>
-            ))}
+              )}
+            </div>
 
-            <textarea
-              placeholder="Paste questions and answers here (tab-separated, one per line)"
-              value={bulkInput}
-              onChange={(e) => setBulkInput(e.target.value)}
-              className="bulk-input"
-            />
-            <button
-              onClick={handleBulkAdd}
-              className="quiz-button bulk-add-button"
-            >
-              Add Bulk Questions
-            </button>
             {initialDataEmpty && (
               <button
                 onClick={handleSubmit}
                 className="quiz-button submit-button"
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  borderRadius: "26px",
+                  border: "none",
+                  fontSize: "1.1rem",
+                  fontWeight: 700,
+                  background:
+                    "linear-gradient(90deg, #ff9a3c, #ff6ec4, #ef476f)",
+                  color: "#fff",
+                  boxShadow: "0 20px 40px rgba(239, 71, 111, 0.35)",
+                  marginBottom: "12px",
+                }}
               >
-                {"Submit Quiz"}
+                Submit Quiz ✨
               </button>
             )}
-          </>
+            <p
+              style={{
+                color: "#5e4c46",
+                fontSize: "0.95rem",
+                textAlign: "center",
+                marginTop: "12px",
+              }}
+            >
+              💡 Tip: Make your questions clear and concise for the best
+              learning experience!
+            </p>
+          </div>
         )}
       </div>
     </div>

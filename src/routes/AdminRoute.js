@@ -26,7 +26,14 @@ import { Navigate } from "react-router-dom";
 import { isAdmin } from "../utils/firebase/firebaseServices";
 import Admin from "../pages/admin";
 
-const AdminRoute = ({ user }) => {
+/**
+ * Renders an admin-only route. Only users with a document in the
+ * Firestore "admins" collection (doc id = user email) can access.
+ * @param {Object} props
+ * @param {Object} props.user - Current auth user
+ * @param {React.Component} [props.component] - Page to render when authorized (default: Admin)
+ */
+const AdminRoute = ({ user, component: Component = Admin }) => {
   const [adminStatus, setAdminStatus] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -64,7 +71,7 @@ const AdminRoute = ({ user }) => {
     return <Navigate to="/home" />;
   }
 
-  return <Admin user={user} />;
+  return <Component user={user} />;
 };
 
 export default AdminRoute;

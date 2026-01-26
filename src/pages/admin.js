@@ -6,7 +6,7 @@ import {
   migrateArrayToMap,
   bulkMigrateArrayToMap,
 } from "../utils/firebase/firebaseServices";
-import { collection, getDocs, doc } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, setDoc } from "firebase/firestore";
 
 /**
  * Known subcollections based on the database structure
@@ -14,9 +14,14 @@ import { collection, getDocs, doc } from "firebase/firestore";
  * we define known subcollection names here.
  */
 const KNOWN_SUBCOLLECTIONS = {
-  users: ["quizCollection", "friendCollection", "pointSystem"],
+  users: ["quizCollection", "friendCollection", "pointSystem", "userSetting"],
   // Add more known subcollections as needed
 };
+
+/** Subscription statuses stored at users/{userId}/userSetting/settings { "subscription status": value } */
+const SUBSCRIPTION_STATUSES = ["free", "basic"];
+const USER_SETTING_DOC_ID = "settings";
+const SUBSCRIPTION_FIELD = "subscription status";
 
 const Admin = ({ user }) => {
   const [collections, setCollections] = useState([]);
@@ -42,6 +47,15 @@ const Admin = ({ user }) => {
   const [migrationResults, setMigrationResults] = useState(null);
   const [migrating, setMigrating] = useState(false);
   const [migrationProgress, setMigrationProgress] = useState(null);
+
+  // Subscription status tool: users/{userId}/userSetting/settings
+  const [subscriptionUserId, setSubscriptionUserId] = useState("");
+  const [subscriptionStatus, setSubscriptionStatus] = useState(
+    SUBSCRIPTION_STATUSES[0]
+  );
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
+  const [subscriptionMessage, setSubscriptionMessage] = useState(null);
+  const [currentLoadedStatus, setCurrentLoadedStatus] = useState(null);
 
   // Known top-level collections
   const knownCollections = [
@@ -202,6 +216,57 @@ const Admin = ({ user }) => {
     );
   };
 
+  const handleLoadSubscription = async () => {
+    const uid = subscriptionUserId.trim();
+    if (!uid) {
+      setSubscriptionMessage({ type: "error", text: "Enter a user ID (e.g. email)." });
+      return;
+    }
+    setSubscriptionLoading(true);
+    setSubscriptionMessage(null);
+    setCurrentLoadedStatus(null);
+    try {
+      const ref = doc(db, "users", uid, "userSetting", USER_SETTING_DOC_ID);
+      const snapshot = await getDoc(ref);
+      const data = snapshot.exists() ? snapshot.data() : {};
+      const status = data[SUBSCRIPTION_FIELD] ?? null;
+      setCurrentLoadedStatus(status);
+      setSubscriptionStatus(
+        SUBSCRIPTION_STATUSES.includes(status) ? status : SUBSCRIPTION_STATUSES[0]
+      );
+      setSubscriptionMessage({
+        type: "info",
+        text: status != null ? `Current: ${status}` : "No subscription set yet.",
+      });
+    } catch (err) {
+      console.error(err);
+      setSubscriptionMessage({ type: "error", text: err.message || "Failed to load." });
+    } finally {
+      setSubscriptionLoading(false);
+    }
+  };
+
+  const handleSaveSubscription = async () => {
+    const uid = subscriptionUserId.trim();
+    if (!uid) {
+      setSubscriptionMessage({ type: "error", text: "Enter a user ID (e.g. email)." });
+      return;
+    }
+    setSubscriptionLoading(true);
+    setSubscriptionMessage(null);
+    try {
+      const ref = doc(db, "users", uid, "userSetting", USER_SETTING_DOC_ID);
+      await setDoc(ref, { [SUBSCRIPTION_FIELD]: subscriptionStatus }, { merge: true });
+      setCurrentLoadedStatus(subscriptionStatus);
+      setSubscriptionMessage({ type: "success", text: "Subscription status saved." });
+    } catch (err) {
+      console.error(err);
+      setSubscriptionMessage({ type: "error", text: err.message || "Failed to save." });
+    } finally {
+      setSubscriptionLoading(false);
+    }
+  };
+
   return (
     <div
       className="admin-container"
@@ -264,6 +329,110 @@ const Admin = ({ user }) => {
           {error}
         </div>
       )}
+
+      {/* Subscription Status Tool: users/{userId}/userSetting/settings */}
+      <div
+        style={{
+          border: "2px solid #2196F3",
+          borderRadius: "8px",
+          padding: "20px",
+          marginBottom: "30px",
+          backgroundColor: "#f0f8ff",
+        }}
+      >
+        <h2>Subscription Status</h2>
+        <p style={{ color: "#666", fontSize: "14px", marginBottom: "15px" }}>
+          Set user subscription at <code>users/&#123;userId&#125;/userSetting/settings</code> with
+          field <code>&quot;subscription status&quot;</code>. Add more statuses in{" "}
+          <code>SUBSCRIPTION_STATUSES</code> in admin.js.
+        </p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", alignItems: "flex-end", marginBottom: "12px" }}>
+          <label style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            User ID (e.g. email)
+            <input
+              type="text"
+              value={subscriptionUserId}
+              onChange={(e) => setSubscriptionUserId(e.target.value)}
+              placeholder="user@example.com"
+              style={{ padding: "8px", fontSize: "14px", width: "240px" }}
+            />
+          </label>
+          <label style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            Status
+            <select
+              value={subscriptionStatus}
+              onChange={(e) => setSubscriptionStatus(e.target.value)}
+              style={{ padding: "8px", fontSize: "14px", minWidth: "120px" }}
+            >
+              {SUBSCRIPTION_STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            onClick={handleLoadSubscription}
+            disabled={subscriptionLoading}
+            style={{
+              padding: "8px 16px",
+              fontSize: "14px",
+              cursor: subscriptionLoading ? "not-allowed" : "pointer",
+              backgroundColor: "#607D8B",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+            }}
+          >
+            Load current
+          </button>
+          <button
+            type="button"
+            onClick={handleSaveSubscription}
+            disabled={subscriptionLoading}
+            style={{
+              padding: "8px 16px",
+              fontSize: "14px",
+              cursor: subscriptionLoading ? "not-allowed" : "pointer",
+              backgroundColor: "#2196F3",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+            }}
+          >
+            {subscriptionLoading ? "Saving..." : "Save"}
+          </button>
+        </div>
+        {currentLoadedStatus != null && (
+          <p style={{ fontSize: "13px", color: "#666", marginBottom: "8px" }}>
+            Current in DB: <strong>{currentLoadedStatus}</strong>
+          </p>
+        )}
+        {subscriptionMessage && (
+          <div
+            style={{
+              padding: "8px 12px",
+              borderRadius: "4px",
+              fontSize: "14px",
+              backgroundColor:
+                subscriptionMessage.type === "error"
+                  ? "#ffebee"
+                  : subscriptionMessage.type === "success"
+                    ? "#e8f5e9"
+                    : "#e3f2fd",
+              color:
+                subscriptionMessage.type === "error"
+                  ? "#c62828"
+                  : subscriptionMessage.type === "success"
+                    ? "#2e7d32"
+                    : "#1565c0",
+            }}
+          >
+            {subscriptionMessage.text}
+          </div>
+        )}
+      </div>
 
       {/* Data Migration Tool */}
       <div
