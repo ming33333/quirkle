@@ -16,13 +16,8 @@ import {
   setDocument,
   updateDocument,
 } from "../utils/firebase/firebaseServices";
+import { getPlanLimits } from "../config/subscriptionPlans";
 
-/** Plan limits: update here to change max questions / chars per plan */
-const PLAN_LIMITS = {
-  free: { maxQuestions: 10, maxChars: 500 },
-  basic: { maxQuestions: 50, maxChars: 500 },
-  // Add more plans as needed, e.g. pro: { maxQuestions: 200, maxChars: 2000 },
-};
 const USER_SETTING_DOC_ID = "settings";
 const SUBSCRIPTION_FIELD = "subscription status";
 
@@ -119,7 +114,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
   const [showBulkInput, setShowBulkInput] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState("free");
 
-  const planLimits = PLAN_LIMITS[subscriptionStatus] ?? PLAN_LIMITS.free;
+  const planLimits = getPlanLimits(subscriptionStatus);
   const atQuestionLimit = questions.length >= planLimits.maxQuestions;
 
   useEffect(() => {
@@ -153,9 +148,30 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
     updatedQuestions[index][field] = capped;
     setQuestions(updatedQuestions);
   };
+  const handleAddQuestionAbove = (index) => {
+    if (atQuestionLimit) return;
+    const newQuestion = {
+      question: "",
+      answer: "",
+      starred: false,
+      passed: false,
+    };
+    const updatedQuestions = [
+      ...questions.slice(0, index),
+      newQuestion,
+      ...questions.slice(index),
+    ];
+    setQuestions(updatedQuestions);
+  };
+
   const handleAddQuestionBelow = (index) => {
     if (atQuestionLimit) return;
-    const newQuestion = { question: "", answer: "" };
+    const newQuestion = {
+      question: "",
+      answer: "",
+      starred: false,
+      passed: false,
+    };
     const updatedQuestions = [
       ...questions.slice(0, index + 1),
       newQuestion,
@@ -675,6 +691,24 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                               {q.starred ? "★" : "☆"}
                             </span>
                             {q.starred ? "Unstar Question" : "Star Question"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddQuestionAbove(index)}
+                            disabled={atQuestionLimit}
+                            className="options-dropdown-item add-button"
+                          >
+                            <span className="options-dropdown-icon">+</span>
+                            Add Question Above
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddQuestionBelow(index)}
+                            disabled={atQuestionLimit}
+                            className="options-dropdown-item add-button"
+                          >
+                            <span className="options-dropdown-icon">+</span>
+                            Add Question Below
                           </button>
                         </div>
                       </div>

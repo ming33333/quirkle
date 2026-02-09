@@ -8,6 +8,10 @@
 
 # testing
 /coverage
+cypress/videos
+cypress/screenshots
+cypress/downloads
+serviceAccountKey.json
 
 # production
 /build

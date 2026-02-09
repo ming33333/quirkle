@@ -1,0 +1,36 @@
+{
+  "testUser": {
+    "email": "test@quirkle.test",
+    "password": "testpassword123",
+    "subscriptionStatus": "free"
+  },
+  "plans": {
+    "basic": {
+      "id": "basic",
+      "name": "Basic",
+      "price": 9.99,
+      "features": [
+        "50 questions per quiz",
+        "500 characters per question/answer",
+        "All basic features",
+        "Priority support"
+      ]
+    },
+    "pro": {
+      "id": "pro",
+      "name": "Pro",
+      "price": 19.99,
+      "features": [
+        "200 questions per quiz",
+        "2000 characters per question/answer",
+        "All features",
+        "Priority support",
+        "Advanced analytics"
+      ]
+    }
+  },
+  "stripe": {
+    "testCard": "4242 4242 4242 4242",
+    "testSessionId": "cs_test_mock_session_id"
+  }
+}

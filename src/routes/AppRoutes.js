@@ -28,6 +28,8 @@ import MainContent from "../components/MainContent";
 import QuizView from "../components/quizView";
 import AddQuiz from "../services/addQuiz.js";
 import SpacedLearningQuiz from "../pages/spacedLearning.js";
+import SubscriptionSuccess from "../pages/subscriptionSuccess.js";
+import SubscriptionCancel from "../pages/subscriptionCancel.js";
 
 export const createAppRoutes = ({
   user,
@@ -119,6 +121,16 @@ export const createAppRoutes = ({
           <Navigate to="/login" />
         )
       }
+    />,
+    <Route
+      key="/subscription-success"
+      path="/subscription-success"
+      element={<SubscriptionSuccess />}
+    />,
+    <Route
+      key="/subscription-cancel"
+      path="/subscription-cancel"
+      element={<SubscriptionCancel />}
     />,
   ];
 };

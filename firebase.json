@@ -1,4 +1,21 @@
 {
+  "functions": [
+    {
+      "source": "quirkle-functions",
+      "codebase": "quirkle",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    }
+  ],
   "emulators": {
     "singleProjectMode": true,
     "database": {
@@ -6,6 +23,9 @@
     },
     "ui": {
       "enabled": true
+    },
+    "functions": {
+      "port": 5001
     }
   }
 }
