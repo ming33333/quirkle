@@ -15,6 +15,15 @@ import { getAuth } from 'firebase/auth';
 const USER_SETTING_DOC_ID = 'settings';
 const SUBSCRIPTION_FIELD = 'subscription status';
 
+// Cloud Functions base URL: use env override, otherwise deployed Firebase Cloud Functions
+const getCloudFunctionsBaseUrl = () => {
+  if (process.env.REACT_APP_CLOUD_FUNCTIONS_URL) {
+    return process.env.REACT_APP_CLOUD_FUNCTIONS_URL.replace(/\/$/, '');
+  }
+  const projectId = process.env.REACT_APP_FIREBASE_PROJECT_ID || 'quirkle-db';
+  return `https://us-central1-${projectId}.cloudfunctions.net`;
+};
+
 // Provider types
 const PROVIDER_STRIPE = 'stripe';
 const PROVIDER_REVENUECAT = 'revenuecat';
@@ -82,7 +91,7 @@ class StripeProvider {
     try {
       // Call Cloud Function to create checkout session
       const response = await fetch(
-        `${process.env.REACT_APP_CLOUD_FUNCTIONS_URL || 'http://localhost:5001/quirkle-db/us-central1'}/createCheckoutSession`,
+        `${getCloudFunctionsBaseUrl()}/createCheckoutSession`,
         {
           method: 'POST',
           headers: {
@@ -143,7 +152,7 @@ class StripeProvider {
   async createPortalSession(email, returnUrl) {
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_CLOUD_FUNCTIONS_URL || 'http://localhost:5001/quirkle-db/us-central1'}/createPortalSession`,
+        `${getCloudFunctionsBaseUrl()}/createPortalSession`,
         {
           method: 'POST',
           headers: {

@@ -77,6 +77,13 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields: email, priceId' });
     }
 
+    // Stripe Checkout requires a Price ID (price_...), not a Product ID (prod_...)
+    if (typeof priceId === 'string' && priceId.startsWith('prod_')) {
+      return res.status(400).json({
+        error: 'Invalid priceId: use a Stripe Price ID (starts with price_), not a Product ID (prod_). In Stripe Dashboard: Products → your product → Pricing section → copy the Price ID.',
+      });
+    }
+
     // Verify user exists in Firestore
     const userRef = db.collection('users').doc(email);
     const userDoc = await userRef.get();
@@ -107,7 +114,10 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
     res.json({ sessionId: session.id });
   } catch (error) {
     console.error('Error creating checkout session:', error);
-    res.status(500).json({ error: error.message });
+    const message = error.type === 'StripeInvalidRequestError' && error.param === 'line_items[0][price]'
+      ? 'Invalid priceId. Use a Stripe Price ID (price_...) from Dashboard → Products → [your product] → Pricing, not a Product ID (prod_...).'
+      : error.message;
+    res.status(500).json({ error: message });
   }
 });
 

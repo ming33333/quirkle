@@ -105,7 +105,8 @@ npm start
 |-------|----------------|
 | “Failed to create checkout session” / network error | Is the emulator running? Is `REACT_APP_CLOUD_FUNCTIONS_URL` exactly `http://localhost:5001/<project-id>/us-central1`? |
 | “Stripe not initialized” | Is `REACT_APP_STRIPE_PUBLISHABLE_KEY` set in `.env` and did you restart `npm start`? |
-| Invalid price / plan errors | Do `REACT_APP_STRIPE_*_PRICE_ID` and `PRICE_TO_STATUS_MAP` in `quirkle-functions/index.js` match your Stripe Price IDs? |
+| **"No such price" / `prod_...` in error** | You used a **Product ID** (`prod_...`). Checkout needs a **Price ID** (`price_...`). In [Stripe Dashboard → Products](https://dashboard.stripe.com/test/products), open your product → **Pricing** section → copy the **Price ID** (e.g. `price_1ABC...`). Put that in `.env` as `REACT_APP_STRIPE_BASIC_PRICE_ID` / `REACT_APP_STRIPE_PRO_PRICE_ID`. |
+| Invalid price / plan errors | Do `REACT_APP_STRIPE_*_PRICE_ID` and `PRICE_TO_STATUS_MAP` in `quirkle-functions/index.js` match your Stripe **Price** IDs (not Product IDs)? |
 | Emulator doesn’t see Stripe key | Is `STRIPE_SECRET_KEY` in `quirkle-functions/.env`? The emulator loads `.env` from the **functions** directory. |
 
 ## 6. Webhooks (optional, for local testing)
