@@ -10,6 +10,8 @@ import {
   faSparkles,
   faPlus,
   faFileLines,
+  faSpinner,
+  faCircleCheck,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   getDocument,
@@ -42,6 +44,16 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
     }
   }
   const handleAutoUpdate = async (index, questionField) => {
+    const fieldKey = `${index}-${questionField}`;
+    
+    // Set updating state
+    setUpdatingFields(prev => ({ ...prev, [fieldKey]: true }));
+    setUpdatedFields(prev => {
+      const newState = { ...prev };
+      delete newState[fieldKey]; // Remove success state if it exists
+      return newState;
+    });
+
     try {
       const updatedQuestions = [...questions]; // Create a copy of the questions array
 
@@ -62,8 +74,31 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
         `Question ${index + 1} updated successfully on.`,
         questionField,
       );
+
+      // Set success state and clear updating state
+      setUpdatingFields(prev => {
+        const newState = { ...prev };
+        delete newState[fieldKey];
+        return newState;
+      });
+      setUpdatedFields(prev => ({ ...prev, [fieldKey]: true }));
+      
+      // Clear success indicator after 2 seconds
+      setTimeout(() => {
+        setUpdatedFields(prev => {
+          const newState = { ...prev };
+          delete newState[fieldKey];
+          return newState;
+        });
+      }, 2000);
     } catch (error) {
       console.error("Error updating question in Firestore:", error);
+      // Clear updating state on error
+      setUpdatingFields(prev => {
+        const newState = { ...prev };
+        delete newState[fieldKey];
+        return newState;
+      });
     }
   };
   const handleToggleStar = async (index) => {
@@ -113,6 +148,8 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
   const [isExpanded, setIsExpanded] = useState(() => !showDropdown); // Always expanded when dropdown is hidden
   const [showBulkInput, setShowBulkInput] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState("free");
+  const [updatingFields, setUpdatingFields] = useState({}); // Track fields being updated: { "0-question": true, "1-answer": true }
+  const [updatedFields, setUpdatedFields] = useState({}); // Track fields just updated: { "0-question": true }
 
   const planLimits = getPlanLimits(subscriptionStatus);
   const atQuestionLimit = questions.length >= planLimits.maxQuestions;
@@ -720,7 +757,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                         gap: "12px",
                       }}
                     >
-                      <div>
+                      <div style={{ position: "relative" }}>
                         <textarea
                           placeholder="Type your question..."
                           value={q.question}
@@ -733,6 +770,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                           style={{
                             width: "100%",
                             padding: "16px",
+                            paddingRight: updatingFields[`${index}-question`] || updatedFields[`${index}-question`] ? "48px" : "16px",
                             borderRadius: "22px",
                             border: "2px dashed rgba(233, 185, 224, 0.8)",
                             background: "rgba(255,255,255,0.7)",
@@ -745,6 +783,39 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                             gap: "8px",
                           }}
                         />
+                        {(updatingFields[`${index}-question`] || updatedFields[`${index}-question`]) && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: "12px",
+                              right: "12px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            {updatingFields[`${index}-question`] ? (
+                              <FontAwesomeIcon
+                                icon={faSpinner}
+                                spin
+                                style={{
+                                  color: "#ff9a3c",
+                                  fontSize: "16px",
+                                }}
+                                title="Saving..."
+                              />
+                            ) : updatedFields[`${index}-question`] ? (
+                              <FontAwesomeIcon
+                                icon={faCircleCheck}
+                                style={{
+                                  color: "#4CAF50",
+                                  fontSize: "18px",
+                                }}
+                                title="Saved"
+                              />
+                            ) : null}
+                          </div>
+                        )}
                         {q.question.length >= planLimits.maxChars && (
                           <div
                             role="alert"
@@ -763,7 +834,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                           </div>
                         )}
                       </div>
-                      <div>
+                      <div style={{ position: "relative" }}>
                         <textarea
                           placeholder="Type the answer..."
                           value={q.answer}
@@ -774,20 +845,54 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                           className="quiz-textarea"
                           maxLength={planLimits.maxChars}
                           style={{
-                        width: "100%",
-                    padding: "16px",
-                    borderRadius: "22px",
-                    border: "2px dashed rgba(233, 185, 224, 0.8)",
-                    background: "rgba(255,255,255,0.7)",
-                    fontSize: "1rem",
-                    fontWeight: 600,
-                    color: "#7d6077",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
+                            width: "100%",
+                            padding: "16px",
+                            paddingRight: updatingFields[`${index}-answer`] || updatedFields[`${index}-answer`] ? "48px" : "16px",
+                            borderRadius: "22px",
+                            border: "2px dashed rgba(233, 185, 224, 0.8)",
+                            background: "rgba(255,255,255,0.7)",
+                            fontSize: "1rem",
+                            fontWeight: 600,
+                            color: "#7d6077",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "8px",
                           }}
                         />
+                        {(updatingFields[`${index}-answer`] || updatedFields[`${index}-answer`]) && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: "12px",
+                              right: "12px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            {updatingFields[`${index}-answer`] ? (
+                              <FontAwesomeIcon
+                                icon={faSpinner}
+                                spin
+                                style={{
+                                  color: "#ff9a3c",
+                                  fontSize: "16px",
+                                }}
+                                title="Saving..."
+                              />
+                            ) : updatedFields[`${index}-answer`] ? (
+                              <FontAwesomeIcon
+                                icon={faCircleCheck}
+                                style={{
+                                  color: "#4CAF50",
+                                  fontSize: "18px",
+                                }}
+                                title="Saved"
+                              />
+                            ) : null}
+                          </div>
+                        )}
                         {q.answer.length >= planLimits.maxChars && (
                           <div
                             role="alert"

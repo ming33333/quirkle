@@ -257,6 +257,32 @@ const QuizView = ({
         activeTime,
       };
       setSelectedQuiz({ ...metadata, questions: updatedQuestions });
+
+      // Auto-advance to next question if not at the end
+      const isLastQuestion = currentQuestionIndex + 1 >= questionsArray.length;
+      
+      if (!isLastQuestion) {
+        // Hide answer for next question
+        if (showAnswer) {
+          toggleAnswerVisibility();
+        }
+        // Move to next question
+        if (handleNextQuestion) {
+          handleNextQuestion();
+        } else if (setCurrentQuestionIndex) {
+          setCurrentQuestionIndex(currentQuestionIndex + 1);
+        }
+      } else {
+        // We're on the last question - advance to show completion message
+        // Hide answer first
+        if (showAnswer) {
+          toggleAnswerVisibility();
+        }
+        // Advance past the last question to trigger completion message
+        if (setCurrentQuestionIndex) {
+          setCurrentQuestionIndex(questionsArray.length);
+        }
+      }
     } catch (error) {
       console.error("Error updating question in Firestore:", error);
     }

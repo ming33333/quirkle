@@ -82,7 +82,7 @@ class StripeProvider {
     try {
       // Call Cloud Function to create checkout session
       const response = await fetch(
-        `${process.env.REACT_APP_CLOUD_FUNCTIONS_URL || 'http://localhost:5001'}/createCheckoutSession`,
+        `${process.env.REACT_APP_CLOUD_FUNCTIONS_URL || 'http://localhost:5001/quirkle-db/us-central1'}/createCheckoutSession`,
         {
           method: 'POST',
           headers: {
@@ -143,7 +143,7 @@ class StripeProvider {
   async createPortalSession(email, returnUrl) {
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_CLOUD_FUNCTIONS_URL || 'http://localhost:5001'}/createPortalSession`,
+        `${process.env.REACT_APP_CLOUD_FUNCTIONS_URL || 'http://localhost:5001/quirkle-db/us-central1'}/createPortalSession`,
         {
           method: 'POST',
           headers: {
