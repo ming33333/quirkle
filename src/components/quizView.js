@@ -186,9 +186,11 @@ const QuizView = ({
 
       // Use originalIndex if available (for filtered questions), otherwise use currentQuestionIndex
       const originalIndex =
-        currentQuestion?.originalIndex !== undefined
-          ? String(currentQuestion.originalIndex)
-          : String(currentQuestionIndex);
+        currentQuestion?.mapIndex !== undefined
+          ? String(currentQuestion.mapIndex)
+          : currentQuestion?.originalIndex !== undefined
+            ? String(currentQuestion.originalIndex)
+            : String(currentQuestionIndex);
 
       // Calculate updated values
       const passed = choice === "right";
@@ -235,6 +237,17 @@ const QuizView = ({
         [`questions.${questionIndex}.level`]: level,
         [`questions.${questionIndex}.activeTime`]: activeTime,
       };
+      console.log("Updating question fields", {
+        selectedTitle,
+        questionIndex,
+        currentQuestionIndex,
+        mapIndex: currentQuestion?.mapIndex,
+        originalIndex: currentQuestion?.originalIndex,
+        passed,
+        level,
+        activeTime,
+        lastAnswered,
+      });
       console.log("selectedTitle", selectedTitle);
       await updateDocument(
         `users/${email}/quizCollection/${selectedTitle}`,

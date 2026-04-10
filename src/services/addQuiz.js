@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { collection, doc, deleteDoc, getDoc } from "firebase/firestore";
 import { useLocation } from "react-router-dom";
 import { db } from "../utils/firebase/firebaseDB";
@@ -7,7 +7,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faChevronUp,
   faChevronDown,
-  faSparkles,
   faPlus,
   faFileLines,
   faSpinner,
@@ -56,6 +55,17 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
 
     try {
       const updatedQuestions = [...questions]; // Create a copy of the questions array
+      const savedQuestions = savedQuestionsRef.current || [];
+      const savedValue = savedQuestions[index]?.[questionField];
+      const currentValue = updatedQuestions[index]?.[questionField];
+      if (savedValue === currentValue) {
+        setUpdatingFields(prev => {
+          const newState = { ...prev };
+          delete newState[fieldKey];
+          return newState;
+        });
+        return;
+      }
 
       // Convert array to map for database storage
       const questionsMap = {};
@@ -82,7 +92,9 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
         return newState;
       });
       setUpdatedFields(prev => ({ ...prev, [fieldKey]: true }));
-      
+      setShowRefreshPopup(true);
+      savedQuestionsRef.current = cloneQuestions(updatedQuestions);
+
       // Clear success indicator after 2 seconds
       setTimeout(() => {
         setUpdatedFields(prev => {
@@ -117,6 +129,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
       await updateDocument(`users/${email}/quizCollection/${title}`, {
         questions: questionsMap,
       });
+      savedQuestionsRef.current = cloneQuestions(updatedQuestions);
     } catch (error) {
       console.error("Error updating star status in Firestore:", error);
     }
@@ -142,14 +155,36 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
   const [bulkInput, setBulkInput] = useState(""); // State for bulk input
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [showSpacedLearningPopup, setShowSpacedLearningPopup] = useState(false);
+  const [showRefreshPopup, setShowRefreshPopup] = useState(false);
   const [currentSpacedLearning, setCurrentSpacedLearning] = useState(
     initialData?.spacedLearning || null,
   );
   const [isExpanded, setIsExpanded] = useState(() => !showDropdown); // Always expanded when dropdown is hidden
   const [showBulkInput, setShowBulkInput] = useState(false);
+  const [levelFilter, setLevelFilter] = useState("all");
   const [subscriptionStatus, setSubscriptionStatus] = useState("free");
   const [updatingFields, setUpdatingFields] = useState({}); // Track fields being updated: { "0-question": true, "1-answer": true }
   const [updatedFields, setUpdatedFields] = useState({}); // Track fields just updated: { "0-question": true }
+  const savedQuestionsRef = useRef(null);
+  const savedTitleRef = useRef("");
+
+  const cloneQuestions = (items) => items.map((question) => ({ ...question }));
+  const questionsEqual = (left, right) => {
+    if (!left || !right || left.length !== right.length) {
+      return false;
+    }
+    return left.every(
+      (question, index) =>
+        JSON.stringify(question) === JSON.stringify(right[index])
+    );
+  };
+  const escapeCsvValue = (value) => {
+    const safeValue = String(value ?? "");
+    if (/[",\n]/.test(safeValue)) {
+      return `"${safeValue.replace(/"/g, '""')}"`;
+    }
+    return safeValue;
+  };
 
   const planLimits = getPlanLimits(subscriptionStatus);
   const atQuestionLimit = questions.length >= planLimits.maxQuestions;
@@ -178,6 +213,13 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
       textarea.style.height = `${textarea.scrollHeight}px`; // Adjust height to fit content
     });
   }, [questions]); // Run whenever questions change
+
+  useEffect(() => {
+    if (!savedQuestionsRef.current) {
+      savedQuestionsRef.current = cloneQuestions(questions);
+      savedTitleRef.current = title;
+    }
+  }, [questions, title]);
 
   const handleInputChange = (index, field, value) => {
     const capped = value.length > planLimits.maxChars ? value.slice(0, planLimits.maxChars) : value;
@@ -326,6 +368,36 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
 
     setQuestions([...questions, ...newQuestions]); // Add new questions to the existing list
     setBulkInput(""); // Clear the bulk input field
+  };
+  const isEditing = Boolean(initialData?.title);
+  const filteredQuestions = questions
+    .map((question, index) => ({ question, index }))
+    .filter(({ question }) => {
+      if (levelFilter === "all") {
+        return true;
+      }
+      const normalizedLevel = parseInt(question?.level, 10) || 1;
+      return normalizedLevel === Number(levelFilter);
+    });
+  const handleDownloadCsv = () => {
+    const header = ["Question", "Answer", "Level"];
+    const rows = filteredQuestions.map(({ question }) => [
+      question?.question ?? "",
+      question?.answer ?? "",
+      parseInt(question?.level, 10) || 1,
+    ]);
+    const csvContent = [header, ...rows]
+      .map((row) => row.map(escapeCsvValue).join(","))
+      .join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${title || "quiz"}-questions.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
   };
   console.log(`initialData`, initialData);
   return (
@@ -576,6 +648,34 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
               </div>
             )}
 
+            {/* Refresh to see edits popup */}
+            {showRefreshPopup && (
+              <div className="popup-overlay">
+                <div className="popup-content">
+                  <h3>Edits saved</h3>
+                  <p>
+                    Refresh the page to see your edits. Your quiz will remain
+                    selected after refresh.
+                  </p>
+                  <button
+                    onClick={() => setShowRefreshPopup(false)}
+                    className="confirm-delete-button"
+                    style={{
+                      padding: "10px 24px",
+                      borderRadius: "12px",
+                      border: "none",
+                      background: "#4CAF50",
+                      color: "#fff",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    OK
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div style={{ marginBottom: "32px" }}>
               <label
                 style={{
@@ -614,24 +714,78 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                   alignItems: "center",
                   justifyContent: "space-between",
                   marginBottom: "18px",
+                  gap: "16px",
+                  flexWrap: "wrap",
                 }}
               >
-                <span
-                  style={{
-                    fontSize: "1rem",
-                    fontWeight: 600,
-                    color: "#403636",
-                  }}
-                >
-                  Questions
-                </span>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <span
+                    style={{
+                      fontSize: "1rem",
+                      fontWeight: 600,
+                      color: "#403636",
+                    }}
+                  >
+                    Questions
+                  </span>
+                  {isEditing && (
+                    <label
+                      style={{
+                        fontSize: "0.85rem",
+                        color: "#7b6f6a",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      Filter by level
+                      <select
+                        value={levelFilter}
+                        onChange={(e) => setLevelFilter(e.target.value)}
+                        style={{
+                          padding: "6px 10px",
+                          borderRadius: "12px",
+                          border: "1px solid rgba(0,0,0,0.1)",
+                          background: "#fff",
+                          fontSize: "0.85rem",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <option value="all">All levels</option>
+                        <option value="1">Level 1</option>
+                        <option value="2">Level 2</option>
+                        <option value="3">Level 3</option>
+                        <option value="4">Level 4</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={handleDownloadCsv}
+                        style={{
+                          padding: "6px 12px",
+                          borderRadius: "12px",
+                          border: "1px solid rgba(0,0,0,0.1)",
+                          background: "#fff",
+                          fontSize: "0.85rem",
+                          cursor: "pointer",
+                          fontWeight: 600,
+                          color: "#4f4a45",
+                        }}
+                      >
+                        Download CSV
+                      </button>
+                    </label>
+                  )}
+                </div>
                 <span
                   style={{
                     fontSize: "0.9rem",
                     color: "#7b6f6a",
                   }}
                 >
-                  {questions.length} cards
+                  {levelFilter === "all"
+                    ? `${questions.length} cards`
+                    : `${filteredQuestions.length} of ${questions.length} cards`}
                 </span>
               </div>
               <div
@@ -641,7 +795,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                   gap: "20px",
                 }}
               >
-                {questions.map((q, index) => (
+                {filteredQuestions.map(({ question: q, index }) => (
                   <div
                     key={index}
                     style={{
@@ -760,7 +914,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                       <div style={{ position: "relative" }}>
                         <textarea
                           placeholder="Type your question..."
-                          value={q.question}
+                          value={q.question || ""}
                           onChange={(e) =>
                             handleInputChange(index, "question", e.target.value)
                           }
@@ -816,7 +970,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                             ) : null}
                           </div>
                         )}
-                        {q.question.length >= planLimits.maxChars && (
+                        {(q.question || "").length >= planLimits.maxChars && (
                           <div
                             role="alert"
                             style={{
@@ -837,7 +991,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                       <div style={{ position: "relative" }}>
                         <textarea
                           placeholder="Type the answer..."
-                          value={q.answer}
+                          value={q.answer || ""}
                           onChange={(e) =>
                             handleInputChange(index, "answer", e.target.value)
                           }
@@ -893,7 +1047,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                             ) : null}
                           </div>
                         )}
-                        {q.answer.length >= planLimits.maxChars && (
+                        {(q.answer || "").length >= planLimits.maxChars && (
                           <div
                             role="alert"
                             style={{

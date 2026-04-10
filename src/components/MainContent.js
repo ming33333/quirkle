@@ -8,6 +8,7 @@ import AddQuiz from "../services/addQuiz";
 const USER_SETTING_DOC_ID = "settings";
 const SUBSCRIPTION_FIELD = "subscription status";
 const FREE_PLAN_MAX_QUIZZES = 10;
+const STORAGE_KEY_QUIZ_TITLE = "quirkle_selected_quiz_title";
 
 const MainContent = ({
   email,
@@ -73,6 +74,43 @@ const MainContent = ({
     };
     loadSubscription();
   }, [email]);
+
+  // Persist selected quiz so refresh keeps user on quiz view
+  useEffect(() => {
+    if (selectedQuiz && selectedTitle) {
+      sessionStorage.setItem(STORAGE_KEY_QUIZ_TITLE, selectedTitle);
+    } else {
+      sessionStorage.removeItem(STORAGE_KEY_QUIZ_TITLE);
+    }
+  }, [selectedQuiz, selectedTitle]);
+
+  // Restore selected quiz from sessionStorage after quizzes load (e.g. on refresh)
+  useEffect(() => {
+    if (loading || !quizzes || Object.keys(quizzes).length === 0 || selectedQuiz)
+      return;
+    const savedTitle = sessionStorage.getItem(STORAGE_KEY_QUIZ_TITLE);
+    if (!savedTitle || !quizzes[savedTitle]) return;
+    const quizData = quizzes[savedTitle];
+    const questions = quizData.questions;
+    const questionsArray = Array.isArray(questions)
+      ? questions.map((q, idx) => ({
+          ...q,
+          originalIndex: q.originalIndex ?? String(idx),
+        }))
+      : Object.entries(questions || {}).map(([key, q]) => ({
+          ...q,
+          originalIndex: q.originalIndex ?? String(key),
+        }));
+    setSelectedQuiz({
+      questions: questionsArray,
+      lastAccessed: quizData.lastAccessed,
+      spacedLearning: quizData.spacedLearning,
+      ...Object.fromEntries(
+        Object.entries(quizData).filter(([k]) => k !== "questions")
+      ),
+    });
+    setSelectedTitle(savedTitle);
+  }, [loading, quizzes, selectedQuiz, setSelectedQuiz, setSelectedTitle]);
 
   if (loading) {
     return <div className="main-content">Loading...</div>;

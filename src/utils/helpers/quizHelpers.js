@@ -8,7 +8,17 @@
 const calculateActiveQuestions = (quiz) => {
   const currentDate = new Date();
   currentDate.setHours(23, 59, 59, 59);
-  let activeQuestions = [];
+  const activeQuestions = [];
+  const parseActiveTime = (activeTime) => {
+    if (!activeTime) {
+      return null;
+    }
+    if (typeof activeTime?.toDate === "function") {
+      return activeTime.toDate();
+    }
+    const parsed = new Date(activeTime);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
 
   // Convert questions map to array if needed
   const questionsArray = Array.isArray(quiz.questions)
@@ -16,12 +26,9 @@ const calculateActiveQuestions = (quiz) => {
     : Object.values(quiz.questions || {});
 
   questionsArray.forEach((question) => {
-    if (!question.activeTime) {
-      activeQuestions.push(question); // Add question to activeQuestions if no activeTime
-    } else {
-      if (new Date(question.activeTime) <= currentDate) {
-        activeQuestions.push(question); // Add question to activeQuestions if no activeTime
-      }
+    const activeDate = parseActiveTime(question.activeTime);
+    if (!activeDate || activeDate <= currentDate) {
+      activeQuestions.push(question);
     }
   });
   return activeQuestions;

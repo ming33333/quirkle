@@ -18,14 +18,12 @@ const checkAndUpdateLevels = async (selectedQuiz, email, title) => {
             : String(index),
       }));
     } else {
-      // If it's a map, preserve the original keys
+      // If it's a map, always use the map key as the canonical index
       questionsArray = Object.entries(selectedQuiz || {}).map(
         ([key, question]) => ({
           ...question,
-          originalIndex:
-            question.originalIndex !== undefined
-              ? question.originalIndex
-              : String(key),
+          originalIndex: String(key),
+          mapIndex: String(key),
         })
       );
     }
@@ -137,6 +135,23 @@ const SpacedLearningQuiz = ({
       setLocalShowAnswer((prev) => !prev);
     });
 
+  const questionsForCounts = Array.isArray(updatedQuiz)
+    ? updatedQuiz
+    : Object.values(updatedQuiz || {});
+  const levelCounts = questionsForCounts.reduce(
+    (counts, question) => {
+      const level = parseInt(question?.level, 10) || 1;
+      if (level >= 1 && level <= 4) {
+        counts[level] += 1;
+      }
+      return counts;
+    },
+    { 1: 0, 2: 0, 3: 0, 4: 0 }
+  );
+  const activeCount = calculateActiveQuestions({
+    questions: questionsForCounts,
+  }).length;
+
   React.useEffect(() => {
     const updateQuiz = async () => {
       if (!selectedQuiz) {
@@ -165,14 +180,12 @@ const SpacedLearningQuiz = ({
               : String(index),
         }));
       } else {
-        // If it's a map, preserve the original keys
+        // If it's a map, always use the map key as the canonical index
         questionsArray = Object.entries(questionsToProcess || {}).map(
           ([key, question]) => ({
             ...question,
-            originalIndex:
-              question.originalIndex !== undefined
-                ? question.originalIndex
-                : String(key),
+            originalIndex: String(key),
+            mapIndex: String(key),
           })
         );
       }
@@ -209,14 +222,12 @@ const SpacedLearningQuiz = ({
             : String(index),
       }));
     } else {
-      // If it's a map, preserve the original keys
+      // If it's a map, always use the map key as the canonical index
       questionsArray = Object.entries(questionsToProcess || {}).map(
         ([key, question]) => ({
           ...question,
-          originalIndex:
-            question.originalIndex !== undefined
-              ? question.originalIndex
-              : String(key),
+          originalIndex: String(key),
+          mapIndex: String(key),
         })
       );
     }
@@ -302,6 +313,9 @@ const SpacedLearningQuiz = ({
             onClick={() => handleBucketClick(level, email, selectedTitle)} // Handle bucket click
           >
             <h3>{`Level ${level}`}</h3>
+            <p style={{ margin: 0, fontSize: "0.85rem", color: "#6b6b6b" }}>
+              {levelCounts[level]} questions
+            </p>
           </div>
         ))}
         <div
@@ -309,6 +323,9 @@ const SpacedLearningQuiz = ({
           onClick={() => handleBucketClick("active", email, selectedTitle)} // Handle bucket click
         >
           <h3>All Active</h3>
+          <p style={{ margin: 0, fontSize: "0.85rem", color: "#6b6b6b" }}>
+            {activeCount} questions
+          </p>
         </div>
       </div>
     </div>
