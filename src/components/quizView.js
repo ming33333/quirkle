@@ -209,7 +209,9 @@ const QuizView = ({
           "Answered right, setting level to",
           level,
           "next active time to",
-          activeTime
+          activeTime,
+          "question snapshot",
+          currentQuestion
         );
       } else {
         level =
@@ -230,7 +232,7 @@ const QuizView = ({
 
       // Update only the specific question using dot notation with originalIndex
       // questions map structure: { "0": {...}, "1": {...} }
-      const questionIndex = originalIndex;
+      const questionIndex = originalIndex - 1;
       const updateData = {
         [`questions.${questionIndex}.passed`]: passed,
         [`questions.${questionIndex}.lastAnswered`]: lastAnswered,
