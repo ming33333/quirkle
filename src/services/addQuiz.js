@@ -10,7 +10,7 @@ import {
   faPlus,
   faFileLines,
   faSpinner,
-  faCircleCheck,
+  faNoteSticky,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   getDocument,
@@ -21,6 +21,16 @@ import { getPlanLimits } from "../config/subscriptionPlans";
 
 const USER_SETTING_DOC_ID = "settings";
 const SUBSCRIPTION_FIELD = "subscription status";
+const QUESTION_NOTE_MAX_LENGTH = 2000;
+
+/** Keep mapIndex/originalIndex equal to array index so Firestore keys 0..n-1 match after insert/remove/reorder. */
+function withCanonicalQuestionIndices(questionsList) {
+  return questionsList.map((q, idx) => ({
+    ...q,
+    originalIndex: String(idx),
+    mapIndex: String(idx),
+  }));
+}
 
 const AddQuiz = ({ email, quizData, showDropdown = true }) => {
   const location = useLocation();
@@ -47,11 +57,6 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
     
     // Set updating state
     setUpdatingFields(prev => ({ ...prev, [fieldKey]: true }));
-    setUpdatedFields(prev => {
-      const newState = { ...prev };
-      delete newState[fieldKey]; // Remove success state if it exists
-      return newState;
-    });
 
     try {
       const updatedQuestions = [...questions]; // Create a copy of the questions array
@@ -67,9 +72,9 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
         return;
       }
 
-      // Convert array to map for database storage
+      const alignedQuestions = withCanonicalQuestionIndices(updatedQuestions);
       const questionsMap = {};
-      updatedQuestions.forEach((question, idx) => {
+      alignedQuestions.forEach((question, idx) => {
         questionsMap[String(idx)] = question;
       });
 
@@ -91,18 +96,18 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
         delete newState[fieldKey];
         return newState;
       });
-      setUpdatedFields(prev => ({ ...prev, [fieldKey]: true }));
       setShowRefreshPopup(true);
-      savedQuestionsRef.current = cloneQuestions(updatedQuestions);
+      setQuestions(alignedQuestions);
+      savedQuestionsRef.current = cloneQuestions(alignedQuestions);
 
-      // Clear success indicator after 2 seconds
-      setTimeout(() => {
-        setUpdatedFields(prev => {
-          const newState = { ...prev };
-          delete newState[fieldKey];
-          return newState;
-        });
-      }, 2000);
+      if (questionSavedFlashTimeoutRef.current) {
+        clearTimeout(questionSavedFlashTimeoutRef.current);
+      }
+      setQuestionSavedFlashIndex(index);
+      questionSavedFlashTimeoutRef.current = setTimeout(() => {
+        setQuestionSavedFlashIndex((prev) => (prev === index ? null : prev));
+        questionSavedFlashTimeoutRef.current = null;
+      }, 2500);
     } catch (error) {
       console.error("Error updating question in Firestore:", error);
       // Clear updating state on error
@@ -117,19 +122,18 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
     try {
       const updatedQuestions = [...questions]; // Create a copy of the questions array
       updatedQuestions[index].starred = !updatedQuestions[index].starred; // Toggle the star status
-      setQuestions(updatedQuestions); // Update the state
+      const alignedQuestions = withCanonicalQuestionIndices(updatedQuestions);
+      setQuestions(alignedQuestions);
 
-      // Convert array to map for database storage
       const questionsMap = {};
-      updatedQuestions.forEach((question, idx) => {
+      alignedQuestions.forEach((question, idx) => {
         questionsMap[String(idx)] = question;
       });
 
-      // Update the database
       await updateDocument(`users/${email}/quizCollection/${title}`, {
         questions: questionsMap,
       });
-      savedQuestionsRef.current = cloneQuestions(updatedQuestions);
+      savedQuestionsRef.current = cloneQuestions(alignedQuestions);
     } catch (error) {
       console.error("Error updating star status in Firestore:", error);
     }
@@ -143,14 +147,27 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
         : Object.values(initialData.questions); // Convert map to array if needed
 
       // Customize the questions initialization if needed
-      return questionsArray.map((q) => ({
+      return questionsArray.map((q, idx) => ({
         ...q,
         starred: q.starred || false, // Ensure 'starred' field exists
         passed: q.passed || false, // Ensure 'passed' field exists
+        note: q.note ?? "",
+        originalIndex: String(idx),
+        mapIndex: String(idx),
       }));
     }
     // Default to a single empty question
-    return [{ question: "", answer: "", starred: false, passed: false }];
+    return [
+      {
+        question: "",
+        answer: "",
+        starred: false,
+        passed: false,
+        note: "",
+        originalIndex: "0",
+        mapIndex: "0",
+      },
+    ];
   });
   const [bulkInput, setBulkInput] = useState(""); // State for bulk input
   const [showDeletePopup, setShowDeletePopup] = useState(false);
@@ -164,9 +181,15 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
   const [levelFilter, setLevelFilter] = useState("all");
   const [subscriptionStatus, setSubscriptionStatus] = useState("free");
   const [updatingFields, setUpdatingFields] = useState({}); // Track fields being updated: { "0-question": true, "1-answer": true }
-  const [updatedFields, setUpdatedFields] = useState({}); // Track fields just updated: { "0-question": true }
+  const [focusedQuestionIndex, setFocusedQuestionIndex] = useState(null);
+  const [questionSavedFlashIndex, setQuestionSavedFlashIndex] = useState(null);
+  const [noteModalIndex, setNoteModalIndex] = useState(null);
+  const [noteDraft, setNoteDraft] = useState("");
+  const [hoverNoteCardIndex, setHoverNoteCardIndex] = useState(null);
   const savedQuestionsRef = useRef(null);
   const savedTitleRef = useRef("");
+  const questionBlurTimerRef = useRef(null);
+  const questionSavedFlashTimeoutRef = useRef(null);
 
   const cloneQuestions = (items) => items.map((question) => ({ ...question }));
   const questionsEqual = (left, right) => {
@@ -221,12 +244,71 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
     }
   }, [questions, title]);
 
+  useEffect(() => {
+    return () => {
+      if (questionBlurTimerRef.current) {
+        clearTimeout(questionBlurTimerRef.current);
+      }
+      if (questionSavedFlashTimeoutRef.current) {
+        clearTimeout(questionSavedFlashTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleInputChange = (index, field, value) => {
     const capped = value.length > planLimits.maxChars ? value.slice(0, planLimits.maxChars) : value;
     const updatedQuestions = [...questions];
     updatedQuestions[index][field] = capped;
     setQuestions(updatedQuestions);
   };
+
+  const handleQuestionFieldFocus = (index) => {
+    if (questionBlurTimerRef.current) {
+      clearTimeout(questionBlurTimerRef.current);
+      questionBlurTimerRef.current = null;
+    }
+    setFocusedQuestionIndex(index);
+    setQuestionSavedFlashIndex((prev) => (prev === index ? null : prev));
+  };
+
+  const handleQuestionFieldBlur = (index) => {
+    questionBlurTimerRef.current = setTimeout(() => {
+      setFocusedQuestionIndex((prev) => (prev === index ? null : prev));
+      questionBlurTimerRef.current = null;
+    }, 80);
+  };
+
+  const openNoteModal = (index) => {
+    const menu = document.getElementById(`menu-${index}`);
+    if (menu) menu.style.display = "none";
+    setNoteDraft(String(questions[index]?.note ?? ""));
+    setNoteModalIndex(index);
+  };
+
+  const handleSaveNote = async () => {
+    if (noteModalIndex === null || !title?.trim()) return;
+    try {
+      const idx = noteModalIndex;
+      const text = noteDraft.slice(0, QUESTION_NOTE_MAX_LENGTH);
+      const updatedQuestions = [...questions];
+      updatedQuestions[idx] = { ...updatedQuestions[idx], note: text };
+      const alignedQuestions = withCanonicalQuestionIndices(updatedQuestions);
+      setQuestions(alignedQuestions);
+      const questionsMap = {};
+      alignedQuestions.forEach((question, i) => {
+        questionsMap[String(i)] = question;
+      });
+      await updateDocument(`users/${email}/quizCollection/${title}`, {
+        questions: questionsMap,
+        lastAccessed: new Date().toISOString(),
+      });
+      savedQuestionsRef.current = cloneQuestions(alignedQuestions);
+      setNoteModalIndex(null);
+    } catch (err) {
+      console.error("Error saving note:", err);
+    }
+  };
+
   const handleAddQuestionAbove = (index) => {
     if (atQuestionLimit) return;
     const newQuestion = {
@@ -234,13 +316,14 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
       answer: "",
       starred: false,
       passed: false,
+      note: "",
     };
     const updatedQuestions = [
       ...questions.slice(0, index),
       newQuestion,
       ...questions.slice(index),
     ];
-    setQuestions(updatedQuestions);
+    setQuestions(withCanonicalQuestionIndices(updatedQuestions));
   };
 
   const handleAddQuestionBelow = (index) => {
@@ -250,26 +333,29 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
       answer: "",
       starred: false,
       passed: false,
+      note: "",
     };
     const updatedQuestions = [
       ...questions.slice(0, index + 1),
       newQuestion,
       ...questions.slice(index + 1),
     ];
-    setQuestions(updatedQuestions);
+    setQuestions(withCanonicalQuestionIndices(updatedQuestions));
   };
 
   const handleAddNewQuestion = () => {
     if (atQuestionLimit) return;
-    setQuestions([
-      ...questions,
-      { question: "", answer: "", starred: false, passed: false },
-    ]);
+    setQuestions(
+      withCanonicalQuestionIndices([
+        ...questions,
+        { question: "", answer: "", starred: false, passed: false, note: "" },
+      ]),
+    );
   };
 
   const handleRemoveQuestion = (index) => {
     const updatedQuestions = questions.filter((_, i) => i !== index); // Remove the question at the specified index
-    setQuestions(updatedQuestions);
+    setQuestions(withCanonicalQuestionIndices(updatedQuestions));
   };
   const handleDeleteQuiz = async () => {
     try {
@@ -336,13 +422,12 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
       }
       console.log("User document exists or created successfully!");
 
-      // Convert questions array to map for database storage
+      const alignedQuestions = withCanonicalQuestionIndices(questions);
       const questionsMap = {};
-      questions.forEach((question, index) => {
+      alignedQuestions.forEach((question, index) => {
         questionsMap[String(index)] = question;
       });
 
-      // Add or update the quiz document in the 'quizCollection' subcollection
       await setDocument(`users/${email}/quizCollection/${title}`, {
         title: title,
         questions: questionsMap,
@@ -364,9 +449,14 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
       .map(([question, answer]) => ({
         question: question.trim(),
         answer: answer.trim(),
+        starred: false,
+        passed: false,
+        note: "",
       })); // Map to question/answer objects
 
-    setQuestions([...questions, ...newQuestions]); // Add new questions to the existing list
+    setQuestions(
+      withCanonicalQuestionIndices([...questions, ...newQuestions]),
+    );
     setBulkInput(""); // Clear the bulk input field
   };
   const isEditing = Boolean(initialData?.title);
@@ -676,6 +766,87 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
               </div>
             )}
 
+            {noteModalIndex !== null && (
+              <div className="popup-overlay">
+                <div
+                  className="popup-content"
+                  style={{ maxWidth: "480px", width: "100%" }}
+                >
+                  <h3 style={{ marginTop: 0 }}>
+                    Question note (Q{noteModalIndex + 1})
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: "0.9rem",
+                      color: "#5c534d",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    While taking the quiz, hover the question number in the
+                    progress bar to read this note. Click Save note to store it.
+                  </p>
+                  <textarea
+                    value={noteDraft}
+                    onChange={(e) =>
+                      setNoteDraft(
+                        e.target.value.slice(0, QUESTION_NOTE_MAX_LENGTH),
+                      )
+                    }
+                    placeholder="Mnemonics, context, textbook page…"
+                    rows={5}
+                    className="quiz-textarea"
+                    style={{
+                      width: "100%",
+                      padding: "14px 16px",
+                      borderRadius: "16px",
+                      border: "1px solid rgba(0,0,0,0.12)",
+                      fontSize: "1rem",
+                      marginBottom: "8px",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                  <div
+                    style={{
+                      fontSize: "0.8rem",
+                      color: "#7b6f6a",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    {noteDraft.length}/{QUESTION_NOTE_MAX_LENGTH}
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "10px",
+                      justifyContent: "flex-end",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setNoteModalIndex(null)}
+                      className="cancel-delete-button"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveNote}
+                      disabled={!title?.trim()}
+                      className="confirm-delete-button"
+                      style={{
+                        background: "#4CAF50",
+                        opacity: !title?.trim() ? 0.5 : 1,
+                        cursor: !title?.trim() ? "not-allowed" : "pointer",
+                      }}
+                    >
+                      Save note
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div style={{ marginBottom: "32px" }}>
               <label
                 style={{
@@ -795,7 +966,9 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                   gap: "20px",
                 }}
               >
-                {filteredQuestions.map(({ question: q, index }) => (
+                {filteredQuestions.map(({ question: q, index }) => {
+                  const noteTrim = String(q?.note ?? "").trim();
+                  return (
                   <div
                     key={index}
                     style={{
@@ -817,10 +990,22 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                     >
                       <div
                         style={{
+                          position: "relative",
                           display: "flex",
                           alignItems: "center",
-                          gap: "12px",
+                          gap: "10px",
+                          flexWrap: "wrap",
+                          flex: 1,
+                          minWidth: 0,
                         }}
+                        onMouseEnter={() =>
+                          noteTrim && setHoverNoteCardIndex(index)
+                        }
+                        onMouseLeave={() =>
+                          setHoverNoteCardIndex((i) =>
+                            i === index ? null : i,
+                          )
+                        }
                       >
                         <div
                           style={{
@@ -836,18 +1021,113 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                             fontWeight: 700,
                             fontSize: "1rem",
                             boxShadow: "0 12px 18px rgba(239, 71, 111, 0.25)",
+                            flexShrink: 0,
+                            cursor: "default",
                           }}
                         >
-                          {index + 1}
+                          <span
+                            style={
+                              noteTrim
+                                ? {
+                                    textDecoration: "underline",
+                                    textDecorationStyle: "dotted",
+                                    textDecorationColor: "rgba(255,255,255,0.95)",
+                                    textUnderlineOffset: "3px",
+                                  }
+                                : undefined
+                            }
+                          >
+                            {index + 1}
+                          </span>
                         </div>
+                        {(() => {
+                          const savingQ =
+                            updatingFields[`${index}-question`] ||
+                            updatingFields[`${index}-answer`];
+                          const editingQ = focusedQuestionIndex === index;
+                          const showSpinner = savingQ || editingQ;
+                          const showSaved =
+                            questionSavedFlashIndex === index && !showSpinner;
+                          if (showSpinner) {
+                            return (
+                              <span
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "6px",
+                                  fontSize: "0.8rem",
+                                  color: "#7b6f6a",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                <FontAwesomeIcon
+                                  icon={faSpinner}
+                                  spin
+                                  style={{ color: "#ff9a3c", fontSize: "14px" }}
+                                />
+                                {savingQ ? "Saving…" : "Editing…"}
+                              </span>
+                            );
+                          }
+                          if (showSaved) {
+                            return (
+                              <span
+                                style={{
+                                  fontSize: "0.8rem",
+                                  color: "#2e7d32",
+                                  fontWeight: 700,
+                                }}
+                              >
+                                Question autosaved
+                              </span>
+                            );
+                          }
+                          return null;
+                        })()}
                         <span
                           style={{
                             fontWeight: 600,
                             color: "#2b1f1c",
+                            cursor: "default",
+                            ...(noteTrim
+                              ? {
+                                  textDecoration: "underline",
+                                  textDecorationStyle: "dotted",
+                                  textDecorationColor: "#c45d7a",
+                                  textUnderlineOffset: "3px",
+                                }
+                              : {}),
                           }}
                         >
                           {q.starred ? "★" : "☆"} Q{index + 1}
                         </span>
+                        {hoverNoteCardIndex === index && noteTrim ? (
+                          <div
+                            role="tooltip"
+                            style={{
+                              position: "absolute",
+                              left: 0,
+                              top: "calc(100% + 8px)",
+                              zIndex: 40,
+                              minWidth: "180px",
+                              maxWidth: "min(360px, 92vw)",
+                              padding: "10px 12px",
+                              background: "#fff",
+                              color: "#2b1f1c",
+                              fontSize: "0.85rem",
+                              fontWeight: 500,
+                              lineHeight: 1.45,
+                              whiteSpace: "pre-wrap",
+                              wordBreak: "break-word",
+                              borderRadius: "12px",
+                              boxShadow: "0 10px 28px rgba(0,0,0,0.15)",
+                              border: "1px solid rgba(0,0,0,0.08)",
+                              textAlign: "left",
+                            }}
+                          >
+                            {noteTrim}
+                          </div>
+                        ) : null}
                       </div>
                       <div className="options-menu">
                         <button
@@ -885,6 +1165,22 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                           </button>
                           <button
                             type="button"
+                            onClick={() => openNoteModal(index)}
+                            className="options-dropdown-item"
+                            style={{ fontWeight: 600 }}
+                          >
+                            <span className="options-dropdown-icon">
+                              <FontAwesomeIcon
+                                icon={faNoteSticky}
+                                style={{ width: "14px" }}
+                              />
+                            </span>
+                            {(q.note || "").trim()
+                              ? "Edit note"
+                              : "Add note"}
+                          </button>
+                          <button
+                            type="button"
                             onClick={() => handleAddQuestionAbove(index)}
                             disabled={atQuestionLimit}
                             className="options-dropdown-item add-button"
@@ -918,13 +1214,16 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                           onChange={(e) =>
                             handleInputChange(index, "question", e.target.value)
                           }
-                          onBlur={() => handleAutoUpdate(index, "question")}
+                          onFocus={() => handleQuestionFieldFocus(index)}
+                          onBlur={() => {
+                            handleQuestionFieldBlur(index);
+                            handleAutoUpdate(index, "question");
+                          }}
                           className="quiz-textarea"
                           maxLength={planLimits.maxChars}
                           style={{
                             width: "100%",
                             padding: "16px",
-                            paddingRight: updatingFields[`${index}-question`] || updatedFields[`${index}-question`] ? "48px" : "16px",
                             borderRadius: "22px",
                             border: "2px dashed rgba(233, 185, 224, 0.8)",
                             background: "rgba(255,255,255,0.7)",
@@ -937,39 +1236,6 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                             gap: "8px",
                           }}
                         />
-                        {(updatingFields[`${index}-question`] || updatedFields[`${index}-question`]) && (
-                          <div
-                            style={{
-                              position: "absolute",
-                              top: "12px",
-                              right: "12px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            {updatingFields[`${index}-question`] ? (
-                              <FontAwesomeIcon
-                                icon={faSpinner}
-                                spin
-                                style={{
-                                  color: "#ff9a3c",
-                                  fontSize: "16px",
-                                }}
-                                title="Saving..."
-                              />
-                            ) : updatedFields[`${index}-question`] ? (
-                              <FontAwesomeIcon
-                                icon={faCircleCheck}
-                                style={{
-                                  color: "#4CAF50",
-                                  fontSize: "18px",
-                                }}
-                                title="Saved"
-                              />
-                            ) : null}
-                          </div>
-                        )}
                         {(q.question || "").length >= planLimits.maxChars && (
                           <div
                             role="alert"
@@ -995,13 +1261,16 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                           onChange={(e) =>
                             handleInputChange(index, "answer", e.target.value)
                           }
-                          onBlur={() => handleAutoUpdate(index, "answer")}
+                          onFocus={() => handleQuestionFieldFocus(index)}
+                          onBlur={() => {
+                            handleQuestionFieldBlur(index);
+                            handleAutoUpdate(index, "answer");
+                          }}
                           className="quiz-textarea"
                           maxLength={planLimits.maxChars}
                           style={{
                             width: "100%",
                             padding: "16px",
-                            paddingRight: updatingFields[`${index}-answer`] || updatedFields[`${index}-answer`] ? "48px" : "16px",
                             borderRadius: "22px",
                             border: "2px dashed rgba(233, 185, 224, 0.8)",
                             background: "rgba(255,255,255,0.7)",
@@ -1014,39 +1283,6 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                             gap: "8px",
                           }}
                         />
-                        {(updatingFields[`${index}-answer`] || updatedFields[`${index}-answer`]) && (
-                          <div
-                            style={{
-                              position: "absolute",
-                              top: "12px",
-                              right: "12px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            {updatingFields[`${index}-answer`] ? (
-                              <FontAwesomeIcon
-                                icon={faSpinner}
-                                spin
-                                style={{
-                                  color: "#ff9a3c",
-                                  fontSize: "16px",
-                                }}
-                                title="Saving..."
-                              />
-                            ) : updatedFields[`${index}-answer`] ? (
-                              <FontAwesomeIcon
-                                icon={faCircleCheck}
-                                style={{
-                                  color: "#4CAF50",
-                                  fontSize: "18px",
-                                }}
-                                title="Saved"
-                              />
-                            ) : null}
-                          </div>
-                        )}
                         {(q.answer || "").length >= planLimits.maxChars && (
                           <div
                             role="alert"
@@ -1067,7 +1303,8 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                       </div>
                     </div>
                   </div>
-                ))}
+                );
+                })}
               </div>
               <button
                 onClick={handleAddNewQuestion}

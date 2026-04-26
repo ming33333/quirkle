@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { doc } from "firebase/firestore";
 import { db } from "../utils/firebase/firebaseDB";
@@ -22,7 +22,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 const STUDY_TIP =
-  "Try to recall the answer before revealing it. Active recall strengthens your memory! 💪";
+  "Try to recall the answer before revealing it. Active recall strengthens your memory! 💪 Keyboard: Enter shows the answer; press Enter again for Got it right, or Space for Need review.";
 
 const QuizView = ({
   selectedQuiz,
@@ -53,6 +53,8 @@ const QuizView = ({
   const [filterChoice, setFilterChoice] = useState(skipFilterChoice ? "all" : null); // Track the user's filter choice
   const [showExitPopup, setShowExitPopup] = useState(false); // Track whether the exit popup is visible
   const [showQuizCompletion, setShowQuizCompletion] = useState(false); // Track quiz completion popup for cumulative test
+  const [showQuestionNoteTip, setShowQuestionNoteTip] = useState(false);
+  const keyboardShortcutBusyRef = useRef(false);
 
   const handleExitQuiz = (immediateExit = false) => {
     if (immediateExit) {
@@ -184,8 +186,9 @@ const QuizView = ({
 
       const currentQuestion = questionsArray[currentQuestionIndex]; // Get the current question
 
-      // Use originalIndex if available (for filtered questions), otherwise use currentQuestionIndex
-      const originalIndex =
+      // Firestore questions map uses keys "0".."n-1" matching document order.
+      // mapIndex / originalIndex must be those keys (0-based), not 1-based ordinals.
+      const firestoreQuestionKey =
         currentQuestion?.mapIndex !== undefined
           ? String(currentQuestion.mapIndex)
           : currentQuestion?.originalIndex !== undefined
@@ -230,18 +233,16 @@ const QuizView = ({
         );
       }
 
-      // Update only the specific question using dot notation with originalIndex
-      // questions map structure: { "0": {...}, "1": {...} }
-      const questionIndex = originalIndex - 1;
+      // Update only the specific question using dot notation (key = firestoreQuestionKey)
       const updateData = {
-        [`questions.${questionIndex}.passed`]: passed,
-        [`questions.${questionIndex}.lastAnswered`]: lastAnswered,
-        [`questions.${questionIndex}.level`]: level,
-        [`questions.${questionIndex}.activeTime`]: activeTime,
+        [`questions.${firestoreQuestionKey}.passed`]: passed,
+        [`questions.${firestoreQuestionKey}.lastAnswered`]: lastAnswered,
+        [`questions.${firestoreQuestionKey}.level`]: level,
+        [`questions.${firestoreQuestionKey}.activeTime`]: activeTime,
       };
       console.log("Updating question fields", {
         selectedTitle,
-        questionIndex,
+        firestoreQuestionKey,
         currentQuestionIndex,
         mapIndex: currentQuestion?.mapIndex,
         originalIndex: currentQuestion?.originalIndex,
@@ -392,6 +393,80 @@ const QuizView = ({
       handleAwardPoint(); // Award the point when the user finishes the quiz
     }
   }, [currentQuestionIndex, questionsArray.length]);
+
+  useEffect(() => {
+    setShowQuestionNoteTip(false);
+  }, [currentQuestionIndex]);
+
+  // Keyboard: Enter = show answer, then Enter = Got it right; after reveal, Space = Need review
+  useEffect(() => {
+    const questionsForGuard = Array.isArray(selectedQuiz)
+      ? selectedQuiz
+      : selectedQuiz?.questions
+        ? selectedQuiz.questions
+        : Object.values(selectedQuiz || {});
+    const isSprintQuiz =
+      Boolean(selectedQuiz?.spacedLearning) &&
+      selectedQuiz.spacedLearning !== "all";
+    const onActiveQuestionScreen =
+      questionsForGuard.length > 0 &&
+      currentQuestionIndex < questionsForGuard.length &&
+      (!isSprintQuiz || filterChoice !== null) &&
+      !showExitPopup &&
+      !showQuizCompletion;
+
+    const onKeyDown = (e) => {
+      if (!onActiveQuestionScreen) return;
+      const t = e.target;
+      if (
+        t instanceof HTMLElement &&
+        (t.closest("input, textarea, select") || t.isContentEditable)
+      ) {
+        return;
+      }
+
+      const isEnter = e.key === "Enter";
+      const isSpace = e.key === " " || e.key === "Spacebar";
+      if (!isEnter && !isSpace) return;
+
+      if (isEnter) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!showAnswer) {
+          toggleAnswerVisibility();
+          return;
+        }
+        if (keyboardShortcutBusyRef.current) return;
+        keyboardShortcutBusyRef.current = true;
+        Promise.resolve(handleAnswerChoice("right")).finally(() => {
+          keyboardShortcutBusyRef.current = false;
+        });
+        return;
+      }
+
+      if (isSpace && showAnswer) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (keyboardShortcutBusyRef.current) return;
+        keyboardShortcutBusyRef.current = true;
+        Promise.resolve(handleAnswerChoice("wrong")).finally(() => {
+          keyboardShortcutBusyRef.current = false;
+        });
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [
+    selectedQuiz,
+    currentQuestionIndex,
+    filterChoice,
+    showExitPopup,
+    showQuizCompletion,
+    showAnswer,
+    toggleAnswerVisibility,
+    handleAnswerChoice,
+  ]);
 
   // Show quiz completion popup for cumulative test
   if (showQuizCompletion && isCumulativeTest && quizList) {
@@ -629,6 +704,7 @@ const QuizView = ({
       : selectedTitle;
   const isSpacedLearning =
     selectedQuiz?.spacedLearning && selectedQuiz.spacedLearning !== "all";
+  const questionNoteTrim = String(currentQuestion?.note ?? "").trim();
 
   return (
     <div
@@ -711,7 +787,62 @@ const QuizView = ({
             minWidth: "100px",
           }}
         >
-          Question {currentQuestionIndex + 1} of {questionsArray.length}
+          Question{" "}
+          <span
+            style={{
+              position: "relative",
+              display: "inline-block",
+            }}
+            onMouseEnter={() =>
+              questionNoteTrim && setShowQuestionNoteTip(true)
+            }
+            onMouseLeave={() => setShowQuestionNoteTip(false)}
+          >
+            <span
+              style={{
+                ...(questionNoteTrim
+                  ? {
+                      textDecoration: "underline",
+                      textDecorationStyle: "dotted",
+                      textDecorationColor: "rgba(255,255,255,0.9)",
+                      textUnderlineOffset: "3px",
+                    }
+                  : {}),
+              }}
+            >
+              {currentQuestionIndex + 1}
+            </span>
+            {showQuestionNoteTip && questionNoteTrim ? (
+              <span
+                role="tooltip"
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  bottom: "calc(100% + 10px)",
+                  transform: "translateX(-50%)",
+                  minWidth: "160px",
+                  maxWidth: "min(320px, 85vw)",
+                  padding: "10px 12px",
+                  background: "#fff",
+                  color: "#2b1f1c",
+                  fontSize: "0.85rem",
+                  fontWeight: 500,
+                  lineHeight: 1.45,
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  borderRadius: "12px",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+                  border: "1px solid rgba(0,0,0,0.08)",
+                  zIndex: 50,
+                  textAlign: "left",
+                  textDecoration: "none",
+                }}
+              >
+                {questionNoteTrim}
+              </span>
+            ) : null}
+          </span>{" "}
+          of {questionsArray.length}
         </span>
         <div
           style={{
