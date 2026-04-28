@@ -82,18 +82,15 @@ can also be seen when you do "npm start" . should say "On your local network"
 
 ## Features and Bugs
 - Features
-    - Must Haves (Before first launch)
-        - advertisement 
-        - subscribe for no ads
-        - admin to see how much data used and spent 
-    - Nice to Have
-        - Move questions to buckets
-        - label spaced learning buckets with number of active questions
-        - users activity (maybe can use third party)
-        - active store for study room upgrades
+    - Must Haves (beta testing)
+        - hard
+            - advertisement 
+            - subscribe for no ads, fix to make sure works correctly
+        - easy
+            - see levels cats for unanswered question 
+            - fix question editing, saving is weird and editing is wierd 
+            - filter by answered, and unanswered
+            - either standard spaced learning, or free time spaced learning
+            - when editiing question or reviewing, make sure scroll up and down is easy
 
-- Bugs
-    - Big (Before first launch)
-        - infinite
-    - Small
-        - add question not align with quiz box borders
+    

@@ -78,6 +78,23 @@ const QuizBoxes = ({
     return levelEntries || "No questions";
   };
 
+  const formatUnansweredLevels = (quiz) => {
+    const unansweredQuestions = calculateActiveQuestions(quiz) || [];
+    const levels = {};
+
+    unansweredQuestions.forEach((question) => {
+      const level = parseInt(question.level, 10) || 1;
+      levels[level] = (levels[level] || 0) + 1;
+    });
+
+    const levelEntries = Object.entries(levels)
+      .sort(([a], [b]) => parseInt(a) - parseInt(b))
+      .map(([level, count]) => `L${level}:${count}`)
+      .join(", ");
+
+    return levelEntries || "None";
+  };
+
   // Normalize spacedLearning prop to handle both boolean and string values
   const isSpacedLearningView =
     spacedLearning === "spacedLearning" || spacedLearning === true;
@@ -501,6 +518,8 @@ const QuizBoxes = ({
                     <strong>Active Questions Breakdown:</strong>
                     <br />
                     Unanswered: {calculateActiveQuestions(quizzes[key]).length}
+                    <br />
+                    Unanswered by level: {formatUnansweredLevels(quizzes[key])}
                     <br />
                     Total:{" "}
                     {Array.isArray(quizzes[key]["questions"])

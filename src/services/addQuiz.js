@@ -179,6 +179,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
   const [isExpanded, setIsExpanded] = useState(() => !showDropdown); // Always expanded when dropdown is hidden
   const [showBulkInput, setShowBulkInput] = useState(false);
   const [levelFilter, setLevelFilter] = useState("all");
+  const [answerFilter, setAnswerFilter] = useState("all"); // all | answered | unanswered
   const [subscriptionStatus, setSubscriptionStatus] = useState("free");
   const [updatingFields, setUpdatingFields] = useState({}); // Track fields being updated: { "0-question": true, "1-answer": true }
   const [focusedQuestionIndex, setFocusedQuestionIndex] = useState(null);
@@ -186,10 +187,13 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
   const [noteModalIndex, setNoteModalIndex] = useState(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [hoverNoteCardIndex, setHoverNoteCardIndex] = useState(null);
+  const [previewQuestionIndex, setPreviewQuestionIndex] = useState(null);
   const savedQuestionsRef = useRef(null);
   const savedTitleRef = useRef("");
   const questionBlurTimerRef = useRef(null);
   const questionSavedFlashTimeoutRef = useRef(null);
+  const firstQuestionCardRef = useRef(null);
+  const lastQuestionCardRef = useRef(null);
 
   const cloneQuestions = (items) => items.map((question) => ({ ...question }));
   const questionsEqual = (left, right) => {
@@ -254,6 +258,25 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (previewQuestionIndex === null) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setPreviewQuestionIndex(null);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [previewQuestionIndex]);
 
   const handleInputChange = (index, field, value) => {
     const capped = value.length > planLimits.maxChars ? value.slice(0, planLimits.maxChars) : value;
@@ -468,7 +491,37 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
       }
       const normalizedLevel = parseInt(question?.level, 10) || 1;
       return normalizedLevel === Number(levelFilter);
+    })
+    .filter(({ question }) => {
+      if (answerFilter === "all") {
+        return true;
+      }
+      const isAnswered = String(question?.answer ?? "").trim().length > 0;
+      if (answerFilter === "answered") return isAnswered;
+      if (answerFilter === "unanswered") return !isAnswered;
+      return true;
     });
+
+  const scrollToLastQuestion = () => {
+    const node = lastQuestionCardRef.current;
+    if (!node) return;
+    node.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const scrollToFirstQuestion = () => {
+    const node = firstQuestionCardRef.current;
+    if (!node) return;
+    node.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const openPreviewFromCardClick = (event, index) => {
+    // Don't hijack clicks on interactive controls inside the card.
+    const interactive = event.target.closest(
+      "button, textarea, input, select, a, [role='button']",
+    );
+    if (interactive) return;
+    setPreviewQuestionIndex(index);
+  };
   const handleDownloadCsv = () => {
     const header = ["Question", "Answer", "Level"];
     const rows = filteredQuestions.map(({ question }) => [
@@ -929,6 +982,45 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                         <option value="3">Level 3</option>
                         <option value="4">Level 4</option>
                       </select>
+                      Filter by status
+                      <select
+                        value={answerFilter}
+                        onChange={(e) => setAnswerFilter(e.target.value)}
+                        style={{
+                          padding: "6px 10px",
+                          borderRadius: "12px",
+                          border: "1px solid rgba(0,0,0,0.1)",
+                          background: "#fff",
+                          fontSize: "0.85rem",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <option value="all">All</option>
+                        <option value="unanswered">Unanswered</option>
+                        <option value="answered">Answered</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={scrollToLastQuestion}
+                        disabled={filteredQuestions.length === 0}
+                        style={{
+                          padding: "6px 12px",
+                          borderRadius: "12px",
+                          border: "1px solid rgba(0,0,0,0.1)",
+                          background:
+                            filteredQuestions.length === 0 ? "#f3f3f3" : "#fff",
+                          fontSize: "0.85rem",
+                          cursor:
+                            filteredQuestions.length === 0
+                              ? "not-allowed"
+                              : "pointer",
+                          fontWeight: 600,
+                          color: "#4f4a45",
+                          opacity: filteredQuestions.length === 0 ? 0.7 : 1,
+                        }}
+                      >
+                        Scroll to last question
+                      </button>
                       <button
                         type="button"
                         onClick={handleDownloadCsv}
@@ -954,7 +1046,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                     color: "#7b6f6a",
                   }}
                 >
-                  {levelFilter === "all"
+                  {levelFilter === "all" && answerFilter === "all"
                     ? `${questions.length} cards`
                     : `${filteredQuestions.length} of ${questions.length} cards`}
                 </span>
@@ -966,11 +1058,25 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                   gap: "20px",
                 }}
               >
-                {filteredQuestions.map(({ question: q, index }) => {
+                {filteredQuestions.map(({ question: q, index }, idx) => {
                   const noteTrim = String(q?.note ?? "").trim();
+                  const isFirst = idx === 0;
+                  const isLast = idx === filteredQuestions.length - 1;
                   return (
                   <div
                     key={index}
+                    ref={(node) => {
+                      if (isFirst) firstQuestionCardRef.current = node;
+                      if (isLast) lastQuestionCardRef.current = node;
+                    }}
+                    onClick={(e) => openPreviewFromCardClick(e, index)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        openPreviewFromCardClick(e, index);
+                      }
+                    }}
                     style={{
                       background:
                         "linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255, 228, 243, 0.8))",
@@ -978,6 +1084,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                       padding: "22px",
                       boxShadow: "0 25px 40px rgba(15, 15, 15, 0.08)",
                       border: "1px solid rgba(255,255,255,0.6)",
+                      cursor: "pointer",
                     }}
                   >
                     <div
@@ -1306,6 +1413,162 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                 );
                 })}
               </div>
+              {previewQuestionIndex !== null && (
+                <div
+                  role="dialog"
+                  aria-modal="true"
+                  onMouseDown={(e) => {
+                    // close on backdrop click only
+                    if (e.target === e.currentTarget) {
+                      setPreviewQuestionIndex(null);
+                    }
+                  }}
+                  style={{
+                    position: "fixed",
+                    inset: 0,
+                    zIndex: 9999,
+                    background: "rgba(0,0,0,0.55)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "18px",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "min(920px, 96vw)",
+                      maxHeight: "min(86vh, 780px)",
+                      overflow: "auto",
+                      background:
+                        "linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255, 228, 243, 0.95))",
+                      borderRadius: "26px",
+                      border: "1px solid rgba(255,255,255,0.7)",
+                      boxShadow: "0 30px 80px rgba(0,0,0,0.35)",
+                      padding: "18px 18px 20px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "12px",
+                        marginBottom: "12px",
+                      }}
+                    >
+                      <div style={{ minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontWeight: 800,
+                            color: "#2b1f1c",
+                            fontSize: "1rem",
+                          }}
+                        >
+                          Preview Q{previewQuestionIndex + 1}
+                        </div>
+                        <div
+                          style={{
+                            color: "#6b5f5a",
+                            fontSize: "0.85rem",
+                            fontWeight: 600,
+                          }}
+                        >
+                          Press Esc or click outside to close
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewQuestionIndex(null)}
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          borderRadius: "14px",
+                          border: "1px solid rgba(0,0,0,0.1)",
+                          background: "#fff",
+                          cursor: "pointer",
+                          fontWeight: 900,
+                          color: "#4f4a45",
+                        }}
+                        aria-label="Close preview"
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr",
+                        gap: "14px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          background: "rgba(255,255,255,0.85)",
+                          border: "1px solid rgba(0,0,0,0.08)",
+                          borderRadius: "20px",
+                          padding: "16px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontWeight: 800,
+                            color: "#7d6077",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Question
+                        </div>
+                        <div
+                          style={{
+                            whiteSpace: "pre-wrap",
+                            wordBreak: "break-word",
+                            fontSize: "1.05rem",
+                            fontWeight: 650,
+                            color: "#2b1f1c",
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {String(questions?.[previewQuestionIndex]?.question ?? "").trim() ||
+                            "—"}
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          background: "rgba(255,255,255,0.85)",
+                          border: "1px solid rgba(0,0,0,0.08)",
+                          borderRadius: "20px",
+                          padding: "16px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontWeight: 800,
+                            color: "#7d6077",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Answer
+                        </div>
+                        <div
+                          style={{
+                            whiteSpace: "pre-wrap",
+                            wordBreak: "break-word",
+                            fontSize: "1.05rem",
+                            fontWeight: 650,
+                            color: "#2b1f1c",
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {String(questions?.[previewQuestionIndex]?.answer ?? "").trim() ||
+                            "—"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               <button
                 onClick={handleAddNewQuestion}
                 className="quiz-button add-new-question-button"
@@ -1330,6 +1593,30 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                 <FontAwesomeIcon icon={faPlus} />
                 Add New Question
               </button>
+              {isEditing && (
+                <button
+                  type="button"
+                  onClick={scrollToFirstQuestion}
+                  disabled={filteredQuestions.length === 0}
+                  style={{
+                    marginTop: "12px",
+                    width: "100%",
+                    padding: "12px",
+                    borderRadius: "18px",
+                    fontWeight: 700,
+                    border: "1px solid rgba(0,0,0,0.1)",
+                    background:
+                      filteredQuestions.length === 0 ? "#f3f3f3" : "#fff",
+                    color: "#4f4a45",
+                    fontSize: "0.95rem",
+                    cursor:
+                      filteredQuestions.length === 0 ? "not-allowed" : "pointer",
+                    opacity: filteredQuestions.length === 0 ? 0.7 : 1,
+                  }}
+                >
+                  Scroll to first question
+                </button>
+              )}
             </div>
 
             <div style={{ marginBottom: "32px" }}>
