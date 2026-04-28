@@ -483,6 +483,24 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
     setBulkInput(""); // Clear the bulk input field
   };
   const isEditing = Boolean(initialData?.title);
+
+  const isQuestionActive = (question) => {
+    const currentDate = new Date();
+    currentDate.setHours(23, 59, 59, 59);
+
+    const parseActiveTime = (activeTime) => {
+      if (!activeTime) return null;
+      if (typeof activeTime?.toDate === "function") {
+        return activeTime.toDate();
+      }
+      const parsed = new Date(activeTime);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    };
+
+    const activeDate = parseActiveTime(question?.activeTime);
+    return !activeDate || activeDate <= currentDate;
+  };
+
   const filteredQuestions = questions
     .map((question, index) => ({ question, index }))
     .filter(({ question }) => {
@@ -496,9 +514,9 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
       if (answerFilter === "all") {
         return true;
       }
-      const isAnswered = String(question?.answer ?? "").trim().length > 0;
-      if (answerFilter === "answered") return isAnswered;
-      if (answerFilter === "unanswered") return !isAnswered;
+      const isUnanswered = isQuestionActive(question);
+      if (answerFilter === "unanswered") return isUnanswered;
+      if (answerFilter === "answered") return !isUnanswered;
       return true;
     });
 
