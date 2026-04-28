@@ -540,6 +540,10 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
     if (interactive) return;
     setPreviewQuestionIndex(index);
   };
+
+  const openPreview = (index) => {
+    setPreviewQuestionIndex(index);
+  };
   const handleDownloadCsv = () => {
     const header = ["Question", "Answer", "Level"];
     const rows = filteredQuestions.map(({ question }) => [
@@ -1111,6 +1115,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                         alignItems: "flex-start",
                         justifyContent: "space-between",
                         marginBottom: "14px",
+                        gap: "10px",
                       }}
                     >
                       <div
@@ -1254,6 +1259,27 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                           </div>
                         ) : null}
                       </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openPreview(index);
+                        }}
+                        style={{
+                          flexShrink: 0,
+                          padding: "8px 12px",
+                          borderRadius: "14px",
+                          border: "1px solid rgba(0,0,0,0.1)",
+                          background: "#fff",
+                          cursor: "pointer",
+                          fontWeight: 800,
+                          color: "#4f4a45",
+                          boxShadow: "0 10px 18px rgba(0,0,0,0.06)",
+                        }}
+                        aria-label={`Preview question ${index + 1}`}
+                      >
+                        Preview
+                      </button>
                       <div className="options-menu">
                         <button
                           type="button"
@@ -1339,6 +1365,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                           onChange={(e) =>
                             handleInputChange(index, "question", e.target.value)
                           }
+                          onDoubleClick={() => openPreview(index)}
                           onFocus={() => handleQuestionFieldFocus(index)}
                           onBlur={() => {
                             handleQuestionFieldBlur(index);
@@ -1386,6 +1413,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                           onChange={(e) =>
                             handleInputChange(index, "answer", e.target.value)
                           }
+                          onDoubleClick={() => openPreview(index)}
                           onFocus={() => handleQuestionFieldFocus(index)}
                           onBlur={() => {
                             handleQuestionFieldBlur(index);
