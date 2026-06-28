@@ -19,7 +19,7 @@ const KNOWN_SUBCOLLECTIONS = {
 };
 
 /** Subscription statuses stored at users/{userId}/userSetting/settings { "subscription status": value } */
-const SUBSCRIPTION_STATUSES = ["free", "basic"];
+const SUBSCRIPTION_STATUSES = ["free", "basic", "pro"];
 const USER_SETTING_DOC_ID = "settings";
 const SUBSCRIPTION_FIELD = "subscription status";
 

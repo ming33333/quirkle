@@ -4,6 +4,7 @@ import QuizBoxes from '../components/quizBoxes';
 import QuizView from '../components/quizView';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import AddQuiz from '../services/addQuiz';
+import { isFreePlan } from '../config/subscriptionPlans';
 
 const USER_SETTING_DOC_ID = 'settings';
 const SUBSCRIPTION_FIELD = 'subscription status';
@@ -25,7 +26,7 @@ const Home = ({
   const [filter, setFilter] = useState('all'); // 'all' or 'spacedLearning'
   const addQuizRef = useRef(null);
 
-  const isFreePlan = subscriptionStatus !== 'basic';
+  const isFreePlanUser = isFreePlan(subscriptionStatus);
 
   useEffect(() => {
     const fetchQuizzes = async () => {
@@ -119,12 +120,12 @@ const Home = ({
         );
 
   const quizzesToShow =
-    isFreePlan && Object.keys(filteredQuizzes).length > FREE_PLAN_MAX_QUIZZES
+    isFreePlanUser && Object.keys(filteredQuizzes).length > FREE_PLAN_MAX_QUIZZES
       ? Object.fromEntries(
           Object.entries(filteredQuizzes).slice(0, FREE_PLAN_MAX_QUIZZES)
         )
       : filteredQuizzes;
-  const maxReachedFree = isFreePlan && Object.keys(filteredQuizzes).length >= FREE_PLAN_MAX_QUIZZES;
+  const maxReachedFree = isFreePlanUser && Object.keys(filteredQuizzes).length >= FREE_PLAN_MAX_QUIZZES;
 
   if (!selectedQuiz) {
     return (
@@ -149,7 +150,7 @@ const Home = ({
             setSelectedQuiz={setSelectedQuiz}
             setSelectedTitle={setSelectedTitle}
             spacedLearning={filter === 'spacedLearning'}
-            isFreePlan={isFreePlan}
+            isFreePlan={isFreePlanUser}
             maxReachedFree={maxReachedFree}
             freePlanMax={FREE_PLAN_MAX_QUIZZES}
           />

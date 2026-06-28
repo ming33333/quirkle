@@ -68,3 +68,9 @@ export const getPlanLimits = (subscriptionStatus) => {
 export const getPaidPlans = () => {
   return Object.values(SUBSCRIPTION_PLANS).filter(plan => plan.id !== 'free');
 };
+
+/**
+ * Whether the user should be treated as on the free tier (quiz count limits, etc.)
+ */
+export const isFreePlan = (subscriptionStatus) =>
+  !subscriptionStatus || subscriptionStatus === 'free';
