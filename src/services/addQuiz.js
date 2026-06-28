@@ -180,6 +180,9 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
   const [showBulkInput, setShowBulkInput] = useState(false);
   const [levelFilter, setLevelFilter] = useState("all");
   const [answerFilter, setAnswerFilter] = useState("all"); // all | answered | unanswered
+  const [noteFilter, setNoteFilter] = useState("all"); // all | with_note | without_note
+  const [starFilter, setStarFilter] = useState("all"); // all | starred | not_starred
+  const [filterPresetKey, setFilterPresetKey] = useState(0);
   const [subscriptionStatus, setSubscriptionStatus] = useState("free");
   const [updatingFields, setUpdatingFields] = useState({}); // Track fields being updated: { "0-question": true, "1-answer": true }
   const [focusedQuestionIndex, setFocusedQuestionIndex] = useState(null);
@@ -518,7 +521,83 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
       if (answerFilter === "unanswered") return isUnanswered;
       if (answerFilter === "answered") return !isUnanswered;
       return true;
+    })
+    .filter(({ question }) => {
+      if (noteFilter === "all") return true;
+      const hasNote = String(question?.note ?? "").trim().length > 0;
+      if (noteFilter === "with_note") return hasNote;
+      if (noteFilter === "without_note") return !hasNote;
+      return true;
+    })
+    .filter(({ question }) => {
+      if (starFilter === "all") return true;
+      const starred = Boolean(question?.starred);
+      if (starFilter === "starred") return starred;
+      if (starFilter === "not_starred") return !starred;
+      return true;
     });
+
+  const hasActiveFilters =
+    levelFilter !== "all" ||
+    answerFilter !== "all" ||
+    noteFilter !== "all" ||
+    starFilter !== "all";
+
+  const clearAllCardFilters = () => {
+    setLevelFilter("all");
+    setAnswerFilter("all");
+    setNoteFilter("all");
+    setStarFilter("all");
+  };
+
+  const applyFilterShortcut = (value) => {
+    setLevelFilter("all");
+    setAnswerFilter("all");
+    setNoteFilter("all");
+    setStarFilter("all");
+    if (!value) return;
+    switch (value) {
+      case "unanswered":
+        setAnswerFilter("unanswered");
+        break;
+      case "answered":
+        setAnswerFilter("answered");
+        break;
+      case "starred":
+        setStarFilter("starred");
+        break;
+      case "not_starred":
+        setStarFilter("not_starred");
+        break;
+      case "with_note":
+        setNoteFilter("with_note");
+        break;
+      case "without_note":
+        setNoteFilter("without_note");
+        break;
+      default:
+        break;
+    }
+  };
+
+  const filterFieldLabelStyle = {
+    display: "block",
+    fontSize: "0.75rem",
+    fontWeight: 600,
+    color: "#7b6f6a",
+    marginBottom: "6px",
+    letterSpacing: "0.02em",
+  };
+  const filterSelectStyle = {
+    width: "100%",
+    padding: "8px 10px",
+    borderRadius: "12px",
+    border: "1px solid rgba(0,0,0,0.1)",
+    background: "#fff",
+    fontSize: "0.85rem",
+    cursor: "pointer",
+    boxSizing: "border-box",
+  };
 
   const scrollToLastQuestion = () => {
     const node = lastQuestionCardRef.current;
@@ -964,39 +1043,136 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                   flexWrap: "wrap",
                 }}
               >
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <span
+                  style={{
+                    fontSize: "1rem",
+                    fontWeight: 600,
+                    color: "#403636",
+                  }}
+                >
+                  Questions
+                </span>
+                {isEditing && (
                   <span
                     style={{
-                      fontSize: "1rem",
-                      fontWeight: 600,
-                      color: "#403636",
+                      fontSize: "0.9rem",
+                      color: "#7b6f6a",
                     }}
                   >
-                    Questions
+                    {levelFilter === "all" &&
+                    answerFilter === "all" &&
+                    noteFilter === "all" &&
+                    starFilter === "all"
+                      ? `${questions.length} cards`
+                      : `${filteredQuestions.length} of ${questions.length} cards`}
                   </span>
-                  {isEditing && (
-                    <label
-                      style={{
-                        fontSize: "0.85rem",
-                        color: "#7b6f6a",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      Filter by level
-                      <select
-                        value={levelFilter}
-                        onChange={(e) => setLevelFilter(e.target.value)}
+                )}
+              </div>
+
+              {isEditing && (
+                <div
+                  style={{
+                    marginBottom: "20px",
+                    padding: "16px 18px",
+                    borderRadius: "18px",
+                    background: "rgba(255,255,255,0.72)",
+                    border: "1px solid rgba(0,0,0,0.06)",
+                    boxShadow: "0 8px 24px rgba(15, 15, 15, 0.06)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      justifyContent: "space-between",
+                      flexWrap: "wrap",
+                      gap: "12px",
+                      marginBottom: "14px",
+                    }}
+                  >
+                    <div style={{ flex: "1 1 200px", minWidth: 0 }}>
+                      <label style={filterFieldLabelStyle} htmlFor="quiz-filter-shortcut">
+                        Quick preset
+                      </label>
+                      <p
                         style={{
-                          padding: "6px 10px",
+                          margin: "0 0 8px 0",
+                          fontSize: "0.78rem",
+                          color: "#9a8f89",
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        Pick a starting point, then refine with the fields below.
+                      </p>
+                      <select
+                        key={filterPresetKey}
+                        id="quiz-filter-shortcut"
+                        defaultValue=""
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          if (!v) return;
+                          applyFilterShortcut(v);
+                          setFilterPresetKey((k) => k + 1);
+                        }}
+                        style={{ ...filterSelectStyle, maxWidth: "320px" }}
+                      >
+                        <option value="">Choose a preset…</option>
+                        <option value="unanswered">Due now (unanswered)</option>
+                        <option value="answered">Already answered</option>
+                        <option value="starred">Starred only</option>
+                        <option value="not_starred">Not starred</option>
+                        <option value="with_note">Has a note</option>
+                        <option value="without_note">No note</option>
+                      </select>
+                    </div>
+                    {hasActiveFilters && (
+                      <button
+                        type="button"
+                        onClick={clearAllCardFilters}
+                        style={{
+                          padding: "8px 14px",
                           borderRadius: "12px",
-                          border: "1px solid rgba(0,0,0,0.1)",
+                          border: "1px solid rgba(0,0,0,0.12)",
                           background: "#fff",
                           fontSize: "0.85rem",
                           cursor: "pointer",
+                          fontWeight: 600,
+                          color: "#6b5349",
+                          alignSelf: "flex-end",
                         }}
+                      >
+                        Clear all filters
+                      </button>
+                    )}
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: "0.8rem",
+                      fontWeight: 600,
+                      color: "#564f4a",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    Refine filters
+                  </div>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fill, minmax(140px, 1fr))",
+                      gap: "14px 16px",
+                    }}
+                  >
+                    <div>
+                      <label style={filterFieldLabelStyle} htmlFor="quiz-filter-level">
+                        Level
+                      </label>
+                      <select
+                        id="quiz-filter-level"
+                        value={levelFilter}
+                        onChange={(e) => setLevelFilter(e.target.value)}
+                        style={filterSelectStyle}
                       >
                         <option value="all">All levels</option>
                         <option value="1">Level 1</option>
@@ -1004,75 +1180,119 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                         <option value="3">Level 3</option>
                         <option value="4">Level 4</option>
                       </select>
-                      Filter by status
+                    </div>
+                    <div>
+                      <label
+                        style={filterFieldLabelStyle}
+                        htmlFor="quiz-filter-answer"
+                      >
+                        Answer status
+                      </label>
                       <select
+                        id="quiz-filter-answer"
                         value={answerFilter}
                         onChange={(e) => setAnswerFilter(e.target.value)}
-                        style={{
-                          padding: "6px 10px",
-                          borderRadius: "12px",
-                          border: "1px solid rgba(0,0,0,0.1)",
-                          background: "#fff",
-                          fontSize: "0.85rem",
-                          cursor: "pointer",
-                        }}
+                        style={filterSelectStyle}
                       >
                         <option value="all">All</option>
                         <option value="unanswered">Unanswered</option>
                         <option value="answered">Answered</option>
                       </select>
-                      <button
-                        type="button"
-                        onClick={scrollToLastQuestion}
-                        disabled={filteredQuestions.length === 0}
-                        style={{
-                          padding: "6px 12px",
-                          borderRadius: "12px",
-                          border: "1px solid rgba(0,0,0,0.1)",
-                          background:
-                            filteredQuestions.length === 0 ? "#f3f3f3" : "#fff",
-                          fontSize: "0.85rem",
-                          cursor:
-                            filteredQuestions.length === 0
-                              ? "not-allowed"
-                              : "pointer",
-                          fontWeight: 600,
-                          color: "#4f4a45",
-                          opacity: filteredQuestions.length === 0 ? 0.7 : 1,
-                        }}
+                    </div>
+                    <div>
+                      <label style={filterFieldLabelStyle} htmlFor="quiz-filter-note">
+                        Notes
+                      </label>
+                      <select
+                        id="quiz-filter-note"
+                        value={noteFilter}
+                        onChange={(e) => setNoteFilter(e.target.value)}
+                        style={filterSelectStyle}
                       >
-                        Scroll to last question
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleDownloadCsv}
-                        style={{
-                          padding: "6px 12px",
-                          borderRadius: "12px",
-                          border: "1px solid rgba(0,0,0,0.1)",
-                          background: "#fff",
-                          fontSize: "0.85rem",
-                          cursor: "pointer",
-                          fontWeight: 600,
-                          color: "#4f4a45",
-                        }}
+                        <option value="all">All</option>
+                        <option value="with_note">Has note</option>
+                        <option value="without_note">No note</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={filterFieldLabelStyle} htmlFor="quiz-filter-star">
+                        Starred
+                      </label>
+                      <select
+                        id="quiz-filter-star"
+                        value={starFilter}
+                        onChange={(e) => setStarFilter(e.target.value)}
+                        style={filterSelectStyle}
                       >
-                        Download CSV
-                      </button>
-                    </label>
-                  )}
+                        <option value="all">All</option>
+                        <option value="starred">Starred</option>
+                        <option value="not_starred">Not starred</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: "16px",
+                      paddingTop: "14px",
+                      borderTop: "1px solid rgba(0,0,0,0.06)",
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "8px",
+                      alignItems: "center",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "0.75rem",
+                        fontWeight: 600,
+                        color: "#9a8f89",
+                        marginRight: "4px",
+                      }}
+                    >
+                      Actions
+                    </span>
+                    <button
+                      type="button"
+                      onClick={scrollToLastQuestion}
+                      disabled={filteredQuestions.length === 0}
+                      style={{
+                        padding: "8px 14px",
+                        borderRadius: "12px",
+                        border: "1px solid rgba(0,0,0,0.1)",
+                        background:
+                          filteredQuestions.length === 0 ? "#f3f3f3" : "#fff",
+                        fontSize: "0.85rem",
+                        cursor:
+                          filteredQuestions.length === 0
+                            ? "not-allowed"
+                            : "pointer",
+                        fontWeight: 600,
+                        color: "#4f4a45",
+                        opacity: filteredQuestions.length === 0 ? 0.7 : 1,
+                      }}
+                    >
+                      Scroll to last question
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDownloadCsv}
+                      style={{
+                        padding: "8px 14px",
+                        borderRadius: "12px",
+                        border: "1px solid rgba(0,0,0,0.1)",
+                        background: "#fff",
+                        fontSize: "0.85rem",
+                        cursor: "pointer",
+                        fontWeight: 600,
+                        color: "#4f4a45",
+                      }}
+                    >
+                      Download CSV
+                    </button>
+                  </div>
                 </div>
-                <span
-                  style={{
-                    fontSize: "0.9rem",
-                    color: "#7b6f6a",
-                  }}
-                >
-                  {levelFilter === "all" && answerFilter === "all"
-                    ? `${questions.length} cards`
-                    : `${filteredQuestions.length} of ${questions.length} cards`}
-                </span>
-              </div>
+              )}
               <div
                 style={{
                   display: "flex",

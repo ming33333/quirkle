@@ -304,6 +304,57 @@ const QuizView = ({
     }
   };
 
+  const getFirestoreQuestionKey = (question, fallbackIndex) => {
+    if (!question) return String(fallbackIndex ?? 0);
+    if (question?.mapIndex !== undefined) return String(question.mapIndex);
+    if (question?.originalIndex !== undefined) return String(question.originalIndex);
+    return String(fallbackIndex ?? 0);
+  };
+
+  const handleToggleStarCurrentQuestion = async () => {
+    try {
+      const questionsArray = Array.isArray(selectedQuiz)
+        ? selectedQuiz
+        : selectedQuiz?.questions
+          ? selectedQuiz.questions
+          : Object.values(selectedQuiz || {});
+
+      const current = questionsArray[currentQuestionIndex];
+      if (!current) return;
+
+      const firestoreQuestionKey = getFirestoreQuestionKey(
+        current,
+        currentQuestionIndex,
+      );
+      const nextStarred = !Boolean(current?.starred);
+
+      // Update local state immediately
+      const metadata = Array.isArray(selectedQuiz)
+        ? {}
+        : { ...selectedQuiz, questions: undefined };
+      delete metadata.questions;
+
+      const updatedQuestions = [...questionsArray];
+      updatedQuestions[currentQuestionIndex] = { ...current, starred: nextStarred };
+      setSelectedQuiz({ ...metadata, questions: updatedQuestions });
+
+      // Cumulative tests don't have a backing quiz document to update.
+      if (
+        selectedQuiz?.isCumulativeTest ||
+        selectedTitle === "Cumulative Test" ||
+        !selectedTitle
+      ) {
+        return;
+      }
+
+      await updateDocument(`users/${email}/quizCollection/${selectedTitle}`, {
+        [`questions.${firestoreQuestionKey}.starred`]: nextStarred,
+      });
+    } catch (error) {
+      console.error("Error updating star status in Firestore:", error);
+    }
+  };
+
   // Extract questions from selectedQuiz (handle both object and array formats)
   const questionsArray = Array.isArray(selectedQuiz)
     ? selectedQuiz
@@ -705,6 +756,7 @@ const QuizView = ({
   const isSpacedLearning =
     selectedQuiz?.spacedLearning && selectedQuiz.spacedLearning !== "all";
   const questionNoteTrim = String(currentQuestion?.note ?? "").trim();
+  const isCurrentStarred = Boolean(currentQuestion?.starred);
 
   return (
     <div
@@ -895,9 +947,35 @@ const QuizView = ({
             letterSpacing: "0.05em",
             color: "#c45d7a",
             marginBottom: "8px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "12px",
           }}
         >
-          QUESTION
+          <span>QUESTION</span>
+          <button
+            type="button"
+            onClick={handleToggleStarCurrentQuestion}
+            className="quiz-view-star-btn"
+            aria-label={isCurrentStarred ? "Unstar this question" : "Star this question"}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "8px 12px",
+              borderRadius: "999px",
+              border: "1px solid rgba(0,0,0,0.08)",
+              background: isCurrentStarred ? "rgba(255, 110, 196, 0.12)" : "#fff",
+              color: isCurrentStarred ? "#ef476f" : "#6b5349",
+              cursor: "pointer",
+              fontWeight: 700,
+              fontSize: "0.8rem",
+            }}
+          >
+            <FontAwesomeIcon icon={faStar} style={{ width: "14px" }} />
+            {isCurrentStarred ? "Starred" : "Star"}
+          </button>
         </div>
         <div
           style={{
