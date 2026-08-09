@@ -1,6 +1,6 @@
 {
-  "short_name": "Quirkle",
-  "name": "Quirkle — quiet notes, lasting memory",
+  "short_name": "React App",
+  "name": "Create React App Sample",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +20,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#263d4a",
-  "background_color": "#f5f0e6"
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
 }
