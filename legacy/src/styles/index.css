@@ -1,0 +1,1124 @@
+:root {
+  --primary-color: salmon;
+  --secondary-color: salmon;
+  --tertiary-color: #eeeeee;
+  --primary-font-color: white;
+  --secondary-font-color: black;
+  --tertiary-font-color: #eeeeee;
+  --primary-font: Arial, sans-serif;
+  --secondary-font: Arial, sans-serif;
+  --font-family: Arial, sans-serif;
+  --header-padding: 1em;
+  --footer-height: 50px;
+}
+body {
+  margin: 0;
+  background-color: var(--primary-color);
+  font-family: Arial, sans-serif;
+}
+
+.header {
+  background-color: var(--primary-color);
+  color: var(--primary-font-color);
+  text-align: center;
+  padding: 2em;
+  position: relative; /* Allow child elements to position themselves relative to the header */
+}
+.header-content {
+  display: flex;
+  justify-content: space-between; /* Push title to the left and user info to the right */
+  align-items: center; /* Vertically align items */
+}
+
+.header-title {
+  font-size: 1.5em;
+  margin: 0;
+}
+
+.header-user {
+  display: flex;
+  flex-direction: column; /* Stack the title and user info vertically */
+  align-items: flex-start; /* Align text to the left */
+}
+.home-icon {
+  position: absolute; /* Position the icon relative to the header */
+  left: 50%; /* Center horizontally */
+  transform: translate(-50%, -50%); /* Adjust for the icon's dimensions */
+  display: flex;
+  justify-content: center; /* Center the icon horizontally */
+  align-items: center; /* Center the icon vertically */
+  width: 50px; /* Set a fixed width for the icon container */
+  height: 50px; /* Set a fixed height for the icon container */
+  border-radius: 50%; /* Optional: Make the icon container circular */
+  background-color: #eeeeee; /* Change background color to #eeeeee */
+  text-align: center;
+  color: var(--primary-color); /* Use the current text color */
+  text-decoration: none; /* Remove the underline */
+}
+
+.home-icon:hover {
+  color: var(--tertiary-color); /* Change color on hover */
+}
+
+.logout-button {
+  color: var(--tertiary-color);
+  border: none;
+  padding: 0.5em 1em;
+  cursor: pointer;
+  font-size: 1em;
+  margin-left: auto; /* Push the button to the right */
+}
+.footer {
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
+  text-align: center;
+  padding: 1em;
+  position: fixed;
+  width: 100%;
+  bottom: 0;
+}
+
+/* .sidebar {
+  background-color: var(--secondary-color);
+  padding: 1em;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; 
+  align-items: center; 
+}
+
+.resizer {
+  width: 10px;
+  background-color: var(--secondary-color);
+  cursor: ew-resize;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.sidebar nav {
+  width: 100%; 
+  text-align: center; 
+}
+
+.sidebar ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar li {
+  margin: 0.5em 0;
+}
+
+.sidebar a {
+  text-decoration: none;
+  color: black; 
+}
+  */
+.main-content {
+  color: var(--secondary-color);
+  background-color: var(--secondary-color);
+  padding: 1em;
+  overflow: auto;
+  flex-grow: 1;
+}
+
+.question-navigation {
+  display: flex; /* Use flexbox for layout */
+  justify-content: space-between; /* Space out navigation buttons */
+  align-items: center; /* Align buttons vertically */
+  margin: 20px auto; /* Center the navigation horizontally */
+}
+
+.question-button {
+  background-color: var(--primary-color);
+  color: var(--tertiary-color);
+  border: none;
+  padding: 0.5em 1em;
+  cursor: pointer;
+  margin: 0 0.5em; /* Add margin to space out the buttons */
+}
+
+.question {
+  flex-grow: 1;
+  text-align: center;
+  color: var(--tertiary-color);
+  margin: 0 1em; /* Add margin to space out the question from the buttons */
+}
+
+button {
+  background-color: var(--primary-color);
+  color: var(--tertiary-color);
+  border: none;
+  padding: 0.5em 1em;
+  cursor: pointer;
+  margin: 0 0.5em; /* Add margin to bring buttons closer together */
+}
+
+button:disabled {
+  background-color: var(--secondary-color);
+  cursor: not-allowed;
+}
+.quiz-boxes-container {
+  display: flex;
+  flex-wrap: wrap; /* Allow boxes to wrap to the next line if needed */
+  gap: 1.5em; /* Add space between boxes */
+  justify-content: center; /* Center the boxes horizontally */
+  padding: 1em;
+}
+.quiz-box {
+  width: 75% !important; /* Make the quiz-box take up 75% of the screen width */
+  padding: 20px; /* Add padding for spacing */
+  font-size: 1.2em; /* Increase font size for better readability */
+  border: 2px solid #ccc; /* Optional: Add a border */
+  border-radius: 8px; /* Optional: Add rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Add shadow for depth */
+  background-color: #ebebeb; /* Optional: Add background color */
+  margin: 20px auto; /* Center the quiz-box horizontally */
+  text-align: center; /* Center-align the text inside the quiz-box */
+}
+.quiz-option {
+  width: 300px;
+  height: 250px;
+  display: flex;
+  justify-content: center; /* Center content horizontally */
+  align-items: center; /* Center content vertically */
+  border: 1px solid #ccc;
+  border-radius: 40px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  text-align: center;
+}
+
+.quiz-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.quiz-box h3 {
+  margin: 0;
+  font-size: 1.3em;
+  font-family: "comic sans ms", cursive, sans-serif;
+  font-weight: bold;
+  color: #333;
+}
+.quiz-header h3,
+.quiz-header h2 {
+  display: block; /* Ensure each heading takes up its own line */
+  margin: 0; /* Remove default margins if needed */
+  color: var(--primary-color);
+}
+
+.last-accessed {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 0.9em;
+  color: #666; /* Subtle color for the "days ago" text */
+}
+
+.last-accessed-container {
+  position: relative;
+  display: inline-block;
+}
+
+.last-accessed {
+  cursor: pointer; /* Change cursor to pointer to indicate interactivity */
+  color: #666; /* Default text color */
+  font-size: 0.9em; /* Adjust font size */
+}
+
+.tooltip {
+  display: block; /* Always display when controlled by state */
+  position: absolute;
+  top: 100%; /* Position below the text */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.last-accessed-container:hover .tooltip {
+  display: block; /* Show the tooltip on hover */
+}
+.last-accessed:hover {
+  background-color: #ffe6e6; /* Light pink background */
+  color: #333; /* Darker text color for better contrast */
+  border-radius: 4px; /* Optional: Add rounded corners for the highlight */
+  padding: 2px 4px; /* Optional: Add padding to make the highlight more visible */
+}
+.quiz-date {
+  position: absolute; /* Position the date element absolutely */
+  bottom: 10px; /* Position it 10px from the bottom */
+  left: 10px; /* Position it 10px from the left */
+  margin: 0; /* Remove default margin */
+  font-size: 1em; /* Adjust font size */
+  color: #666; /* Optional: Add a color */
+}
+.add-quiz-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2em;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.add-quiz-box {
+  order: -1; /* Move the Add Quiz box to the top */
+  flex: 1 1 100%; /* Make the Add Quiz box take up the full width */
+  max-width: 100%; /* Ensure it doesn't exceed the container's width */
+  box-sizing: border-box; /* Include padding and border in width calculations */
+}
+
+h2 {
+  text-align: center;
+  color: #333;
+}
+
+.quiz-input {
+  width: 100%;
+  padding: 0.5em;
+  margin: 0.5em 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1em;
+}
+
+.question-container {
+  display: flex; /* Use Flexbox for layout */
+  align-items: center; /* Vertically center all child elements */
+  justify-content: space-between; /* Push the options button to the far right */
+  gap: 10px; /* Add spacing between the fields */
+  margin-bottom: 20px; /* Add spacing between questions */
+}
+
+.qa-fields {
+  display: flex; /* Use Flexbox to align question and answer fields horizontally */
+  flex: 1; /* Allow the fields to take up the remaining space */
+  gap: 10px; /* Add spacing between the question and answer fields */
+}
+
+.quiz-textarea {
+  flex: 1; /* Make the textareas take up equal space */
+  min-height: 40px; /* Set a minimum height */
+  font-size: 1em; /* Adjust font size */
+  padding: 10px; /* Add padding for better spacing */
+  border: 1px solid #ccc; /* Add a border */
+  border-radius: 4px; /* Add rounded corners */
+  box-sizing: border-box; /* Include padding in width/height calculations */
+  resize: none; /* Prevent manual resizing */
+  overflow: hidden; /* Hide scrollbars */
+}
+
+.options-menu {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.options-button {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 154, 60, 0.2),
+    rgba(255, 110, 196, 0.2)
+  );
+  border: 1px solid rgba(255, 154, 60, 0.35);
+  border-radius: 12px;
+  cursor: pointer;
+  padding: 0;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.options-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 110, 196, 0.25);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 154, 60, 0.3),
+    rgba(255, 110, 196, 0.3)
+  );
+}
+
+.options-button-dots {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #c45d7a;
+  line-height: 1;
+}
+
+.options-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 200px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(255, 154, 60, 0.2);
+  border-radius: 14px;
+  box-shadow:
+    0 12px 28px rgba(15, 15, 15, 0.12),
+    0 4px 12px rgba(255, 110, 196, 0.08);
+  z-index: 1000;
+  padding: 6px;
+  overflow: hidden;
+}
+
+.options-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: left;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
+}
+
+.options-dropdown-item:hover {
+  transform: translateX(2px);
+}
+
+.options-dropdown-icon {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  flex-shrink: 0;
+}
+
+.remove-button {
+  background: transparent;
+  color: #c62828;
+}
+
+.remove-button:hover {
+  background: rgba(198, 40, 40, 0.1);
+}
+
+.star-button {
+  background: transparent;
+  color: #2b1f1c;
+}
+
+.star-button:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 154, 60, 0.15),
+    rgba(255, 110, 196, 0.15)
+  );
+}
+
+.add-button {
+  background: transparent;
+  color: #2e7d32;
+}
+
+.add-button:hover:not(:disabled) {
+  background: rgba(46, 125, 50, 0.1);
+}
+
+.add-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.quiz-button {
+  display: inline-block;
+  padding: 0.75em 1.5em;
+  margin: 0.5em 0;
+  font-size: 1em;
+  font-weight: bold;
+  color: white;
+  background-color: #4caf50;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.quiz-button:hover {
+  background-color: #45a049;
+}
+
+.add-question-button {
+  background-color: #2196f3;
+}
+
+.add-question-button:hover {
+  background-color: #1976d2;
+}
+
+.submit-button {
+  background-color: #4caf50;
+}
+
+.submit-button:hover {
+  background-color: #388e3c;
+}
+
+code {
+  font-family:
+    source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+/* Gray out the main content */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent gray */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Ensure it appears above other content */
+}
+
+/* Popup box styling */
+.popup {
+  background-color: white;
+  padding: 2em;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 400px;
+  max-width: 90%;
+  position: relative;
+  text-align: center;
+}
+
+/* Close button styling */
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+  color: #333;
+}
+
+.close-button:hover {
+  color: red;
+}
+
+/* Profile content styling */
+.profile-content p {
+  margin: 0.5em 0;
+  font-size: 1em;
+  color: #555;
+}
+
+.user-search {
+  max-width: 400px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.show-points {
+  max-width: 400px;
+  margin: 0 auto;
+  color: #333;
+  text-align: center;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5em;
+  margin-bottom: 1em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1em;
+}
+
+.user-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: #180b0b;
+}
+
+.user-item {
+  padding: 0.5em;
+  border-bottom: 1px solid #0b0909;
+  font-size: 1em;
+}
+
+.no-results {
+  color: #180b0b;
+  font-style: italic;
+}
+
+.accept-friends {
+  max-width: 400px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.accept-friends ul {
+  list-style: none;
+  padding: 0;
+}
+
+.accept-friends li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5em 0;
+  border-bottom: 1px solid #eee;
+}
+
+.accept-friends button {
+  padding: 0.5em 1em;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.accept-friends button:hover {
+  background-color: #45a049;
+} /* General Styles */
+
+.welcome-content {
+  text-align: center;
+  max-width: 800px;
+  margin-bottom: 2em;
+}
+
+.welcome-title {
+  font-size: 2.5em;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.welcome-description {
+  font-size: 1.2em;
+  line-height: 1.8;
+  margin-bottom: 1em;
+  animation: fadeIn 1.5s ease-in-out;
+}
+
+.welcome-button {
+  text-decoration: none;
+  color: white;
+  background-color: #4caf50;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 1.2em;
+  transition: background-color 0.3s ease;
+}
+
+.welcome-button:hover {
+  background-color: #45a049;
+}
+
+/* Flashcard Styles */
+.flashcard-container {
+  display: flex;
+  gap: 40px; /* Increase gap between flashcards */
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 2em;
+}
+
+.flashcard {
+  width: 220px; /* Increase width for more space */
+  height: 320px; /* Increase height for more space */
+  perspective: 1000px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.question-labels {
+  display: flex;
+  flex-direction: column; /* Stack the labels vertically */
+  margin-bottom: 10px; /* Add spacing below the labels */
+  align-items: flex-start; /* Align labels to the left */
+}
+
+.question-number,
+.question-pass {
+  display: inline-block; /* Ensure consistent block-like behavior */
+  width: 75px; /* Set a fixed width for all labels */
+  text-align: left; /* Align text to the left */
+  font-weight: bold; /* Optional: Make the question number bold */
+}
+
+.question-pass {
+  color: #666; /* Optional: Add a subtle color for the "Passed" label */
+  font-size: 0.9em; /* Optional: Adjust the font size */
+}
+
+.question-number {
+  font-weight: bold;
+  margin-right: 10px;
+  display: inline-block;
+}
+
+.question-number .star-icon {
+  color: gold; /* Gold color for the star */
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+/* star-button styles for options dropdown are above with .options-dropdown-item */
+
+.flashcard:hover {
+  transform: scale(1.05);
+}
+
+.flashcard.flipped .flashcard-front {
+  transform: rotateY(180deg);
+}
+
+.flashcard.flipped .flashcard-back {
+  transform: rotateY(0deg);
+}
+
+/* Quiz view redesign (match reference layout) */
+.quiz-view-redesign .quiz-view-top-btn:hover {
+  background: #ddd !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+}
+.quiz-view-redesign .quiz-view-show-answer-btn:hover {
+  background: #ddd !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+}
+.quiz-view-redesign .quiz-view-feedback-btn.right:hover {
+  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.5) !important;
+  transform: translateY(-2px);
+}
+.quiz-view-redesign .quiz-view-feedback-btn.wrong:hover {
+  box-shadow: 0 8px 24px rgba(239, 71, 111, 0.45) !important;
+  transform: translateY(-2px);
+}
+.quiz-view-redesign .quiz-view-nav-btn:not(:disabled):hover {
+  background: #ddd !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+}
+
+.flashcard-front,
+.flashcard-back {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  backface-visibility: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  font-size: 1.2em;
+  font-weight: bold;
+  padding: 20px;
+  text-align: center;
+}
+
+.flashcard-front {
+  background-color: var(--primary-color);
+  color: white;
+  transform: rotateY(0deg);
+}
+
+.flashcard-back {
+  background-color: var(--primary-color);
+  color: white;
+  transform: rotateY(180deg);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.quiz-box:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.click-options {
+  margin-top: 10px; /* Add spacing between the title and buttons */
+  display: flex;
+  justify-content: center;
+  gap: 10px; /* Add spacing between buttons */
+}
+
+.click-button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--primary-color);
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.click-button:hover {
+  background-color: #45a049;
+}
+.navigation-button {
+  padding: 10px 15px; /* Add padding for larger hitboxes */
+  font-size: 1em; /* Adjust font size */
+  border: 2px solid var(--primary-color); /* Optional: Add a border */
+  border-radius: 4px; /* Optional: Add rounded corners */
+  background-color: var(--primary-color); /* Green background */
+  color: white; /* White text */
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    transform 0.2s;
+}
+
+.navigation-button:hover {
+  background-color: var(--primary-color); /* Slightly darker green on hover */
+  transform: scale(1.1); /* Slightly enlarge the button on hover */
+}
+
+.navigation-button:disabled {
+  background-color: #ccc; /* Gray background for disabled state */
+  color: #666; /* Gray text for disabled state */
+  cursor: not-allowed;
+}
+
+.navigation-button:disabled:hover {
+  transform: none; /* No hover effect for disabled buttons */
+}
+
+.flashcard-animation {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.flashcard {
+  width: 150px;
+  height: 100px;
+  background-color: var(--primary-color);
+  color: white;
+  font-size: 1.2em;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  animation: bounce 1.5s infinite ease-in-out;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.room {
+  position: relative;
+  width: 500px;
+  height: 500px;
+  margin: 0 auto;
+  background-color: #f4f4f4;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.character {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background-color: var(--primary-color);
+  border-radius: 50%;
+  transition:
+    top 0.1s,
+    left 0.1s; /* Smooth movement */
+}
+
+.character.other-user {
+  background-color: #ff5733; /* Different color for other users */
+}
+
+.adsense-container {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.quiz-input {
+  width: 100%; /* Make the input box take up the full width */
+  min-height: 40px; /* Set a minimum height */
+  font-size: 1em; /* Adjust font size */
+  padding: 10px; /* Add padding for better spacing */
+  border: 1px solid #ccc; /* Add a border */
+  border-radius: 4px; /* Add rounded corners */
+  box-sizing: border-box; /* Include padding in width/height calculations */
+  resize: none; /* Prevent manual resizing */
+  overflow: hidden; /* Hide scrollbars */
+}
+
+.answer-buttons {
+  margin-top: 10px; /* Add spacing above the buttons */
+  display: flex;
+  gap: 10px; /* Add spacing between the buttons */
+}
+
+.right-button {
+  background-color: var(
+    --primary-color
+  ); /* Green background for Right button */
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.right-button:hover {
+  background-color: var(--primary-color); /* Darker green on hover */
+}
+
+.wrong-button {
+  background-color: #f44336; /* Red background for Wrong button */
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.wrong-button:hover {
+  background-color: #d32f2f; /* Darker red on hover */
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.popup-content h3 {
+  margin-bottom: 1em;
+}
+
+.popup-content button {
+  margin: 0 10px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.popup-content button:hover {
+  background-color: #f0f0f0;
+}
+.spaced-learning-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  font-family: "Arial", sans-serif;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Create a 2x2 grid */
+  gap: 20px; /* Add spacing between the buckets */
+  width: 100%;
+  max-width: 600px; /* Optional: Limit the grid width */
+}
+
+.bucket {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f9f9f9;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  height: 150px; /* Set a fixed height for the buckets */
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.bucket:hover {
+  transform: scale(1.05); /* Slightly enlarge the bucket on hover */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Add a stronger shadow on hover */
+}
+
+.bucket h3 {
+  margin: 0;
+  font-size: 1.5em;
+  color: #333;
+}
+
+.welcome-header {
+  text-align: center;
+}
+
+.welcome-header h1 {
+  font-size: 3em; /* Halved font size */
+  color: #333;
+  margin-bottom: 10px;
+  padding: 20px; /* Add padding to the text */
+}
+
+.welcome-header p {
+  font-size: 1.5em; /* Halved font size */
+  color: #555;
+  text-align: center; /* Ensure the paragraph is also centered */
+  padding: 0 15%; /* Add 35% padding on each side */
+}
+
+.welcome-container {
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px;
+  font-family: "Arial", sans-serif;
+}
+
+.welcome-card {
+  width: 90%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Center content horizontally */
+  align-items: center; /* Center content vertically */
+  border: 1px solid #ccc;
+  border-radius: 40px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  text-align: center;
+  overflow: visible; /* Ensure content is not cut off */
+  margin-bottom: 20px; /* Add spacing below the welcome-card */
+  font-size: 1.5em; /* Halved font size */
+  padding: 20px; /* Add padding to the text */
+}
+
+/* Flashcards container */
+.flashcards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+
+  width: 100%; /* Take up 100% of the width of the class it's under */
+  margin-top: 80px; /* Add spacing from the header */
+  max-width: 100%; /* Ensure it spans the full width of its parent */
+  position: static; /* Position the flashcards container statically */
+}
+
+/* Flashcard styling */
+.flashcard {
+  cursor: pointer;
+  position: relative; /* Ensure the flashcard is positioned relative to its container */
+  margin: 0 auto; /* Center the flashcard within its container */
+  font: var(--secondary-font-color);
+}
+
+.flashcard-front,
+.flashcard-back {
+  width: 100%;
+  height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--tertiary-color);
+  color: black; /* Set font color to black */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  backface-visibility: hidden;
+  transition: transform 0.6s;
+  position: absolute;
+}
+
+.flashcard.flipped .flashcard-front {
+  transform: rotateY(180deg);
+}
+
+.flashcard.flipped .flashcard-back {
+  transform: rotateY(0deg);
+}
+
+/* Quiz view redesign (match reference layout) */
+.quiz-view-redesign .quiz-view-top-btn:hover {
+  background: #ddd !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+}
+.quiz-view-redesign .quiz-view-show-answer-btn:hover {
+  background: #ddd !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+}
+.quiz-view-redesign .quiz-view-feedback-btn.right:hover {
+  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.5) !important;
+  transform: translateY(-2px);
+}
+.quiz-view-redesign .quiz-view-feedback-btn.wrong:hover {
+  box-shadow: 0 8px 24px rgba(239, 71, 111, 0.45) !important;
+  transform: translateY(-2px);
+}
+.quiz-view-redesign .quiz-view-nav-btn:not(:disabled):hover {
+  background: #ddd !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+}
