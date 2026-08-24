@@ -1,121 +1,243 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import Brand from "../components/Brand.jsx";
 import { auth } from "../utils/firebase";
+import { createDeckForUser, fetchDecksForUser } from "../utils/decks";
+import {
+  canCreateDeck,
+  FREE_PLAN_MAX_DECKS,
+  getSubscriptionStatus,
+} from "../utils/subscription";
 
 export default function DashboardPage({ user }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isCreating, setIsCreating] = useState(false);
   const [deckTitle, setDeckTitle] = useState("");
   const [decks, setDecks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [activeDeckId, setActiveDeckId] = useState(null);
+  const [planStatus, setPlanStatus] = useState("free");
   const firstName =
     user?.displayName?.split(" ")[0] || user?.email?.split("@")[0] || "writer";
+  const email = user?.email;
 
-  const createDeck = (event) => {
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadDecks = async () => {
+      if (!email) {
+        setDecks([]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError("");
+      try {
+        const [nextDecks, status] = await Promise.all([
+          fetchDecksForUser(email),
+          getSubscriptionStatus(email),
+        ]);
+        if (!cancelled) {
+          setDecks(nextDecks);
+          setPlanStatus(status);
+        }
+      } catch (loadError) {
+        console.error("Error loading decks:", loadError);
+        if (!cancelled) {
+          setError("Could not load your flashcards. Please try again.");
+          setDecks([]);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    loadDecks();
+    return () => {
+      cancelled = true;
+    };
+  }, [email]);
+
+  const createDeck = async (event) => {
     event.preventDefault();
     const title = deckTitle.trim();
-    if (!title) return;
-    setDecks((current) => [
-      ...current,
-      { id: Date.now(), title, cards: 0, updated: "Just now" },
-    ]);
-    setDeckTitle("");
-    setIsCreating(false);
+    if (!title || !email || creating) return;
+    if (!canCreateDeck(planStatus, decks.length)) {
+      setError(
+        `Free accounts can keep ${FREE_PLAN_MAX_DECKS} decks. Subscribe to add more.`,
+      );
+      return;
+    }
+
+    setCreating(true);
+    setError("");
+    try {
+      const deck = await createDeckForUser(email, title);
+      setDecks((current) => [deck, ...current]);
+      setDeckTitle("");
+      setIsCreating(false);
+    } catch (createError) {
+      console.error("Error creating deck:", createError);
+      setError(createError.message || "Could not create that deck.");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const atDeckLimit = !canCreateDeck(planStatus, decks.length);
+
+  const openCreate = () => {
+    if (atDeckLimit) {
+      setError(
+        `Free accounts can keep ${FREE_PLAN_MAX_DECKS} decks. Subscribe to add more.`,
+      );
+      return;
+    }
+    setError("");
+    setIsCreating(true);
   };
 
   return (
     <main className="dashboard">
-      <aside className="dashboard__sidebar">
-        <Brand compact />
-        <nav>
-          <a className="sidebar-link sidebar-link--active" href="#library">
-            <span>本</span> Library
-          </a>
-          <a className="sidebar-link" href="#review">
-            <span>復</span> Review
-          </a>
-        </nav>
-        <button
-          className="sidebar-signout"
-          onClick={() => signOut(auth)}
-          type="button"
-        >
-          Sign out
-        </button>
-      </aside>
+      <header className="dashboard__top">
+        <Brand />
+        <div className="dashboard__top-actions">
+          <Link className="text-link" to="/">
+            Home
+          </Link>
+          <Link className="text-link" to="/profile" state={{ background: location }}>
+            Profile
+          </Link>
+          <button
+            className="text-link text-link--button"
+            onClick={() => signOut(auth)}
+            type="button"
+          >
+            Sign out
+          </button>
+        </div>
+      </header>
 
       <section className="dashboard__main">
         <header className="dashboard__header">
           <div>
-            <p className="eyebrow">Your study desk</p>
-            <h1>Good morning, {firstName}.</h1>
+            <p className="eyebrow">Welcome back</p>
+            <h1>Hello, {firstName}.</h1>
           </div>
           <button
-            className="button button--vermilion"
-            onClick={() => setIsCreating(true)}
+            className="button button--ink"
+            onClick={openCreate}
             type="button"
           >
-            <span aria-hidden="true">＋</span> New deck
+            New deck
           </button>
         </header>
 
-        <section className="dashboard__summary">
-          <article>
-            <small>DECKS</small>
-            <strong>{decks.length}</strong>
-            <span>in your library</span>
-          </article>
-          <article>
-            <small>CARDS</small>
-            <strong>0</strong>
-            <span>ready to study</span>
-          </article>
-          <article className="summary-note">
-            <span className="summary-note__mark">今日</span>
-            <p>Begin with one idea you want your future self to remember.</p>
-          </article>
-        </section>
+        {error && !isCreating && (
+          <p className="dashboard__error">
+            {error}{" "}
+            {atDeckLimit && (
+              <Link className="text-link" to="/profile" state={{ background: location }}>
+                Open profile
+              </Link>
+            )}
+          </p>
+        )}
 
-        <section className="library" id="library">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">My library</p>
-              <h2>Flashcard decks</h2>
-            </div>
-            <span>{decks.length} total</span>
-          </div>
-
-          {decks.length === 0 ? (
+        <section className="library" aria-label="Your decks">
+          {loading ? (
             <div className="empty-library">
-              <div className="empty-library__paper" aria-hidden="true">
-                <span>問</span>
-                <i />
-                <i />
-                <i />
-              </div>
-              <h3>Your first page is blank.</h3>
-              <p>
-                Create a deck, then turn your notes into questions worth
-                returning to.
+              <p className="empty-library__mark" aria-hidden="true">
+                loading
               </p>
+              <h2>Opening your notebooks…</h2>
+            </div>
+          ) : decks.length === 0 ? (
+            <div className="empty-library">
+              <p className="empty-library__mark" aria-hidden="true">
+                blank
+              </p>
+              <h2>Nothing here yet.</h2>
+              <p>Create a deck when you’re ready to begin.</p>
               <button
-                className="button button--ink"
-                onClick={() => setIsCreating(true)}
+                className="button button--vermilion"
+                onClick={openCreate}
                 type="button"
               >
-                Create your first deck
+                Create a deck
               </button>
             </div>
           ) : (
             <div className="deck-grid">
-              {decks.map((deck) => (
-                <article className="deck-card" key={deck.id}>
-                  <span className="deck-card__kanji">学</span>
-                  <small>{deck.cards} cards</small>
-                  <h3>{deck.title}</h3>
-                  <p>Updated {deck.updated}</p>
-                  <button type="button">Open deck →</button>
-                </article>
-              ))}
+              {decks.map((deck) => {
+                const isActive = activeDeckId === deck.id;
+                const encodedId = encodeURIComponent(deck.id);
+
+                return (
+                  <div
+                    className={`deck-card${isActive ? " deck-card--active" : ""}`}
+                    key={deck.id}
+                  >
+                    {isActive ? (
+                      <>
+                        <strong className="deck-card__title">{deck.title}</strong>
+                        <p className="deck-card__last-test">
+                          Last test: {deck.lastTestedLabel || "Never tested"}
+                        </p>
+                        <div className="deck-card__modes">
+                          <button
+                            onClick={() => navigate(`/preview/${encodedId}`)}
+                            type="button"
+                          >
+                            Preview
+                          </button>
+                          <button
+                            onClick={() => navigate(`/study/${encodedId}`)}
+                            type="button"
+                          >
+                            Test
+                          </button>
+                        </div>
+                        <button
+                          className="deck-card__cancel"
+                          onClick={() => setActiveDeckId(null)}
+                          type="button"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        className="deck-card__hit"
+                        onClick={() => setActiveDeckId(deck.id)}
+                        type="button"
+                      >
+                        <span className="deck-card__meta">
+                          {deck.cards} {deck.cards === 1 ? "card" : "cards"} ·{" "}
+                          {deck.updated}
+                        </span>
+                        <strong className="deck-card__title">{deck.title}</strong>
+                        <span className="deck-card__action">Open</span>
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+              <button
+                className="deck-card deck-card--add"
+                onClick={openCreate}
+                type="button"
+              >
+                <span className="deck-card__plus" aria-hidden="true">
+                  +
+                </span>
+                <strong>New deck</strong>
+              </button>
             </div>
           )}
         </section>
@@ -129,11 +251,10 @@ export default function DashboardPage({ user }) {
           }}
         >
           <form className="new-deck-dialog" onSubmit={createDeck}>
-            <p className="eyebrow">新しいデッキ</p>
-            <h2>Create a new deck</h2>
-            <p>Give this collection a simple, memorable name.</p>
+            <p className="eyebrow">New deck</p>
+            <h2>Name this deck</h2>
             <label>
-              Deck name
+              Title
               <input
                 autoFocus
                 maxLength={80}
@@ -142,16 +263,24 @@ export default function DashboardPage({ user }) {
                 value={deckTitle}
               />
             </label>
+            {error && <p className="form-error">{error}</p>}
             <div>
               <button
                 className="button button--paper"
-                onClick={() => setIsCreating(false)}
+                onClick={() => {
+                  setIsCreating(false);
+                  setError("");
+                }}
                 type="button"
               >
                 Cancel
               </button>
-              <button className="button button--ink" type="submit">
-                Create deck
+              <button
+                className="button button--ink"
+                disabled={creating}
+                type="submit"
+              >
+                {creating ? "Creating…" : "Create"}
               </button>
             </div>
           </form>
