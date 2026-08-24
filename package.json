@@ -35,7 +35,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "server": "nodemon server.js",
-    "dev": "concurrently \"npm run server\" \"npm start\"",
+    "dev": "node scripts/run-dev.js",
     "lint": "eslint --config eslint.config.mjs .",
     "format": "prettier --write .",
     "cypress:open": "cypress open",

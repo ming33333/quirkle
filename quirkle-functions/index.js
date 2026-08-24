@@ -14,36 +14,37 @@
  * 4. Deploy: firebase deploy --only functions
  */
 
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
 
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
-admin.initializeApp();
-
-const db = admin.firestore();
+const getDb = () => {
+  if (!admin.apps.length) {
+    admin.initializeApp();
+  }
+  return admin.firestore();
+};
 const USER_SETTING_DOC_ID = 'settings';
 const SUBSCRIPTION_FIELD = 'subscription status';
 
-/**
- * Map Stripe price IDs to subscription statuses
- * TODO: Update these with your actual Stripe Price IDs
- */
-const PRICE_TO_STATUS_MAP = {
-  'price_pseudo_basic_monthly': 'basic',
-  'price_pseudo_pro_monthly': 'pro',
-  // Add your actual Stripe Price IDs here after setup
+let stripeClient = null;
+const getStripe = () => {
+  if (!stripeClient) {
+    stripeClient = require('stripe')(process.env.STRIPE_SECRET_KEY);
+  }
+  return stripeClient;
 };
 
 /**
- * Map Stripe subscription status to our subscription status
+ * Map Stripe price IDs to subscription statuses.
+ * Set STRIPE_PRICE_ID in quirkle-functions/.env (or Cloud Functions env).
+ * Legacy basic/pro price IDs still count as subscribed.
  */
-const STRIPE_STATUS_TO_STATUS = {
-  'active': null, // Keep current status
-  'canceled': 'free',
-  'past_due': null, // Keep current status but could add warning
-  'unpaid': 'free',
-  'trialing': null, // Keep current status
+const PRICE_TO_STATUS_MAP = {
+  ...(process.env.STRIPE_PRICE_ID
+    ? { [process.env.STRIPE_PRICE_ID]: 'subscribed' }
+    : {}),
+  price_pseudo_basic_monthly: 'subscribed',
+  price_pseudo_pro_monthly: 'subscribed',
 };
 
 /**
@@ -56,18 +57,17 @@ const STRIPE_STATUS_TO_STATUS = {
  * a user clicks "Subscribe" or selects a plan for the first time.
  */
 exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
-  // Enable CORS
-  res.set('Access-Control-Allow-Origin', '*');
-  res.set('Access-Control-Allow-Methods', 'POST');
-  res.set('Access-Control-Allow-Headers', 'Content-Type');
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "POST");
+  res.set("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === 'OPTIONS') {
-    res.status(204).send('');
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
     return;
   }
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
@@ -85,7 +85,7 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
     }
 
     // Verify user exists in Firestore
-    const userRef = db.collection('users').doc(email);
+    const userRef = getDb().collection('users').doc(email);
     const userDoc = await userRef.get();
     
     if (!userDoc.exists) {
@@ -93,21 +93,24 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
     }
 
     // Create Stripe Checkout Session
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       customer_email: email, // Pre-fill checkout form; Stripe creates/links customer
       payment_method_types: ['card'], // Accept card payments only
       line_items: [
         {
-          price: priceId, // Stripe Price ID for the plan (e.g. basic, pro)
-          quantity: 1, // One subscription per checkout
+          price: priceId,
+          quantity: 1,
         },
       ],
-      mode: 'subscription', // Recurring billing (not one-time payment)
-      success_url: successUrl, // Where to redirect after successful payment
-      cancel_url: cancelUrl, // Where to redirect if user abandons checkout
+      mode: 'subscription',
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata: {
-        email: email, // Stored with session for webhook/customer lookup
-        priceId: priceId, // Track which plan was selected
+        email,
+        priceId,
+      },
+      subscription_data: {
+        metadata: { email },
       },
     });
 
@@ -131,18 +134,17 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
  * or "Billing" in their profile.
  */
 exports.createPortalSession = functions.https.onRequest(async (req, res) => {
-  // Enable CORS
-  res.set('Access-Control-Allow-Origin', '*');
-  res.set('Access-Control-Allow-Methods', 'POST');
-  res.set('Access-Control-Allow-Headers', 'Content-Type');
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "POST");
+  res.set("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === 'OPTIONS') {
-    res.status(204).send('');
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
     return;
   }
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
@@ -153,7 +155,7 @@ exports.createPortalSession = functions.https.onRequest(async (req, res) => {
     }
 
     // Find Stripe customer by email
-    const customers = await stripe.customers.list({
+    const customers = await getStripe().customers.list({
       email: email,
       limit: 1,
     });
@@ -165,7 +167,7 @@ exports.createPortalSession = functions.https.onRequest(async (req, res) => {
     const customer = customers.data[0];
 
     // Create portal session
-    const session = await stripe.billingPortal.sessions.create({
+    const session = await getStripe().billingPortal.sessions.create({
       customer: customer.id, // Stripe Customer ID; must already exist (from prior checkout)
       return_url: returnUrl || 'https://quirkle.io/profile', // Where to redirect when user exits portal
     });
@@ -177,6 +179,81 @@ exports.createPortalSession = functions.https.onRequest(async (req, res) => {
   }
 });
 
+const setSubscriptionStatus = async (email, status) => {
+  const exact = String(email || "").trim();
+  const normalized = exact.toLowerCase();
+  if (!normalized) {
+    throw new Error("Missing email for subscription update.");
+  }
+
+  const writeStatus = async (userId) => {
+    const userRef = getDb().collection("users").doc(userId);
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) {
+      await userRef.set({});
+    }
+    const settingsRef = userRef.collection("userSetting").doc(USER_SETTING_DOC_ID);
+    await settingsRef.set({ [SUBSCRIPTION_FIELD]: status }, { merge: true });
+  };
+
+  await writeStatus(normalized);
+  if (exact && exact !== normalized) {
+    await writeStatus(exact);
+  }
+  console.log(`Updated subscription for ${normalized} to ${status}`);
+};
+
+/**
+ * Confirm a completed Checkout Session and mark the user subscribed.
+ * POST /confirmCheckoutSession { sessionId, email }
+ */
+exports.confirmCheckoutSession = functions.https.onRequest(async (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "POST");
+  res.set("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
+    const { sessionId, email } = req.body;
+    if (!sessionId || !email) {
+      return res.status(400).json({ error: "Missing required fields: sessionId, email" });
+    }
+
+    const session = await getStripe().checkout.sessions.retrieve(sessionId);
+    const sessionEmail = (
+      session.customer_email ||
+      session.customer_details?.email ||
+      session.metadata?.email ||
+      ""
+    ).toLowerCase();
+    const expected = String(email).trim().toLowerCase();
+
+    if (!sessionEmail || sessionEmail !== expected) {
+      return res.status(403).json({ error: "Checkout session does not match this account." });
+    }
+
+    const paid =
+      session.payment_status === "paid" ||
+      session.status === "complete";
+    if (!paid) {
+      return res.status(400).json({ error: "Checkout is not complete yet." });
+    }
+
+    await setSubscriptionStatus(expected, "subscribed");
+    res.json({ status: "subscribed" });
+  } catch (error) {
+    console.error("Error confirming checkout session:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 /**
  * Handle Stripe Webhook Events
  * POST /stripeWebhook
@@ -184,7 +261,7 @@ exports.createPortalSession = functions.https.onRequest(async (req, res) => {
  * Role: Keeps Firestore in sync with Stripe subscription state. Stripe calls this
  * endpoint when subscriptions are created, updated, cancelled, or when payments
  * succeed/fail. Updates the user's subscription status in Firestore so the app
- * can enforce access (e.g. basic vs pro features). Must be configured in Stripe.
+ * can enforce access (free vs subscribed). Must be configured in Stripe.
  *
  * Stripe Dashboard setup:
  * - Webhook URL: https://YOUR_REGION-YOUR_PROJECT.cloudfunctions.net/stripeWebhook
@@ -196,22 +273,35 @@ exports.createPortalSession = functions.https.onRequest(async (req, res) => {
  *   - invoice.payment_failed
  */
 exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
-  const sig = req.headers['stripe-signature'];
+  const sig = req.headers["stripe-signature"];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const payload = req.rawBody || req.body;
 
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    event = getStripe().webhooks.constructEvent(payload, sig, webhookSecret);
   } catch (err) {
-    console.error('Webhook signature verification failed:', err.message);
+    console.error("Webhook signature verification failed:", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
   try {
     switch (event.type) {
-    case 'customer.subscription.created':
-    case 'customer.subscription.updated': {
+    case "checkout.session.completed": {
+      const session = event.data.object;
+      const email =
+        session.metadata?.email ||
+        session.customer_email ||
+        session.customer_details?.email;
+      if (email && (session.payment_status === "paid" || session.status === "complete")) {
+        await setSubscriptionStatus(email, "subscribed");
+      }
+      break;
+    }
+
+    case "customer.subscription.created":
+    case "customer.subscription.updated": {
       const subscription = event.data.object;
       await handleSubscriptionUpdate(subscription);
       break;
@@ -250,10 +340,9 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
  * Handle subscription creation/update
  */
 async function handleSubscriptionUpdate(subscription) {
-  const email = subscription.metadata?.email || subscription.customer_email;
+  let email = subscription.metadata?.email || subscription.customer_email;
   if (!email) {
-    // Try to get email from customer object
-    const customer = await stripe.customers.retrieve(subscription.customer);
+    const customer = await getStripe().customers.retrieve(subscription.customer);
     email = customer.email;
   }
 
@@ -262,12 +351,17 @@ async function handleSubscriptionUpdate(subscription) {
     return;
   }
 
-  const priceId = subscription.items.data[0]?.price?.id;
-  const status = PRICE_TO_STATUS_MAP[priceId] || 'basic'; // Default to basic if not mapped
+  const stripeStatus = subscription.status;
+  if (stripeStatus === 'canceled' || stripeStatus === 'unpaid' || stripeStatus === 'incomplete_expired') {
+    await handleSubscriptionCancellation(subscription);
+    return;
+  }
 
-  // Update Firestore
-  const userRef = db.collection('users').doc(email);
-  const settingsRef = userRef.collection('userSetting').doc(USER_SETTING_DOC_ID);
+  const priceId = subscription.items.data[0]?.price?.id;
+  const status = PRICE_TO_STATUS_MAP[priceId] || 'subscribed';
+
+  const userRef = getDb().collection("users").doc(email.toLowerCase());
+  const settingsRef = userRef.collection("userSetting").doc(USER_SETTING_DOC_ID);
   
   await settingsRef.set(
     { [SUBSCRIPTION_FIELD]: status },
@@ -281,9 +375,9 @@ async function handleSubscriptionUpdate(subscription) {
  * Handle subscription cancellation
  */
 async function handleSubscriptionCancellation(subscription) {
-  const email = subscription.metadata?.email || subscription.customer_email;
+  let email = subscription.metadata?.email || subscription.customer_email;
   if (!email) {
-    const customer = await stripe.customers.retrieve(subscription.customer);
+    const customer = await getStripe().customers.retrieve(subscription.customer);
     email = customer.email;
   }
 
@@ -293,7 +387,7 @@ async function handleSubscriptionCancellation(subscription) {
   }
 
   // Update Firestore to free
-  const userRef = db.collection('users').doc(email);
+  const userRef = getDb().collection('users').doc(email);
   const settingsRef = userRef.collection('userSetting').doc(USER_SETTING_DOC_ID);
   
   await settingsRef.set(
@@ -311,7 +405,7 @@ async function handlePaymentSucceeded(invoice) {
   const subscriptionId = invoice.subscription;
   if (!subscriptionId) return;
 
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
   await handleSubscriptionUpdate(subscription);
 }
 
@@ -323,3 +417,81 @@ async function handlePaymentFailed(invoice) {
   console.log('Payment failed for invoice:', invoice.id);
   // Optionally downgrade to free after multiple failures
 }
+
+const applyCors = (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+};
+
+const requireAdmin = async (req) => {
+  const header = req.headers.authorization || "";
+  const token = header.startsWith("Bearer ") ? header.slice(7) : "";
+  if (!token) {
+    const error = new Error("Missing auth token.");
+    error.status = 401;
+    throw error;
+  }
+  const decoded = await admin.auth().verifyIdToken(token);
+  const adminEmail = String(decoded.email || "").trim().toLowerCase();
+  if (!adminEmail) {
+    const error = new Error("Token has no email.");
+    error.status = 403;
+    throw error;
+  }
+  const adminDoc = await getDb().collection("admins").doc(adminEmail).get();
+  if (!adminDoc.exists) {
+    const error = new Error("Only admins can cancel subscriptions.");
+    error.status = 403;
+    throw error;
+  }
+  return adminEmail;
+};
+
+/**
+ * Admin: cancel a user's Stripe subscription(s) and set plan to free.
+ * POST /adminCancelSubscription { email }
+ * Authorization: Bearer <Firebase ID token of an admin>
+ */
+exports.adminCancelSubscription = functions.https.onRequest(async (req, res) => {
+  applyCors(req, res);
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
+    await requireAdmin(req);
+    const email = String(req.body?.email || "").trim();
+    if (!email || !email.includes("@")) {
+      return res.status(400).json({ error: "Missing user email." });
+    }
+
+    let cancelled = 0;
+    const customers = await getStripe().customers.list({
+      email: email.toLowerCase(),
+      limit: 10,
+    });
+    for (const customer of customers.data) {
+      const subscriptions = await getStripe().subscriptions.list({
+        customer: customer.id,
+        status: "all",
+        limit: 20,
+      });
+      for (const subscription of subscriptions.data) {
+        if (subscription.status === "canceled") continue;
+        await getStripe().subscriptions.cancel(subscription.id);
+        cancelled += 1;
+      }
+    }
+
+    await setSubscriptionStatus(email, "free");
+    res.json({ status: "free", stripeCancelled: cancelled });
+  } catch (error) {
+    console.error("Error cancelling subscription:", error);
+    res.status(error.status || 500).json({ error: error.message });
+  }
+});

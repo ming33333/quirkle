@@ -4,11 +4,11 @@ export default function Brand({ compact = false }) {
   return (
     <Link className={`brand${compact ? " brand--compact" : ""}`} to="/">
       <span className="brand__seal" aria-hidden="true">
-        記
+        <img alt="" src="/red_panda.jpg" />
       </span>
       <span>
         <strong>Quirkle</strong>
-        {!compact && <small>quiet notes, lasting memory</small>}
+        {!compact && <small>A flashcard study nook</small>}
       </span>
     </Link>
   );
