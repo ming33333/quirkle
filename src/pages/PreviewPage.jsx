@@ -1,14 +1,25 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
+  addCardToDeck,
+  addCardsToDeck,
+  ALL_RESULTS,
+  countCardsByBucket,
   fetchDeckById,
+  filterCardsForTest,
   getCardResult,
   isCardDue,
+  MAX_QUESTIONS_PER_DECK,
+  parseBulkQuestions,
   RESULT_LABELS,
   touchDeckLastAccessed,
+  wasTestedToday,
 } from "../utils/decks";
 import { buildStudyInsights } from "../utils/studyInsights";
 import DueTimeline from "../components/DueTimeline.jsx";
+import PreviewCard from "../components/PreviewCard.jsx";
+
+const ALL_BUCKETS = [1, 2, 3, 4];
 
 const BUCKETS = [
   { value: "all", label: "All" },
@@ -31,10 +42,24 @@ const DUE_STATES = [
   { value: "resting", label: "Resting" },
 ];
 
-const lastResultTag = (card) => {
-  const tone = getCardResult(card);
-  return { label: RESULT_LABELS[tone], tone };
-};
+const PASTE_EXAMPLE = [
+  {
+    question: "When is National Donut Day?",
+    answer: "The first Friday in June.",
+  },
+  {
+    question: "How long is a marathon?",
+    answer: "26.2 miles.",
+  },
+  {
+    question: "What’s heavier, a pound of feathers or a pound of rocks?",
+    answer: "They weigh the same.",
+  },
+];
+
+const PASTE_EXAMPLE_TEXT = PASTE_EXAMPLE.map(
+  (row) => `${row.question}\t${row.answer}`,
+).join("\n");
 
 function BucketMixBar({ buckets, total }) {
   if (!total) return null;
@@ -65,11 +90,24 @@ export default function PreviewPage({ user }) {
   const [deck, setDeck] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [buckets, setBuckets] = useState(ALL_BUCKETS);
+  const [results, setResults] = useState(ALL_RESULTS);
+  const [unansweredOnly, setUnansweredOnly] = useState(false);
+  const [shuffleCards, setShuffleCards] = useState(true);
+  const [testedToday, setTestedToday] = useState(false);
   const [bucketFilter, setBucketFilter] = useState("all");
   const [resultFilter, setResultFilter] = useState("all");
   const [dueFilter, setDueFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
   const [showTags, setShowTags] = useState(true);
+  const [addingCard, setAddingCard] = useState(false);
+  const [addError, setAddError] = useState("");
+  const [focusedCardId, setFocusedCardId] = useState("");
+  const [showBulkPaste, setShowBulkPaste] = useState(false);
+  const [bulkInput, setBulkInput] = useState("");
+  const [addingBulk, setAddingBulk] = useState(false);
+  const [showPasteExample, setShowPasteExample] = useState(false);
+  const [exampleCopied, setExampleCopied] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -92,6 +130,11 @@ export default function PreviewPage({ user }) {
           return;
         }
         setDeck(nextDeck);
+        const alreadyToday = wasTestedToday(nextDeck.lastTestedAt);
+        setTestedToday(alreadyToday);
+        setUnansweredOnly(alreadyToday);
+        setBuckets(ALL_BUCKETS);
+        setResults(ALL_RESULTS);
         touchDeckLastAccessed(email, deckId).catch(() => {});
       } catch (loadError) {
         console.error("Error loading deck preview:", loadError);
@@ -107,9 +150,26 @@ export default function PreviewPage({ user }) {
     };
   }, [deckId, email]);
 
+  useEffect(() => {
+    if (!exampleCopied) return undefined;
+    const hide = setTimeout(() => setExampleCopied(false), 1600);
+    return () => clearTimeout(hide);
+  }, [exampleCopied]);
+
   const cards = deck?.cards || [];
   const insights = useMemo(() => buildStudyInsights(cards), [cards]);
   const bucketCounts = insights.buckets;
+  const setupCounts = useMemo(() => countCardsByBucket(cards), [cards]);
+  const selectedCards = useMemo(
+    () =>
+      filterCardsForTest(cards, {
+        buckets,
+        results,
+        unansweredOnly,
+      }),
+    [buckets, cards, results, unansweredOnly],
+  );
+  const selectedCount = selectedCards.length;
 
   const resultCounts = useMemo(() => {
     const counts = { right: 0, wrong: 0, new: 0 };
@@ -158,6 +218,154 @@ export default function PreviewPage({ user }) {
     setShowFilters(true);
   };
 
+  const toggleBucket = (bucket) => {
+    setBuckets((current) => {
+      if (current.includes(bucket)) {
+        if (current.length === 1) return current;
+        return current.filter((value) => value !== bucket);
+      }
+      return [...current, bucket].sort((a, b) => a - b);
+    });
+  };
+
+  const toggleResult = (result) => {
+    setResults((current) => {
+      if (current.includes(result)) {
+        if (current.length === 1) return current;
+        return current.filter((value) => value !== result);
+      }
+      return ALL_RESULTS.filter(
+        (value) => current.includes(value) || value === result,
+      );
+    });
+  };
+
+  const startTest = () => {
+    if (!selectedCount) return;
+    const params = new URLSearchParams();
+    params.set("buckets", buckets.join(","));
+    params.set("results", results.join(","));
+    if (unansweredOnly) params.set("due", "1");
+    if (shuffleCards) params.set("shuffle", "1");
+    navigate(`/study/${encodeURIComponent(deckId)}/run?${params.toString()}`);
+  };
+
+  const handleCardTextUpdate = useCallback((cardId, { question, answer }) => {
+    setDeck((current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        cards: current.cards.map((card) =>
+          card.id === cardId ? { ...card, question, answer } : card,
+        ),
+      };
+    });
+  }, []);
+
+  const atQuestionLimit = cards.length >= MAX_QUESTIONS_PER_DECK;
+  const bulkPreview = useMemo(() => parseBulkQuestions(bulkInput), [bulkInput]);
+  const bulkRoom = Math.max(0, MAX_QUESTIONS_PER_DECK - cards.length);
+  const bulkWillAdd = Math.min(bulkPreview.pairs.length, bulkRoom);
+  const bulkWillSkipLimit = bulkPreview.pairs.length - bulkWillAdd;
+
+  const addQuestion = async () => {
+    if (!email || !deckId || addingCard || atQuestionLimit) return;
+    setAddingCard(true);
+    setAddError("");
+    try {
+      const card = await addCardToDeck(email, deckId, cards);
+      setDeck((current) => {
+        if (!current) return current;
+        return { ...current, cards: [...current.cards, card] };
+      });
+      setBucketFilter("all");
+      setResultFilter("all");
+      setDueFilter("all");
+      setFocusedCardId(card.id);
+    } catch (addCardError) {
+      console.error("Error adding card:", addCardError);
+      setAddError(addCardError.message || "Could not add that question.");
+    } finally {
+      setAddingCard(false);
+    }
+  };
+
+  const closeBulkPaste = () => {
+    setShowBulkPaste(false);
+    setShowPasteExample(false);
+    setExampleCopied(false);
+    setBulkInput("");
+    setAddError("");
+  };
+
+  const closePasteExample = () => {
+    setShowPasteExample(false);
+    setExampleCopied(false);
+  };
+
+  const copyPasteExample = async () => {
+    try {
+      await navigator.clipboard.writeText(PASTE_EXAMPLE_TEXT);
+    } catch {
+      const field = document.createElement("textarea");
+      field.value = PASTE_EXAMPLE_TEXT;
+      field.setAttribute("readonly", "");
+      field.style.position = "fixed";
+      field.style.left = "-9999px";
+      document.body.appendChild(field);
+      field.select();
+      document.execCommand("copy");
+      document.body.removeChild(field);
+    }
+    setExampleCopied(true);
+  };
+
+  const insertPasteExample = () => {
+    setBulkInput(PASTE_EXAMPLE_TEXT);
+    closePasteExample();
+  };
+
+  const addBulkQuestions = async () => {
+    if (!email || !deckId || addingBulk || atQuestionLimit) return;
+    const { pairs } = parseBulkQuestions(bulkInput);
+    if (!pairs.length) {
+      setAddError(
+        "Paste one pair per line: question, then a tab, then the answer.",
+      );
+      return;
+    }
+    setAddingBulk(true);
+    setAddError("");
+    try {
+      const { cards: added, truncated } = await addCardsToDeck(
+        email,
+        deckId,
+        cards,
+        pairs,
+      );
+      setDeck((current) => {
+        if (!current) return current;
+        return { ...current, cards: [...current.cards, ...added] };
+      });
+      setBucketFilter("all");
+      setResultFilter("all");
+      setDueFilter("all");
+      setFocusedCardId(added[added.length - 1]?.id || "");
+      setShowBulkPaste(false);
+      setBulkInput("");
+      if (truncated) {
+        setAddError(
+          `Added ${added.length}. ${truncated} more would go over the ${MAX_QUESTIONS_PER_DECK} question limit.`,
+        );
+      }
+    } catch (addCardError) {
+      console.error("Error adding questions:", addCardError);
+      setAddError(addCardError.message || "Could not add those questions.");
+    } finally {
+      setAddingBulk(false);
+    }
+  };
+
   if (loading) {
     return (
       <main className="preview">
@@ -188,31 +396,163 @@ export default function PreviewPage({ user }) {
     <main className="preview">
       <header className="preview__top">
         <div>
-          <p className="eyebrow">Preview</p>
+          <p className="eyebrow">Deck</p>
           <h1>{deck.title}</h1>
           <p className="preview__count">
             {filtersActive
               ? `${filteredCards.length} of ${cards.length} cards`
               : `${cards.length} ${cards.length === 1 ? "card" : "cards"}`}
           </p>
+          <p className="study__last-test">
+            {deck.lastTestedLabel === "Never tested"
+              ? "You haven’t tested these cards yet."
+              : `Last tested ${String(deck.lastTestedLabel || "").toLowerCase()}.`}
+            {testedToday
+              ? " You’ve already tested today — unanswered cards are selected by default."
+              : ""}
+          </p>
         </div>
-        <div className="preview__actions">
-          <button
-            className="text-link text-link--button"
-            onClick={() => navigate("/dashboard")}
-            type="button"
-          >
-            Back
-          </button>
-          <button
-            className="button button--ink button--small"
-            onClick={() => navigate(`/study/${encodeURIComponent(deck.id)}`)}
-            type="button"
-          >
-            Start test
-          </button>
-        </div>
+        <button
+          className="text-link text-link--button"
+          onClick={() => navigate("/dashboard")}
+          type="button"
+        >
+          Back
+        </button>
       </header>
+
+      {cards.length > 0 && (
+        <section className="test-setup" aria-label="Start test">
+          <div className="test-setup__block">
+            <div className="test-setup__heading">
+              <h2>Buckets</h2>
+              <button
+                className="text-link text-link--button"
+                onClick={() => setBuckets(ALL_BUCKETS)}
+                type="button"
+              >
+                All
+              </button>
+            </div>
+            <p className="test-setup__hint">
+              Include only the buckets you want to practice.
+            </p>
+            <div className="test-setup__buckets" role="group" aria-label="Buckets">
+              {ALL_BUCKETS.map((bucket) => {
+                const active = buckets.includes(bucket);
+                const count = setupCounts[bucket] || 0;
+                return (
+                  <button
+                    key={bucket}
+                    aria-pressed={active}
+                    className={`test-setup__bucket${
+                      active ? " test-setup__bucket--active" : ""
+                    }`}
+                    onClick={() => toggleBucket(bucket)}
+                    type="button"
+                  >
+                    <strong>Bucket {bucket}</strong>
+                    <span>
+                      {count} {count === 1 ? "card" : "cards"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="test-setup__block">
+            <div className="test-setup__heading">
+              <h2>Last result</h2>
+              <button
+                className="text-link text-link--button"
+                onClick={() => setResults(ALL_RESULTS)}
+                type="button"
+              >
+                All
+              </button>
+            </div>
+            <p className="test-setup__hint">
+              Filter by how the card went last time.
+            </p>
+            <div
+              className="test-setup__buckets test-setup__buckets--results"
+              role="group"
+              aria-label="Last result"
+            >
+              {ALL_RESULTS.map((result) => {
+                const active = results.includes(result);
+                const count = setupCounts[result] || 0;
+                return (
+                  <button
+                    key={result}
+                    aria-pressed={active}
+                    className={`test-setup__bucket${
+                      active ? " test-setup__bucket--active" : ""
+                    }`}
+                    onClick={() => toggleResult(result)}
+                    type="button"
+                  >
+                    <strong>{RESULT_LABELS[result]}</strong>
+                    <span>
+                      {count} {count === 1 ? "card" : "cards"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="test-setup__block">
+            <h2>Scope</h2>
+            <label className="test-setup__check">
+              <input
+                checked={unansweredOnly}
+                onChange={(event) => setUnansweredOnly(event.target.checked)}
+                type="checkbox"
+              />
+              <span>
+                <strong>Only unanswered questions</strong>
+                <em>
+                  Cards that are due now
+                  {testedToday ? " (recommended after today’s test)" : ""}
+                  {" · "}
+                  {setupCounts.due} due in this deck
+                </em>
+              </span>
+            </label>
+            <label className="test-setup__check">
+              <input
+                checked={shuffleCards}
+                onChange={(event) => setShuffleCards(event.target.checked)}
+                type="checkbox"
+              />
+              <span>
+                <strong>Shuffle card order</strong>
+                <em>Mix the queue so this test is not in the same order as last time.</em>
+              </span>
+            </label>
+          </div>
+
+          <div className="test-setup__summary">
+            <p>
+              {selectedCount === 0
+                ? "No cards match these options."
+                : `${selectedCount} ${
+                    selectedCount === 1 ? "card" : "cards"
+                  } ready to test`}
+            </p>
+            <button
+              className="button button--ink"
+              disabled={selectedCount === 0}
+              onClick={startTest}
+              type="button"
+            >
+              Start test
+            </button>
+          </div>
+        </section>
+      )}
 
       {cards.length > 0 && (
         <section className="progress-panel" aria-label="Study progress">
@@ -276,51 +616,148 @@ export default function PreviewPage({ user }) {
       )}
 
       <div className="preview__toolbar">
-        <button
-          className={`preview__filter-toggle${
-            showFilters || filtersActive
-              ? " preview__filter-toggle--active"
-              : ""
-          }`}
-          onClick={() => setShowFilters((open) => !open)}
-          type="button"
-        >
-          Filters
-          {filtersActive && (
-            <span>
-              {[
-                bucketFilter !== "all" ? `Bucket ${bucketFilter}` : null,
-                resultFilter !== "all" ? RESULT_LABELS[resultFilter] : null,
-                dueFilter === "due"
-                  ? "Due now"
-                  : dueFilter === "resting"
-                    ? "Resting"
-                    : null,
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-            </span>
-          )}
-        </button>
-        <button
-          className={`preview__filter-toggle${
-            showTags ? " preview__filter-toggle--active" : ""
-          }`}
-          onClick={() => setShowTags((visible) => !visible)}
-          type="button"
-        >
-          {showTags ? "Hide tags" : "Show tags"}
-        </button>
-        {filtersActive && (
+        <div className="preview__toolbar-start">
           <button
-            className="text-link text-link--button"
-            onClick={clearFilters}
+            className={`preview__filter-toggle${
+              showFilters || filtersActive
+                ? " preview__filter-toggle--active"
+                : ""
+            }`}
+            onClick={() => setShowFilters((open) => !open)}
             type="button"
           >
-            Clear
+            Filters
+            {filtersActive && (
+              <span>
+                {[
+                  bucketFilter !== "all" ? `Bucket ${bucketFilter}` : null,
+                  resultFilter !== "all" ? RESULT_LABELS[resultFilter] : null,
+                  dueFilter === "due"
+                    ? "Due now"
+                    : dueFilter === "resting"
+                      ? "Resting"
+                      : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </span>
+            )}
           </button>
-        )}
+          <button
+            className={`preview__filter-toggle${
+              showTags ? " preview__filter-toggle--active" : ""
+            }`}
+            onClick={() => setShowTags((visible) => !visible)}
+            type="button"
+          >
+            {showTags ? "Hide tags" : "Show tags"}
+          </button>
+          {filtersActive && (
+            <button
+              className="text-link text-link--button"
+              onClick={clearFilters}
+              type="button"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        <div className="preview__toolbar-end">
+          <button
+            className={`preview__filter-toggle${
+              showBulkPaste ? " preview__filter-toggle--active" : ""
+            }`}
+            disabled={atQuestionLimit}
+            onClick={() => {
+              setAddError("");
+              setShowBulkPaste((open) => !open);
+            }}
+            type="button"
+          >
+            Paste questions
+          </button>
+          <button
+            className="preview__add"
+            disabled={addingCard || atQuestionLimit}
+            onClick={addQuestion}
+            type="button"
+          >
+            {addingCard ? "Adding…" : "Add question"}
+          </button>
+        </div>
       </div>
+      {showBulkPaste && (
+        <div className="preview-bulk">
+          <div className="preview-bulk__head">
+            <h3>Paste questions</h3>
+            <button
+              className="text-link text-link--button"
+              onClick={closeBulkPaste}
+              type="button"
+            >
+              Close
+            </button>
+          </div>
+          <p>
+            Copy two columns from a spreadsheet (question, then answer). One
+            pair per line, tab-separated — the same as before.
+          </p>
+          <button
+            className="preview-bulk__example"
+            onClick={() => setShowPasteExample(true)}
+            type="button"
+          >
+            <small>Example</small>
+            {PASTE_EXAMPLE.slice(0, 2).map((row) => (
+              <span className="preview-bulk__example-row" key={row.question}>
+                <em>{row.question}</em>
+                <em>{row.answer}</em>
+              </span>
+            ))}
+          </button>
+          <textarea
+            aria-label="Bulk questions"
+            onChange={(event) => setBulkInput(event.target.value)}
+            placeholder={"When is National Donut Day?\tThe first Friday in June.\nHow long is a marathon?\t26.2 miles."}
+            rows={7}
+            value={bulkInput}
+          />
+          <div className="preview-bulk__actions">
+            <p>
+              {bulkPreview.pairs.length
+                ? `${bulkWillAdd} ${bulkWillAdd === 1 ? "question" : "questions"} ready`
+                : "No pairs yet"}
+              {bulkPreview.skipped
+                ? ` · ${bulkPreview.skipped} ${
+                    bulkPreview.skipped === 1 ? "line" : "lines"
+                  } skipped`
+                : ""}
+              {bulkWillSkipLimit
+                ? ` · ${bulkWillSkipLimit} over the deck limit`
+                : ""}
+            </p>
+            <button
+              className="button button--ink button--small"
+              disabled={addingBulk || !bulkWillAdd}
+              onClick={addBulkQuestions}
+              type="button"
+            >
+              {addingBulk
+                ? "Adding…"
+                : `Add ${bulkWillAdd} ${
+                    bulkWillAdd === 1 ? "question" : "questions"
+                  }`}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {addError || atQuestionLimit ? (
+        <p className="preview__toolbar-note">
+          {addError ||
+            `This deck already has ${MAX_QUESTIONS_PER_DECK} questions.`}
+        </p>
+      ) : null}
 
       {showFilters && (
         <div className="preview-filters">
@@ -408,6 +845,7 @@ export default function PreviewPage({ user }) {
       {cards.length === 0 ? (
         <div className="empty-library">
           <h2>No cards in this deck yet.</h2>
+          <p>Use Add question to create the first card.</p>
         </div>
       ) : filteredCards.length === 0 ? (
         <div className="empty-library">
@@ -421,44 +859,89 @@ export default function PreviewPage({ user }) {
           </button>
         </div>
       ) : (
-        <ol className="preview-list">
-          {filteredCards.map((card, cardIndex) => {
-            const result = lastResultTag(card);
-            const due = isCardDue(card);
-            return (
-              <li className="preview-item" key={card.id || cardIndex}>
-                <span className="preview-item__index">
-                  {String(cardIndex + 1).padStart(2, "0")}
-                </span>
-                <div className="preview-item__body">
-                  <div>
-                    <small>Question</small>
-                    <p>{card.question || "No question text"}</p>
-                  </div>
-                  <div>
-                    <small>Answer</small>
-                    <p>{card.answer || "No answer text"}</p>
-                    {showTags && (
-                      <div className="preview-item__meta preview-item__meta--footer">
-                        <span className="bucket-pill">Bucket {card.level}</span>
-                        <span
-                          className={`result-pill result-pill--${result.tone}`}
-                        >
-                          {result.label}
-                        </span>
-                        <span
-                          className={`due-pill due-pill--${due ? "due" : "resting"}`}
-                        >
-                          {due ? "Due now" : "Resting"}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+        <>
+          <p className="preview-list__hint">
+            Click a question or answer to edit. Changes save automatically.
+          </p>
+          <ol className="preview-list">
+            {filteredCards.map((card, cardIndex) => (
+              <PreviewCard
+                autoFocus={card.id === focusedCardId}
+                card={card}
+                deckId={deckId}
+                email={email}
+                index={cardIndex}
+                key={card.id || cardIndex}
+                onUpdate={handleCardTextUpdate}
+                showTags={showTags}
+              />
+            ))}
+          </ol>
+        </>
+      )}
+
+      {showPasteExample && (
+        <div
+          className="dialog-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closePasteExample();
+          }}
+        >
+          <div
+            aria-labelledby="paste-example-title"
+            className="new-deck-dialog paste-example-dialog"
+            role="dialog"
+          >
+            <p className="eyebrow">Paste format</p>
+            <h2 id="paste-example-title">Copy this example</h2>
+            <p className="paste-example-dialog__lede">
+              Two columns: question, then answer. Copy from a spreadsheet the
+              same way, or copy this sample and paste it into the field.
+            </p>
+            <div className="paste-example-sheet" tabIndex={0}>
+              <div className="paste-example-sheet__head">
+                <span>Question</span>
+                <span>Answer</span>
+              </div>
+              {PASTE_EXAMPLE.map((row) => (
+                <div className="paste-example-sheet__row" key={row.question}>
+                  <span>{row.question}</span>
+                  <span>{row.answer}</span>
                 </div>
-              </li>
-            );
-          })}
-        </ol>
+              ))}
+            </div>
+            <textarea
+              aria-label="Copyable example"
+              className="paste-example-dialog__copy"
+              onFocus={(event) => event.currentTarget.select()}
+              readOnly
+              value={PASTE_EXAMPLE_TEXT}
+            />
+            <div>
+              <button
+                className="button button--paper"
+                onClick={closePasteExample}
+                type="button"
+              >
+                Close
+              </button>
+              <button
+                className="button button--paper"
+                onClick={insertPasteExample}
+                type="button"
+              >
+                Insert into field
+              </button>
+              <button
+                className="button button--ink"
+                onClick={copyPasteExample}
+                type="button"
+              >
+                {exampleCopied ? "Copied" : "Copy example"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );

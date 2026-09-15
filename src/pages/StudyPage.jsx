@@ -6,6 +6,7 @@ import {
   fetchDeckById,
   filterCardsForTest,
   recordCardAnswer,
+  shuffleCards,
   RESULT_LABELS,
   touchDeckLastAccessed,
 } from "../utils/decks";
@@ -44,6 +45,7 @@ export default function StudyPage({ user }) {
     [searchParams],
   );
   const unansweredOnly = searchParams.get("due") === "1";
+  const shuffle = searchParams.get("shuffle") === "1";
 
   const [deck, setDeck] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -83,7 +85,8 @@ export default function StudyPage({ user }) {
           results,
           unansweredOnly,
         });
-        setQueueIds(filtered.map((card) => card.id));
+        const queued = shuffle ? shuffleCards(filtered) : filtered;
+        setQueueIds(queued.map((card) => card.id));
         setIndex(0);
         setFlipped(false);
         touchDeckLastAccessed(email, deckId).catch(() => {});
@@ -99,7 +102,7 @@ export default function StudyPage({ user }) {
     return () => {
       cancelled = true;
     };
-  }, [buckets, deckId, email, results, unansweredOnly]);
+  }, [buckets, deckId, email, results, shuffle, unansweredOnly]);
 
   const cards = useMemo(() => {
     if (!deck?.cards) return [];
@@ -119,7 +122,7 @@ export default function StudyPage({ user }) {
     ? Math.round(((index + 1) / cards.length) * 100)
     : 0;
   const isLast = index >= cards.length - 1;
-  const setupPath = `/study/${encodeURIComponent(deckId)}`;
+  const setupPath = `/preview/${encodeURIComponent(deckId)}`;
 
   const filterLabel = (() => {
     const parts = [];
@@ -130,6 +133,7 @@ export default function StudyPage({ user }) {
       parts.push(results.map((result) => RESULT_LABELS[result]).join(", "));
     }
     if (unansweredOnly) parts.push("unanswered only");
+    if (shuffle) parts.push("shuffled");
     return parts.join(" · ");
   })();
 

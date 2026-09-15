@@ -2,9 +2,14 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+
+## TO DO (Needed)
+
+
+
 ## DEPLOY TO SITE
 
- auto deploys change to quirkle.io when launched on main (changes probagate in about 5 mins?) (incorrect)
+ auto deploys change to quirkle.io when launched on main (changes probagate in about 5 mins)
 
 ## TERMINOLOGY
 
@@ -119,33 +124,41 @@ use that internal IP adresss and port on mobile ex. xxx.xxx.xxx.xx:3000
 
 can also be seen when you do "npm start" . should say "On your local network"
 
-## Test subscriptions (Stripe test mode)
+## Test subscriptions (Stripe test vs live)
 
-Keep **Test mode ON** in the Stripe Dashboard the whole time.
+Set **`LOCAL_TESTING`** in the **root** `.env`:
+- `LOCAL_TESTING=true` → Stripe **test** keys
+- `LOCAL_TESTING=false` → Stripe **live** keys
+
+Restart `npm run dev` after changing it. Redeploy functions (`node scripts/deploy-functions.js`) so the backend uses the same mode.
+
+Keep **Test mode ON** in the Stripe Dashboard when `LOCAL_TESTING=true`. Turn it **OFF** for live.
+
+**Prices must be Recurring** (not one-time): **Monthly** and **Yearly** on the same product. Checkout uses `mode: 'subscription'`; the interval comes from the Price. Profile shows **Monthly** / **Yearly** and **Renews on …** from Stripe.
 
 1. **Keys and price**
   - [API keys](https://dashboard.stripe.com/test/apikeys): copy `pk_test_…` and `sk_test_…`
-  - [Products](https://dashboard.stripe.com/test/products): create one monthly product/price and copy the **Price ID** (`price_…`, not `prod_…`)
-  - Root `.env`:
-    - `REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_test_…`
-    - `REACT_APP_STRIPE_PRICE_ID=price_…`
-  - `quirkle-functions/.env`:
-    - `STRIPE_SECRET_KEY=sk_test_…`
-    - `STRIPE_PRICE_ID=price_…` (same Price ID)
+  - [Products](https://dashboard.stripe.com/test/products): create one **recurring monthly** product/price and copy the **Price ID** (`price_…`, not `prod_…`)
+  - Root `.env` (with `LOCAL_TESTING`):
+    - Test: `REACT_APP_STRIPE_TEST_PUBLISHABLE_KEY`, `REACT_APP_STRIPE_TEST_PRICE_ID`, `REACT_APP_STRIPE_TEST_YEARLY_PRICE_ID`
+    - Live: `REACT_APP_STRIPE_LIVE_PUBLISHABLE_KEY`, `REACT_APP_STRIPE_LIVE_PRICE_ID`, `REACT_APP_STRIPE_LIVE_YEARLY_PRICE_ID`
+  - `quirkle-functions/.env`: matching `STRIPE_TEST_*` / `STRIPE_LIVE_*` secret, webhook, monthly and yearly Price IDs
 2. **Backend**
-   - **Redeploy Cloud Functions** (from the **repo root**, after `quirkle-functions/.env` has `STRIPE_SECRET_KEY` and `STRIPE_PRICE_ID`):
+   - **Redeploy Cloud Functions** (from the **repo root**, after `quirkle-functions/.env` has live/test secrets):
      ```bash
      firebase login
      firebase use quirkle-db
      node scripts/deploy-functions.js
      ```
      This copies `quirkle-functions` to `~/.cache` first. A plain `firebase deploy --only functions` often times out because this repo is on Desktop/iCloud.
-     This **updates** the existing functions (`createCheckoutSession`, `createPortalSession`, `stripeWebhook`, `adminCancelSubscription`). It does not create duplicates.
+     This **updates** the existing functions (`createCheckoutSession`, `createPortalSession`, `confirmCheckoutSession`, `stripeWebhook`, `adminCancelSubscription`, `getSubscriptionDetails`, `cancelSubscription`). It does not create duplicates.
      Production URLs:
      `https://us-central1-quirkle-db.cloudfunctions.net/createCheckoutSession`
      `https://us-central1-quirkle-db.cloudfunctions.net/createPortalSession`
      `https://us-central1-quirkle-db.cloudfunctions.net/stripeWebhook`
      `https://us-central1-quirkle-db.cloudfunctions.net/adminCancelSubscription`
+     `https://us-central1-quirkle-db.cloudfunctions.net/getSubscriptionDetails`
+     `https://us-central1-quirkle-db.cloudfunctions.net/cancelSubscription`
 
      Leave `REACT_APP_CLOUD_FUNCTIONS_URL` unset in the app `.env` so the app hits those deployed URLs.
 
@@ -167,12 +180,14 @@ Keep **Test mode ON** in the Stripe Dashboard the whole time.
      ```
      Put the printed `whsec_…` into `quirkle-functions/.env` as `STRIPE_WEBHOOK_SECRET`.
 4. **App checks**
-  - Sign in → **Profile** → **Subscribe**
+  - Sign in → **Profile** → **Subscribe monthly** or **Subscribe yearly**
   - Pay with test card `4242 4242 4242 4242` (any future expiry, any CVC)
   - In Firestore, `users/{email}/userSetting/settings` → `"subscription status"` should become `subscribed`
   - Free: creating a 7th deck is blocked
   - Subscribed: unlimited decks; still 200 questions per deck
-  - **Manage billing** opens the Stripe Customer Portal (test mode)
+  - **Manage billing** opens the Stripe Customer Portal
+  - Subscribed Profile shows **Renews on …** (or **Ends on …** if canceled at period end), from Stripe
+  - **Cancel subscription** on Profile sets Stripe `cancel_at_period_end` (no renew); plan stays Subscribed until the period ends, then webhook sets Free
 
 5. **Admin: set a user back to Free**
    - Sign in as an admin → **Admin**

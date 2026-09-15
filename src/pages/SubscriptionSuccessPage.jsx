@@ -13,6 +13,7 @@ export default function SubscriptionSuccessPage({ user }) {
   const [searchParams] = useSearchParams();
   const [message, setMessage] = useState("Confirming your subscription…");
   const [error, setError] = useState("");
+  const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -31,6 +32,7 @@ export default function SubscriptionSuccessPage({ user }) {
       try {
         await confirmCheckoutSession(email, sessionId);
         if (!cancelled) {
+          setConfirmed(true);
           setMessage("Billing is set. You can make as many decks as you need (still 200 questions per deck).");
         }
       } catch (confirmError) {
@@ -55,7 +57,13 @@ export default function SubscriptionSuccessPage({ user }) {
       <header className="profile__top">
         <div>
           <p className="eyebrow">Subscription</p>
-          <h1>You’re subscribed</h1>
+          <h1>
+            {error
+              ? "Subscription not confirmed"
+              : confirmed
+                ? "You’re subscribed"
+                : "Confirming subscription"}
+          </h1>
           <p className="profile__lede">{message}</p>
           {error ? <p className="profile__error">{error}</p> : null}
         </div>

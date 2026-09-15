@@ -11,7 +11,8 @@ import {
   assertQuestionLimit,
   canCreateDeck,
   FREE_PLAN_MAX_DECKS,
-  getSubscriptionStatus,
+  getVerifiedSubscriptionStatus,
+  MAX_QUESTIONS_PER_DECK,
 } from "./subscription";
 
 const ANSWER_HISTORY_CAP = 40;
@@ -208,6 +209,15 @@ export const filterCardsForTest = (
   });
 };
 
+export const shuffleCards = (cards) => {
+  const next = [...(cards || [])];
+  for (let i = next.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [next[i], next[j]] = [next[j], next[i]];
+  }
+  return next;
+};
+
 export const countCardsByBucket = (cards) => {
   const counts = { 1: 0, 2: 0, 3: 0, 4: 0, due: 0, right: 0, wrong: 0, new: 0 };
   (cards || []).forEach((card) => {
@@ -263,9 +273,7 @@ export const fetchDeckById = async (email, deckId) => {
   if (!snapshot.exists()) return null;
 
   const data = snapshot.data() || {};
-  const cards = normalizeQuestions(data.questions).filter(
-    (card) => card.question || card.answer,
-  );
+  const cards = normalizeQuestions(data.questions);
   const lastTestedAt = getLatestTestedAt(data.questions);
 
   return {
@@ -339,6 +347,157 @@ export const recordCardAnswer = async (email, deckId, card, choice) => {
   };
 };
 
+export const updateCardText = async (email, deckId, cardId, { question, answer }) => {
+  if (!email || !deckId || cardId == null || cardId === "") {
+    throw new Error("Missing deck or card information.");
+  }
+
+  const key = String(cardId);
+  await updateDoc(doc(db, "users", email, "quizCollection", deckId), {
+    [`questions.${key}.question`]: String(question ?? ""),
+    [`questions.${key}.answer`]: String(answer ?? ""),
+    lastAccessed: new Date().toISOString(),
+  });
+};
+
+const nextQuestionKey = (cards) => {
+  const used = new Set((cards || []).map((card) => String(card.id)));
+  let next = 0;
+  while (used.has(String(next))) next += 1;
+  return String(next);
+};
+
+const emptyCardFields = (key, question = "", answer = "") => ({
+  question,
+  answer,
+  level: 1,
+  passed: false,
+  activeTime: null,
+  lastAnswered: null,
+  answerHistory: [],
+  mapIndex: key,
+  originalIndex: key,
+});
+
+const toLocalCard = (key, question = "", answer = "") => ({
+  id: key,
+  question,
+  answer,
+  level: 1,
+  passed: false,
+  activeTime: null,
+  lastAnswered: null,
+  answerHistory: [],
+});
+
+export const parseBulkQuestions = (text) => {
+  const lines = String(text || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .split("\n");
+
+  let skipped = 0;
+  const pairs = [];
+  lines.forEach((raw) => {
+    const line = raw.trim();
+    if (!line) return;
+    let question = "";
+    let answer = "";
+    if (line.includes("\t")) {
+      const [first, ...rest] = line.split("\t");
+      question = first.trim();
+      answer = rest.join("\t").trim();
+    } else if (/\s+\|\s+/.test(line)) {
+      const parts = line.split(/\s+\|\s+/);
+      question = parts[0].trim();
+      answer = parts.slice(1).join(" | ").trim();
+    } else {
+      skipped += 1;
+      return;
+    }
+    if (!question || !answer) {
+      skipped += 1;
+      return;
+    }
+    pairs.push({ question, answer });
+  });
+
+  return { pairs, skipped };
+};
+
+export const addCardToDeck = async (email, deckId, existingCards = []) => {
+  if (!email || !deckId) {
+    throw new Error("Missing deck information.");
+  }
+  if (existingCards.length >= MAX_QUESTIONS_PER_DECK) {
+    throw new Error(
+      `A deck can have at most ${MAX_QUESTIONS_PER_DECK} questions.`,
+    );
+  }
+
+  const key = nextQuestionKey(existingCards);
+  const lastAccessed = new Date().toISOString();
+  const card = toLocalCard(key);
+
+  await updateDoc(doc(db, "users", email, "quizCollection", deckId), {
+    [`questions.${key}`]: emptyCardFields(key),
+    lastAccessed,
+  });
+
+  return card;
+};
+
+export const addCardsToDeck = async (
+  email,
+  deckId,
+  existingCards = [],
+  pairs = [],
+) => {
+  if (!email || !deckId) {
+    throw new Error("Missing deck information.");
+  }
+  if (!pairs.length) {
+    throw new Error("Paste question and answer pairs first.");
+  }
+
+  const room = MAX_QUESTIONS_PER_DECK - existingCards.length;
+  if (room <= 0) {
+    throw new Error(
+      `A deck can have at most ${MAX_QUESTIONS_PER_DECK} questions.`,
+    );
+  }
+
+  const toAdd = pairs.slice(0, room);
+  const used = new Set((existingCards || []).map((card) => String(card.id)));
+  let next = 0;
+  const takeKey = () => {
+    while (used.has(String(next))) next += 1;
+    const key = String(next);
+    used.add(key);
+    next += 1;
+    return key;
+  };
+
+  const lastAccessed = new Date().toISOString();
+  const updates = { lastAccessed };
+  const cards = toAdd.map((pair) => {
+    const key = takeKey();
+    updates[`questions.${key}`] = emptyCardFields(
+      key,
+      pair.question,
+      pair.answer,
+    );
+    return toLocalCard(key, pair.question, pair.answer);
+  });
+
+  await updateDoc(doc(db, "users", email, "quizCollection", deckId), updates);
+
+  return {
+    cards,
+    truncated: pairs.length - toAdd.length,
+  };
+};
+
 export { assertQuestionLimit, MAX_QUESTIONS_PER_DECK } from "./subscription";
 
 /**
@@ -351,7 +510,7 @@ export const createDeckForUser = async (email, title) => {
   }
 
   const [status, existingDecks] = await Promise.all([
-    getSubscriptionStatus(email),
+    getVerifiedSubscriptionStatus(email),
     fetchDecksForUser(email),
   ]);
   if (!canCreateDeck(status, existingDecks.length)) {

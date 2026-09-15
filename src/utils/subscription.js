@@ -7,9 +7,19 @@ const SUBSCRIPTION_FIELD = "subscription status";
 
 export const FREE_PLAN_MAX_DECKS = 6;
 export const MAX_QUESTIONS_PER_DECK = 200;
+export const MONTHLY_PRICE_USD = 5;
+export const YEARLY_PRICE_USD = 50;
+export const YEARLY_BILLED_MONTHLY_USD = MONTHLY_PRICE_USD * 12;
+export const YEARLY_SAVINGS_USD = YEARLY_BILLED_MONTHLY_USD - YEARLY_PRICE_USD;
+export const YEARLY_SAVINGS_PERCENT = Math.round(
+  (YEARLY_SAVINGS_USD / YEARLY_BILLED_MONTHLY_USD) * 100,
+);
 
 const env = (key) =>
   import.meta.env[key] || (typeof process !== "undefined" ? process.env[key] : "");
+
+const isLocalTesting = () =>
+  String(env("LOCAL_TESTING") || "").toLowerCase() === "true";
 
 const getCloudFunctionsBaseUrl = () => {
   const override = env("REACT_APP_CLOUD_FUNCTIONS_URL");
@@ -18,9 +28,34 @@ const getCloudFunctionsBaseUrl = () => {
   return `https://us-central1-${projectId}.cloudfunctions.net`;
 };
 
-export const getStripePriceId = () => env("REACT_APP_STRIPE_PRICE_ID") || "";
+export const getStripePriceId = (interval = "month") => {
+  const yearly = String(interval || "").toLowerCase() === "year";
+  if (isLocalTesting()) {
+    if (yearly) {
+      return env("REACT_APP_STRIPE_TEST_YEARLY_PRICE_ID") || "";
+    }
+    return (
+      env("REACT_APP_STRIPE_TEST_PRICE_ID") ||
+      env("REACT_APP_STRIPE_PRICE_ID") ||
+      ""
+    );
+  }
+  if (yearly) {
+    return env("REACT_APP_STRIPE_LIVE_YEARLY_PRICE_ID") || "";
+  }
+  return env("REACT_APP_STRIPE_LIVE_PRICE_ID") || "";
+};
 
-const getPublishableKey = () => env("REACT_APP_STRIPE_PUBLISHABLE_KEY") || "";
+const getPublishableKey = () => {
+  if (isLocalTesting()) {
+    return (
+      env("REACT_APP_STRIPE_TEST_PUBLISHABLE_KEY") ||
+      env("REACT_APP_STRIPE_PUBLISHABLE_KEY") ||
+      ""
+    );
+  }
+  return env("REACT_APP_STRIPE_LIVE_PUBLISHABLE_KEY") || "";
+};
 
 const appHashUrl = (hashPath) => {
   const origin = `${window.location.origin}${window.location.pathname}`.replace(
@@ -39,6 +74,30 @@ export const isFreePlan = (status) => !isSubscribed(status);
 
 export const planLabel = (status) => (isSubscribed(status) ? "Subscribed" : "Free");
 
+const emptyDetails = {
+  status: "free",
+  nextRenewalAt: null,
+  cancelAtPeriodEnd: false,
+  interval: null,
+};
+
+const stripeConfirmedPaid = (details) =>
+  isSubscribed(details?.status) &&
+  Boolean(details?.interval || details?.nextRenewalAt);
+
+const detailsFromStripe = (data, firestoreStatus) => {
+  const details = {
+    status: data.status || firestoreStatus || "free",
+    nextRenewalAt: data.nextRenewalAt || null,
+    cancelAtPeriodEnd: Boolean(data.cancelAtPeriodEnd),
+    interval: data.interval || null,
+  };
+  if (isSubscribed(details.status) && !stripeConfirmedPaid(details)) {
+    return { ...details, status: "free" };
+  }
+  return details;
+};
+
 export const getSubscriptionStatus = async (email) => {
   if (!email) return "free";
   try {
@@ -51,6 +110,62 @@ export const getSubscriptionStatus = async (email) => {
     console.error("Error getting subscription status:", error);
     return "free";
   }
+};
+
+export const getSubscriptionDetails = async (email) => {
+  if (!email) return { ...emptyDetails };
+
+  const firestoreStatus = await getSubscriptionStatus(email);
+
+  try {
+    const response = await fetch(
+      `${getCloudFunctionsBaseUrl()}/getSubscriptionDetails`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      },
+    );
+
+    if (!response.ok) {
+      return { ...emptyDetails, status: firestoreStatus };
+    }
+
+    const data = await response.json();
+    return detailsFromStripe(data, firestoreStatus);
+  } catch (error) {
+    console.error("Error getting subscription details:", error);
+    return { ...emptyDetails, status: firestoreStatus };
+  }
+};
+
+export const getVerifiedSubscriptionStatus = async (email) => {
+  const details = await getSubscriptionDetails(email);
+  return details.status;
+};
+
+export const cancelSubscriptionAtPeriodEnd = async (email) => {
+  if (!email) throw new Error("You must be signed in.");
+  const token = await auth.currentUser?.getIdToken();
+  if (!token) throw new Error("You must be signed in.");
+
+  const response = await fetch(
+    `${getCloudFunctionsBaseUrl()}/cancelSubscription`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ email }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(await parseFunctionError(response));
+  }
+
+  return response.json();
 };
 
 export const listUsersWithPlans = async () => {
@@ -164,12 +279,19 @@ const getStripe = () => {
   return stripePromise;
 };
 
-export const startCheckout = async (email) => {
+export const startCheckout = async (email, { interval = "month" } = {}) => {
   if (!email) throw new Error("You must be signed in to subscribe.");
-  const priceId = getStripePriceId();
+  const yearly = String(interval).toLowerCase() === "year";
+  const priceId = getStripePriceId(yearly ? "year" : "month");
   if (!priceId || !priceId.startsWith("price_")) {
     throw new Error(
-      "Missing Stripe Price ID. Set REACT_APP_STRIPE_PRICE_ID in .env.",
+      yearly
+        ? isLocalTesting()
+          ? "Missing test yearly Price ID. Set REACT_APP_STRIPE_TEST_YEARLY_PRICE_ID."
+          : "Missing live yearly Price ID. Set REACT_APP_STRIPE_LIVE_YEARLY_PRICE_ID."
+        : isLocalTesting()
+          ? "Missing test Stripe Price ID. Set REACT_APP_STRIPE_TEST_PRICE_ID and LOCAL_TESTING=true."
+          : "Missing live Stripe Price ID. Set REACT_APP_STRIPE_LIVE_PRICE_ID and LOCAL_TESTING=false.",
     );
   }
 

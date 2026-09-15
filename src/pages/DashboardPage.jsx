@@ -7,7 +7,7 @@ import { createDeckForUser, fetchDecksForUser } from "../utils/decks";
 import {
   canCreateDeck,
   FREE_PLAN_MAX_DECKS,
-  getSubscriptionStatus,
+  getVerifiedSubscriptionStatus,
 } from "../utils/subscription";
 
 export default function DashboardPage({ user }) {
@@ -19,7 +19,6 @@ export default function DashboardPage({ user }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
-  const [activeDeckId, setActiveDeckId] = useState(null);
   const [planStatus, setPlanStatus] = useState("free");
   const firstName =
     user?.displayName?.split(" ")[0] || user?.email?.split("@")[0] || "writer";
@@ -40,7 +39,7 @@ export default function DashboardPage({ user }) {
       try {
         const [nextDecks, status] = await Promise.all([
           fetchDecksForUser(email),
-          getSubscriptionStatus(email),
+          getVerifiedSubscriptionStatus(email),
         ]);
         if (!cancelled) {
           setDecks(nextDecks);
@@ -175,56 +174,21 @@ export default function DashboardPage({ user }) {
           ) : (
             <div className="deck-grid">
               {decks.map((deck) => {
-                const isActive = activeDeckId === deck.id;
                 const encodedId = encodeURIComponent(deck.id);
 
                 return (
-                  <div
-                    className={`deck-card${isActive ? " deck-card--active" : ""}`}
-                    key={deck.id}
-                  >
-                    {isActive ? (
-                      <>
-                        <strong className="deck-card__title">{deck.title}</strong>
-                        <p className="deck-card__last-test">
-                          Last test: {deck.lastTestedLabel || "Never tested"}
-                        </p>
-                        <div className="deck-card__modes">
-                          <button
-                            onClick={() => navigate(`/preview/${encodedId}`)}
-                            type="button"
-                          >
-                            Preview
-                          </button>
-                          <button
-                            onClick={() => navigate(`/study/${encodedId}`)}
-                            type="button"
-                          >
-                            Test
-                          </button>
-                        </div>
-                        <button
-                          className="deck-card__cancel"
-                          onClick={() => setActiveDeckId(null)}
-                          type="button"
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        className="deck-card__hit"
-                        onClick={() => setActiveDeckId(deck.id)}
-                        type="button"
-                      >
-                        <span className="deck-card__meta">
-                          {deck.cards} {deck.cards === 1 ? "card" : "cards"} ·{" "}
-                          {deck.updated}
-                        </span>
-                        <strong className="deck-card__title">{deck.title}</strong>
-                        <span className="deck-card__action">Open</span>
-                      </button>
-                    )}
+                  <div className="deck-card" key={deck.id}>
+                    <button
+                      className="deck-card__hit"
+                      onClick={() => navigate(`/preview/${encodedId}`)}
+                      type="button"
+                    >
+                      <span className="deck-card__meta">
+                        {deck.cards} {deck.cards === 1 ? "card" : "cards"} ·{" "}
+                        {deck.updated}
+                      </span>
+                      <strong className="deck-card__title">{deck.title}</strong>
+                    </button>
                   </div>
                 );
               })}
