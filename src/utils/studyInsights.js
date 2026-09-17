@@ -42,15 +42,50 @@ export const countDueByBucketThrough = (cards, throughDate) => {
   return { buckets, total };
 };
 
+const calendarDaysBetween = (from, to) => {
+  const start = Date.UTC(from.getFullYear(), from.getMonth(), from.getDate());
+  const end = Date.UTC(to.getFullYear(), to.getMonth(), to.getDate());
+  return Math.round((end - start) / 86400000);
+};
+
+const addLocalDays = (date, days) => {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+};
+
 export const getTimelineSpanDays = (cards, { minDays = 14, maxDays = 90 } = {}) => {
   const today = startOfLocalDay();
   let span = minDays;
   (cards || []).forEach((card) => {
-    const due = getCardDueDate(card);
-    const offset = Math.ceil((due - today) / 86400000);
+    const offset = calendarDaysBetween(today, getCardDueDate(card));
     if (offset > span) span = offset;
   });
   return Math.min(Math.max(span, minDays), maxDays);
+};
+
+export const buildDueDistribution = (cards, options) => {
+  const today = startOfLocalDay();
+  const spanDays = getTimelineSpanDays(cards, options);
+  const days = Array.from({ length: spanDays + 1 }, (_, offset) => ({
+    offset,
+    date: addLocalDays(today, offset),
+    total: 0,
+    buckets: { 1: 0, 2: 0, 3: 0, 4: 0 },
+  }));
+
+  (cards || []).forEach((card) => {
+    const offset = Math.min(
+      spanDays,
+      Math.max(0, calendarDaysBetween(today, getCardDueDate(card))),
+    );
+    const level = Math.min(4, Math.max(1, parseInt(card.level, 10) || 1));
+    days[offset].buckets[level] += 1;
+    days[offset].total += 1;
+  });
+
+  const maxCount = days.reduce((max, day) => Math.max(max, day.total), 0);
+  return { days, spanDays, maxCount, today };
 };
 
 const recentEntries = (history, limit = 10) =>

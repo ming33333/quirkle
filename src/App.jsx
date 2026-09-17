@@ -17,7 +17,6 @@ import LandingPage from "./pages/LandingPage.jsx";
 import LuckySoftwarePage from "./pages/LuckySoftwarePage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import StudyPage from "./pages/StudyPage.jsx";
-import TestSetupPage from "./pages/TestSetupPage.jsx";
 import PreviewPage from "./pages/PreviewPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import SubscriptionSuccessPage from "./pages/SubscriptionSuccessPage.jsx";
@@ -84,7 +83,7 @@ function AppRoutes({ user }) {
           path="/study/:deckId"
           element={
             <ProtectedRoute user={user}>
-              <TestSetupPage user={viewUser} />
+              <PreviewPage user={viewUser} />
             </ProtectedRoute>
           }
         />

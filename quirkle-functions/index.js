@@ -4,7 +4,10 @@
  * This file contains Firebase Cloud Functions for handling Stripe subscriptions:
  * - createCheckoutSession: Creates a Stripe Checkout session
  * - createPortalSession: Creates a Stripe Customer Portal session
+ * - getSubscriptionDetails: Returns plan status + next renewal date from Stripe
+ * - cancelSubscription: User schedules cancel at period end (no renew; stays subscribed until then)
  * - stripeWebhook: Handles Stripe webhook events (subscription updates, cancellations, etc.)
+ * - adminCancelSubscription: Admin cancels a user's Stripe subscription and sets Free
  * 
  * SETUP INSTRUCTIONS:
  * 1. Install dependencies: cd quirkle-functions && npm install
@@ -26,25 +29,126 @@ const getDb = () => {
 const USER_SETTING_DOC_ID = 'settings';
 const SUBSCRIPTION_FIELD = 'subscription status';
 
+const isLocalTesting = () =>
+  String(process.env.LOCAL_TESTING || "").toLowerCase() === "true";
+
+const stripeSecretKey = () => {
+  const key = isLocalTesting()
+    ? process.env.STRIPE_TEST_SECRET_KEY || process.env.STRIPE_SECRET_KEY
+    : process.env.STRIPE_LIVE_SECRET_KEY;
+  if (!key) {
+    throw new Error(
+      isLocalTesting()
+        ? "Missing STRIPE_TEST_SECRET_KEY (LOCAL_TESTING=true)."
+        : "Missing STRIPE_LIVE_SECRET_KEY (LOCAL_TESTING=false).",
+    );
+  }
+  return key;
+};
+
+const stripeWebhookSecret = () =>
+  isLocalTesting()
+    ? process.env.STRIPE_TEST_WEBHOOK_SECRET || process.env.STRIPE_WEBHOOK_SECRET
+    : process.env.STRIPE_LIVE_WEBHOOK_SECRET;
+
 let stripeClient = null;
+let stripeClientMode = null;
 const getStripe = () => {
-  if (!stripeClient) {
-    stripeClient = require('stripe')(process.env.STRIPE_SECRET_KEY);
+  const mode = isLocalTesting() ? "test" : "live";
+  if (!stripeClient || stripeClientMode !== mode) {
+    stripeClient = require("stripe")(stripeSecretKey());
+    stripeClientMode = mode;
   }
   return stripeClient;
 };
 
 /**
  * Map Stripe price IDs to subscription statuses.
- * Set STRIPE_PRICE_ID in quirkle-functions/.env (or Cloud Functions env).
- * Legacy basic/pro price IDs still count as subscribed.
+ * Include both test and live Price IDs so either mode still marks subscribed.
  */
 const PRICE_TO_STATUS_MAP = {
-  ...(process.env.STRIPE_PRICE_ID
-    ? { [process.env.STRIPE_PRICE_ID]: 'subscribed' }
+  ...(process.env.STRIPE_TEST_PRICE_ID
+    ? { [process.env.STRIPE_TEST_PRICE_ID]: "subscribed" }
     : {}),
-  price_pseudo_basic_monthly: 'subscribed',
-  price_pseudo_pro_monthly: 'subscribed',
+  ...(process.env.STRIPE_TEST_YEARLY_PRICE_ID
+    ? { [process.env.STRIPE_TEST_YEARLY_PRICE_ID]: "subscribed" }
+    : {}),
+  ...(process.env.STRIPE_LIVE_PRICE_ID
+    ? { [process.env.STRIPE_LIVE_PRICE_ID]: "subscribed" }
+    : {}),
+  ...(process.env.STRIPE_LIVE_YEARLY_PRICE_ID
+    ? { [process.env.STRIPE_LIVE_YEARLY_PRICE_ID]: "subscribed" }
+    : {}),
+  ...(process.env.STRIPE_PRICE_ID
+    ? { [process.env.STRIPE_PRICE_ID]: "subscribed" }
+    : {}),
+  price_pseudo_basic_monthly: "subscribed",
+  price_pseudo_pro_monthly: "subscribed",
+};
+
+const ACCESS_SUBSCRIPTION_STATUSES = new Set([
+  "active",
+  "trialing",
+  "past_due",
+]);
+
+const isAccessGrantingStatus = (status) =>
+  ACCESS_SUBSCRIPTION_STATUSES.has(String(status || "").toLowerCase());
+
+const planStatusFromSubscription = (subscription) => {
+  if (!isAccessGrantingStatus(subscription?.status)) {
+    return "free";
+  }
+  const priceId = subscription.items?.data?.[0]?.price?.id;
+  return PRICE_TO_STATUS_MAP[priceId] || "subscribed";
+};
+
+const isCheckoutPaid = (session) => session?.payment_status === "paid";
+
+const looksSubscribed = (status) => {
+  const value = String(status || "free").toLowerCase();
+  return value === "subscribed" || value === "basic" || value === "pro";
+};
+
+const emailFromSubscription = async (subscription) => {
+  let email = subscription.metadata?.email || subscription.customer_email;
+  if (!email) {
+    const customer = await getStripe().customers.retrieve(subscription.customer);
+    email = customer.email;
+  }
+  return email;
+};
+
+const findPaidSubscription = async (email, extraCustomerId) => {
+  const customers = await getStripe().customers.list({
+    email: String(email || "").trim().toLowerCase(),
+    limit: 10,
+  });
+  const customerIds = customers.data.map((customer) => customer.id);
+  if (extraCustomerId && !customerIds.includes(extraCustomerId)) {
+    customerIds.push(extraCustomerId);
+  }
+
+  for (const customerId of customerIds) {
+    const subscriptions = await getStripe().subscriptions.list({
+      customer: customerId,
+      status: "all",
+      limit: 20,
+    });
+    const withAccess = subscriptions.data.find((sub) =>
+      isAccessGrantingStatus(sub.status),
+    );
+    if (withAccess) return withAccess;
+  }
+  return null;
+};
+
+const syncPlanFromEmail = async (email, extraCustomerId) => {
+  const withAccess = await findPaidSubscription(email, extraCustomerId);
+  await setSubscriptionStatus(
+    email,
+    withAccess ? planStatusFromSubscription(withAccess) : "free",
+  );
 };
 
 /**
@@ -92,17 +196,19 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Create Stripe Checkout Session
-    const session = await getStripe().checkout.sessions.create({
-      customer_email: email, // Pre-fill checkout form; Stripe creates/links customer
-      payment_method_types: ['card'], // Accept card payments only
+    const customers = await getStripe().customers.list({
+      email: String(email).trim().toLowerCase(),
+      limit: 1,
+    });
+    const sessionParams = {
+      payment_method_types: ["card"],
       line_items: [
         {
           price: priceId,
           quantity: 1,
         },
       ],
-      mode: 'subscription',
+      mode: "subscription",
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: {
@@ -112,14 +218,23 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
       subscription_data: {
         metadata: { email },
       },
-    });
+    };
+    if (customers.data[0]) {
+      sessionParams.customer = customers.data[0].id;
+    } else {
+      sessionParams.customer_email = email;
+    }
+
+    const session = await getStripe().checkout.sessions.create(sessionParams);
 
     res.json({ sessionId: session.id });
   } catch (error) {
     console.error('Error creating checkout session:', error);
-    const message = error.type === 'StripeInvalidRequestError' && error.param === 'line_items[0][price]'
-      ? 'Invalid priceId. Use a Stripe Price ID (price_...) from Dashboard → Products → [your product] → Pricing, not a Product ID (prod_...).'
-      : error.message;
+    const message =
+      error.type === "StripeInvalidRequestError" &&
+      error.param === "line_items[0][price]"
+        ? `${error.message} Use a recurring Price ID (price_...) from the same Stripe mode as LOCAL_TESTING (test vs live).`
+        : error.message;
     res.status(500).json({ error: message });
   }
 });
@@ -179,7 +294,76 @@ exports.createPortalSession = functions.https.onRequest(async (req, res) => {
   }
 });
 
-const setSubscriptionStatus = async (email, status) => {
+/**
+ * Return subscription status + next renewal date from Stripe.
+ * POST /getSubscriptionDetails { email }
+ */
+exports.getSubscriptionDetails = functions.https.onRequest(async (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      return res.status(400).json({ error: "Missing required field: email" });
+    }
+
+    const firestoreStatus = await (async () => {
+      const settingsRef = getDb()
+        .collection("users")
+        .doc(email)
+        .collection("userSetting")
+        .doc(USER_SETTING_DOC_ID);
+      const snap = await settingsRef.get();
+      return snap.exists ? snap.data()?.[SUBSCRIPTION_FIELD] || "free" : "free";
+    })();
+
+    const withAccess = await findPaidSubscription(email);
+
+    if (!withAccess) {
+      if (looksSubscribed(firestoreStatus)) {
+        await setSubscriptionStatus(email, "free");
+      }
+      return res.json({
+        status: "free",
+        nextRenewalAt: null,
+        cancelAtPeriodEnd: false,
+        interval: null,
+      });
+    }
+
+    const status = planStatusFromSubscription(withAccess);
+    if (status !== firestoreStatus) {
+      await setSubscriptionStatus(email, status);
+    }
+
+    const nextRenewalAt = withAccess.current_period_end
+      ? new Date(withAccess.current_period_end * 1000).toISOString()
+      : null;
+    const interval = withAccess.items?.data?.[0]?.price?.recurring?.interval || null;
+
+    res.json({
+      status,
+      nextRenewalAt,
+      cancelAtPeriodEnd: Boolean(withAccess.cancel_at_period_end),
+      interval,
+    });
+  } catch (error) {
+    console.error("Error getting subscription details:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+async function setSubscriptionStatus(email, status) {
   const exact = String(email || "").trim();
   const normalized = exact.toLowerCase();
   if (!normalized) {
@@ -201,7 +385,7 @@ const setSubscriptionStatus = async (email, status) => {
     await writeStatus(exact);
   }
   console.log(`Updated subscription for ${normalized} to ${status}`);
-};
+}
 
 /**
  * Confirm a completed Checkout Session and mark the user subscribed.
@@ -239,11 +423,19 @@ exports.confirmCheckoutSession = functions.https.onRequest(async (req, res) => {
       return res.status(403).json({ error: "Checkout session does not match this account." });
     }
 
-    const paid =
-      session.payment_status === "paid" ||
-      session.status === "complete";
-    if (!paid) {
+    if (!isCheckoutPaid(session)) {
       return res.status(400).json({ error: "Checkout is not complete yet." });
+    }
+
+    if (session.subscription) {
+      const subscription = await getStripe().subscriptions.retrieve(
+        session.subscription,
+      );
+      if (!isAccessGrantingStatus(subscription.status)) {
+        return res.status(400).json({
+          error: "Payment did not go through. You have not been subscribed.",
+        });
+      }
     }
 
     await setSubscriptionStatus(expected, "subscribed");
@@ -274,7 +466,7 @@ exports.confirmCheckoutSession = functions.https.onRequest(async (req, res) => {
  */
 exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
   const sig = req.headers["stripe-signature"];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const webhookSecret = stripeWebhookSecret();
   const payload = req.rawBody || req.body;
 
   let event;
@@ -294,22 +486,26 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
         session.metadata?.email ||
         session.customer_email ||
         session.customer_details?.email;
-      if (email && (session.payment_status === "paid" || session.status === "complete")) {
+      if (email && isCheckoutPaid(session)) {
+        if (session.subscription) {
+          const subscription = await getStripe().subscriptions.retrieve(
+            session.subscription,
+          );
+          if (!isAccessGrantingStatus(subscription.status)) {
+            await syncPlanFromEmail(email, session.customer);
+            break;
+          }
+        }
         await setSubscriptionStatus(email, "subscribed");
       }
       break;
     }
 
     case "customer.subscription.created":
-    case "customer.subscription.updated": {
+    case "customer.subscription.updated":
+    case "customer.subscription.deleted": {
       const subscription = event.data.object;
       await handleSubscriptionUpdate(subscription);
-      break;
-    }
-
-    case 'customer.subscription.deleted': {
-      const subscription = event.data.object;
-      await handleSubscriptionCancellation(subscription);
       break;
     }
 
@@ -340,62 +536,12 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
  * Handle subscription creation/update
  */
 async function handleSubscriptionUpdate(subscription) {
-  let email = subscription.metadata?.email || subscription.customer_email;
+  const email = await emailFromSubscription(subscription);
   if (!email) {
-    const customer = await getStripe().customers.retrieve(subscription.customer);
-    email = customer.email;
-  }
-
-  if (!email) {
-    console.error('No email found in subscription:', subscription.id);
+    console.error("No email found in subscription:", subscription.id);
     return;
   }
-
-  const stripeStatus = subscription.status;
-  if (stripeStatus === 'canceled' || stripeStatus === 'unpaid' || stripeStatus === 'incomplete_expired') {
-    await handleSubscriptionCancellation(subscription);
-    return;
-  }
-
-  const priceId = subscription.items.data[0]?.price?.id;
-  const status = PRICE_TO_STATUS_MAP[priceId] || 'subscribed';
-
-  const userRef = getDb().collection("users").doc(email.toLowerCase());
-  const settingsRef = userRef.collection("userSetting").doc(USER_SETTING_DOC_ID);
-  
-  await settingsRef.set(
-    { [SUBSCRIPTION_FIELD]: status },
-    { merge: true }
-  );
-
-  console.log(`Updated subscription for ${email} to ${status}`);
-}
-
-/**
- * Handle subscription cancellation
- */
-async function handleSubscriptionCancellation(subscription) {
-  let email = subscription.metadata?.email || subscription.customer_email;
-  if (!email) {
-    const customer = await getStripe().customers.retrieve(subscription.customer);
-    email = customer.email;
-  }
-
-  if (!email) {
-    console.error('No email found in subscription:', subscription.id);
-    return;
-  }
-
-  // Update Firestore to free
-  const userRef = getDb().collection('users').doc(email);
-  const settingsRef = userRef.collection('userSetting').doc(USER_SETTING_DOC_ID);
-  
-  await settingsRef.set(
-    { [SUBSCRIPTION_FIELD]: 'free' },
-    { merge: true }
-  );
-
-  console.log(`Cancelled subscription for ${email}`);
+  await syncPlanFromEmail(email, subscription.customer);
 }
 
 /**
@@ -413,9 +559,11 @@ async function handlePaymentSucceeded(invoice) {
  * Handle failed payment
  */
 async function handlePaymentFailed(invoice) {
-  // You might want to send an email notification here
-  console.log('Payment failed for invoice:', invoice.id);
-  // Optionally downgrade to free after multiple failures
+  console.log("Payment failed for invoice:", invoice.id);
+  const subscriptionId = invoice.subscription;
+  if (!subscriptionId) return;
+  const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
+  await handleSubscriptionUpdate(subscription);
 }
 
 const applyCors = (req, res) => {
@@ -447,6 +595,97 @@ const requireAdmin = async (req) => {
   }
   return adminEmail;
 };
+
+const requireSignedInUser = async (req, expectedEmail) => {
+  const header = req.headers.authorization || "";
+  const token = header.startsWith("Bearer ") ? header.slice(7) : "";
+  if (!token) {
+    const error = new Error("Missing auth token.");
+    error.status = 401;
+    throw error;
+  }
+  const decoded = await admin.auth().verifyIdToken(token);
+  const authEmail = String(decoded.email || "").trim().toLowerCase();
+  const target = String(expectedEmail || "").trim().toLowerCase();
+  if (!authEmail) {
+    const error = new Error("Token has no email.");
+    error.status = 403;
+    throw error;
+  }
+  if (!target || authEmail !== target) {
+    const error = new Error("You can only cancel your own subscription.");
+    error.status = 403;
+    throw error;
+  }
+  return authEmail;
+};
+
+/**
+ * User: stop renewal at period end. Stays subscribed until then; webhook sets free.
+ * POST /cancelSubscription { email }
+ * Authorization: Bearer <Firebase ID token> (must match email)
+ */
+exports.cancelSubscription = functions.https.onRequest(async (req, res) => {
+  applyCors(req, res);
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
+    const email = String(req.body?.email || "").trim();
+    if (!email || !email.includes("@")) {
+      return res.status(400).json({ error: "Missing user email." });
+    }
+    await requireSignedInUser(req, email);
+
+    const customers = await getStripe().customers.list({
+      email: email.toLowerCase(),
+      limit: 10,
+    });
+    if (customers.data.length === 0) {
+      return res.status(404).json({ error: "No Stripe customer found." });
+    }
+
+    let updated = null;
+    for (const customer of customers.data) {
+      const subscriptions = await getStripe().subscriptions.list({
+        customer: customer.id,
+        status: "all",
+        limit: 20,
+      });
+      for (const subscription of subscriptions.data) {
+        if (subscription.status !== "active" && subscription.status !== "trialing") {
+          continue;
+        }
+        updated = await getStripe().subscriptions.update(subscription.id, {
+          cancel_at_period_end: true,
+        });
+        break;
+      }
+      if (updated) break;
+    }
+
+    if (!updated) {
+      return res.status(404).json({ error: "No active subscription to cancel." });
+    }
+
+    // Keep Firestore as subscribed until period ends (customer.subscription.deleted).
+    res.json({
+      status: "subscribed",
+      cancelAtPeriodEnd: true,
+      nextRenewalAt: updated.current_period_end
+        ? new Date(updated.current_period_end * 1000).toISOString()
+        : null,
+    });
+  } catch (error) {
+    console.error("Error scheduling subscription cancel:", error);
+    res.status(error.status || 500).json({ error: error.message });
+  }
+});
 
 /**
  * Admin: cancel a user's Stripe subscription(s) and set plan to free.

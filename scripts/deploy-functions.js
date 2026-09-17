@@ -40,6 +40,25 @@ for (const name of fs.readdirSync(sourceDir)) {
 fs.cpSync(path.join(root, "firebase.json"), path.join(cacheRoot, "firebase.json"));
 fs.cpSync(path.join(root, ".firebaserc"), path.join(cacheRoot, ".firebaserc"));
 
+const destEnv = path.join(destDir, ".env");
+try {
+  const rootEnv = fs.readFileSync(path.join(root, ".env"), "utf8");
+  const match = rootEnv.match(/^LOCAL_TESTING=(.*)$/m);
+  if (match && fs.existsSync(destEnv)) {
+    const value = match[1].trim();
+    let text = fs.readFileSync(destEnv, "utf8");
+    if (/^LOCAL_TESTING=/m.test(text)) {
+      text = text.replace(/^LOCAL_TESTING=.*$/m, `LOCAL_TESTING=${value}`);
+    } else {
+      text += `\nLOCAL_TESTING=${value}\n`;
+    }
+    fs.writeFileSync(destEnv, text);
+    console.log("[deploy-functions] LOCAL_TESTING=" + value);
+  }
+} catch (error) {
+  console.warn("[deploy-functions] Could not copy LOCAL_TESTING:", error.message);
+}
+
 console.log("[deploy-functions] Installing dependencies on local disk…");
 run("npm", ["install", "--no-fund", "--no-audit"], destDir);
 
