@@ -1,4 +1,5 @@
 import { getApps, initializeApp } from "firebase/app";
+import { getAnalytics, isSupported, logEvent } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
@@ -16,3 +17,34 @@ const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+let analytics = null;
+const analyticsReady =
+  typeof window === "undefined" || !firebaseConfig.measurementId
+    ? Promise.resolve(null)
+    : isSupported()
+        .then((supported) => {
+          if (!supported) return null;
+          analytics = getAnalytics(app);
+          return analytics;
+        })
+        .catch(() => null);
+
+export function getFirebaseAnalytics() {
+  return analytics;
+}
+
+export async function logAnalyticsEvent(eventName, params) {
+  const instance = analytics || (await analyticsReady);
+  if (!instance) return;
+  logEvent(instance, eventName, params);
+}
+
+export function logPageView(path) {
+  void logAnalyticsEvent("page_view", {
+    page_path: path,
+    page_title: typeof document !== "undefined" ? document.title : undefined,
+    page_location:
+      typeof window !== "undefined" ? window.location.href : undefined,
+  });
+}

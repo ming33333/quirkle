@@ -249,6 +249,12 @@ a {
   font-style: italic;
 }
 
+.lucky__sheet .lucky__contact {
+  margin: 0 0 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
 .hero__actions {
   display: flex;
   align-items: center;

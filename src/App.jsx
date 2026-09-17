@@ -25,7 +25,7 @@ import {
   ImpersonationProvider,
   useImpersonation,
 } from "./context/ImpersonationContext.jsx";
-import { auth } from "./utils/firebase";
+import { auth, logPageView } from "./utils/firebase";
 
 const PROFILE_BACKGROUND = {
   pathname: "/dashboard",
@@ -42,6 +42,10 @@ function AppRoutes({ user }) {
   const viewUser = effectiveUser || user;
   const profileOpen = location.pathname === "/profile";
   const profileBackground = location.state?.background;
+
+  useEffect(() => {
+    logPageView(`${location.pathname}${location.search}`);
+  }, [location.pathname, location.search]);
   const routesLocation = profileOpen
     ? profileBackground || PROFILE_BACKGROUND
     : location;

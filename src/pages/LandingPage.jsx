@@ -307,6 +307,12 @@ export default function LandingPage({ user }) {
           </Link>
           .
         </p>
+        <p>
+          Feature requests or support:{" "}
+          <a className="text-link" href="mailto:luckysoftwaretexas@gmail.com">
+            luckysoftwaretexas@gmail.com
+          </a>
+        </p>
       </footer>
     </main>
   );

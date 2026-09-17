@@ -35,6 +35,16 @@ export default function LuckySoftwarePage() {
           people who want to learn, not to be kept scrolling.
         </p>
         <p className="lucky__sign">— Lucky Software</p>
+        <p className="lucky__contact">
+          Feature request or need support? Reach out at{" "}
+          <a
+            className="text-link text-link--large"
+            href="mailto:luckysoftwaretexas@gmail.com"
+          >
+            luckysoftwaretexas@gmail.com
+          </a>
+          .
+        </p>
         <Link className="button button--ink" to="/">
           Back to Quirkle
         </Link>
