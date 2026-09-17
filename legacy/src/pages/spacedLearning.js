@@ -304,7 +304,7 @@ const SpacedLearningQuiz = ({
 
   return (
     <div className="spaced-learning-container">
-      <h2>Spaced Learning</h2>
+      <h2>Spaced Repetition</h2>
       <div className="grid-container">
         {[1, 2, 3, 4].map((level) => (
           <div

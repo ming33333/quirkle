@@ -24,13 +24,13 @@ function HeroStory() {
   return (
     <div
       className="hero-story"
-      aria-label="Welcome to Quirkle. Dedicated to spaced learning: cards come back when they are due so each review sticks."
+      aria-label="Welcome to Quirkle. Dedicated to spaced repetition: cards come back when they are due so each review sticks."
     >
       <div className="hero-story__scene hero-story__scene--welcome">
         <span className="hero-story__seal" aria-hidden="true" />
         <p className="hero-story__hello">Welcome to Quirkle</p>
         <p className="hero-story__note">
-          Dedicated to spaced learning.
+          Dedicated to spaced repetition.
         </p>
         <p className="hero-story__explain">
           Cards come back when they’re due — just as they start to fade — so

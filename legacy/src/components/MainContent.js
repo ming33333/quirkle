@@ -225,7 +225,7 @@ const MainContent = ({
               e.target.style.transform = "scale(1)";
             }}
           >
-            Spaced Learning
+            Spaced Repetition
           </button>
         </div>
         <div className="main-content">

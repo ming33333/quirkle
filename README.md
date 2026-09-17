@@ -11,7 +11,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## TERMINOLOGY
 
-- spaced learning, Active Questions, questions in spaced learning that are ready to be taking, active question can be cumulated over time
+- spaced repetition, Active Questions, questions in spaced repetition that are ready to be taking, active question can be cumulated over time
 so some questions will be 'late'. Active questions can be taken late but will still adhere to the same rules if the user get the question right/wrong.
 
 ## Repository Structure
@@ -36,7 +36,7 @@ The main source folder for the application. It contains all the code, components
 
 - Contains React components that represent different pages of the application.
 - Examples: `welcome.js`, `StudyRoom.js`, `store.js`, `spacedLearningQuiz.js`.
-- Each file corresponds to a specific route or feature in the app, such as the study room, store, or spaced learning quiz.
+- Each file corresponds to a specific route or feature in the app, such as the study room, store, or spaced repetition quiz.
 
 
 
@@ -209,6 +209,6 @@ Keep **Test mode ON** in the Stripe Dashboard when `LOCAL_TESTING=true`. Turn it
       - see levels cats for unanswered question 
       - fix question editing, saving is weird and editing is wierd 
       - filter by answered, and unanswered
-      - either standard spaced learning, or free time spaced learning
+      - either standard spaced repetition, or free time spaced repetition
       - when editiing question or reviewing, make sure scroll up and down is easy
 

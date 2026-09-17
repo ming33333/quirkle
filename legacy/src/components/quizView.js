@@ -373,7 +373,7 @@ const QuizView = ({
   const quizList = isCumulativeTest ? selectedQuiz.quizList : null;
   const currentQuizIndex = isCumulativeTest ? selectedQuiz.currentQuizIndex : 0;
 
-  // Non–spaced-learning quizzes skip the mode choice and go straight to the quiz
+  // Non–spaced-repetition quizzes skip the mode choice and go straight to the quiz
   useEffect(() => {
     if (!isSpacedLearningQuiz && filterChoice === null) {
       setFilterChoice("all");
@@ -593,7 +593,7 @@ const QuizView = ({
       </div>
     );
   }
-  // Show the filter prompt only for spaced learning quizzes when the user hasn't chosen yet
+  // Show the filter prompt only for spaced repetition quizzes when the user hasn't chosen yet
   if (filterChoice === null && isSpacedLearningQuiz) {
     return (
       <div 
@@ -690,7 +690,7 @@ const QuizView = ({
             >
               View All Questions
             </button>
-            {/* Start Spaced Learning button - only show if quiz has spaced learning enabled */}
+            {/* Start Spaced Repetition button - only show if quiz has spaced repetition enabled */}
             {selectedQuiz?.spacedLearning && selectedQuiz.spacedLearning !== "all" && (
               <button
                 onClick={() => {
@@ -736,7 +736,7 @@ const QuizView = ({
                   e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.4)";
                 }}
               >
-                Start Spaced Learning
+                Start Spaced Repetition
               </button>
             )}
           </div>

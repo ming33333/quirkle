@@ -141,7 +141,7 @@ const Home = ({
             className={filter === 'spacedLearning' ? 'active' : ''}
             onClick={() => handleFilterChange('spacedLearning')}
           >
-            Spaced Learning
+            Spaced Repetition
           </button>
         </div>
         <div className="main-content">

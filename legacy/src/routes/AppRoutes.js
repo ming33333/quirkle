@@ -5,7 +5,7 @@
  * It exports a function that returns an array of Route elements for React Router.
  *
  * Key Points:
- * - Contains routes for: home, login, quiz-view, add-questions, spaced-learning
+ * - Contains routes for: home, login, quiz-view, add-questions, spaced-repetition
  * - Handles basic authentication checks (redirects to login if not authenticated)
  * - Similar structure to AdminRoutes.js, but for regular user routes
  *
@@ -15,7 +15,7 @@
  * - "/home" - Main content dashboard (protected - requires login)
  * - "/quiz-view" - Quiz viewing page (protected - requires login)
  * - "/add-questions" - Quiz creation page (protected - requires login)
- * - "/spaced-learning" - Spaced learning quiz page (protected - requires login)
+ * - "/spaced-learning" - Spaced repetition quiz page (protected - requires login)
  *
  * @param {Object} props - Route props including user, handlers, and state
  * @returns {Array} Array of Route elements for standard app routes

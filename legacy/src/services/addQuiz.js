@@ -680,7 +680,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                 maxWidth: "560px",
               }}
             >
-              Build a study set with smart question cards, spaced learning
+              Build a study set with smart question cards, spaced repetition
               hooks, and instant additions.
             </p>
           </div>
@@ -795,7 +795,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                       boxShadow: "0 10px 20px rgba(239, 71, 111, 0.25)",
                     }}
                   >
-                    Add to Spaced Learning
+                    Add to Spaced Repetition
                   </button>
                 )}
               </div>
@@ -826,7 +826,7 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                 <div className="popup-content">
                   {currentSpacedLearning && currentSpacedLearning !== "all" ? (
                     <>
-                      <h3>Change spaced learning for "{title}"</h3>
+                      <h3>Change spaced repetition for "{title}"</h3>
                       <p>Current Style: {currentSpacedLearning}</p>
                       <div
                         style={{
@@ -872,13 +872,13 @@ const AddQuiz = ({ email, quizData, showDropdown = true }) => {
                     <>
                       <h3>
                         Are you sure you want to add the quiz "{title}" to
-                        spaced learning?
+                        spaced repetition?
                       </h3>
                       <button
                         onClick={confirmAddToSpacedLearning}
                         className="confirm-add-to-spaced-learning-button"
                       >
-                        Yes, Add to Spaced Learning
+                        Yes, Add to Spaced Repetition
                       </button>
                       <button
                         onClick={cancelAddToSpacedLearning}

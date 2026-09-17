@@ -172,14 +172,14 @@ const QuizBoxes = ({
             }}
           >
             <h3 style={{ color: "#2196F3", marginBottom: "8px", fontSize: "1.2em", textAlign: "left", width: "100%", margin: "0 0 8px 0" }}>
-              ℹ️ Learn about Spaced Learning
+              ℹ️ Learn about Spaced Repetition
             </h3>
             <p style={{ color: "#1976D2", fontSize: "0.9em", margin: 0, textAlign: "left", width: "100%" }}>
-              Click to learn how spaced learning works
+              Click to learn how spaced repetition works
             </p>
           </div>
 
-          {/* Spaced Learning Modal */}
+          {/* Spaced Repetition Modal */}
           {showSpacedLearningModal && (
             <div
               style={{
@@ -231,11 +231,11 @@ const QuizBoxes = ({
                   ×
                 </button>
                 <h2 style={{ color: "#2196F3", marginTop: 0, marginBottom: "20px" }}>
-                  What is Spaced Learning?
+                  What is Spaced Repetition?
                 </h2>
                 <div style={{ color: "#333", lineHeight: "1.6" }}>
                   <p style={{ marginBottom: "15px" }}>
-                    Spaced Learning is a scientifically-proven learning technique that helps you
+                    Spaced repetition is a scientifically-proven learning technique that helps you
                     retain information more effectively by reviewing material at increasing intervals.
                   </p>
                   <h3 style={{ color: "#1976D2", marginTop: "20px", marginBottom: "10px" }}>
@@ -272,7 +272,7 @@ const QuizBoxes = ({
       {/* Render quiz boxes */}
       {isSpacedLearningView &&
         (() => {
-          // Get all spaced learning quizzes with their active questions (sequential structure)
+          // Get all spaced repetition quizzes with their active questions (sequential structure)
           const getCumulativeTestQuizzes = () => {
             const quizList = [];
             Object.keys(quizzes).forEach((quizKey) => {
@@ -351,7 +351,7 @@ const QuizBoxes = ({
           //         setSelectedTitle("Cumulative Test");
           //       } else {
           //         alert(
-          //           "No active questions found in spaced learning quizzes!"
+          //           "No active questions found in spaced repetition quizzes!"
           //         );
           //       }
           //     }}
