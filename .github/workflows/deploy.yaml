@@ -24,9 +24,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # Step 4: Inject environment variables
+      # Step 4: Inject environment variables (Vite bakes these in at build time)
       - name: Create .env file
         run: |
+          echo "LOCAL_TESTING=false" >> .env
           echo "REACT_APP_FIREBASE_API_KEY=${{ secrets.REACT_APP_FIREBASE_API_KEY }}" >> .env
           echo "REACT_APP_FIREBASE_AUTH_DOMAIN=${{ secrets.REACT_APP_FIREBASE_AUTH_DOMAIN }}" >> .env
           echo "REACT_APP_FIREBASE_PROJECT_ID=${{ secrets.REACT_APP_FIREBASE_PROJECT_ID }}" >> .env
@@ -34,10 +35,9 @@ jobs:
           echo "REACT_APP_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.REACT_APP_FIREBASE_MESSAGING_SENDER_ID }}" >> .env
           echo "REACT_APP_FIREBASE_APP_ID=${{ secrets.REACT_APP_FIREBASE_APP_ID }}" >> .env
           echo "REACT_APP_FIREBASE_MEASUREMENT_ID=${{ secrets.REACT_APP_FIREBASE_MEASUREMENT_ID }}" >> .env
-
-      # Debug .env file
-      - name: Debug .env file
-        run: cat .env
+          echo "REACT_APP_STRIPE_LIVE_PUBLISHABLE_KEY=${{ secrets.REACT_APP_STRIPE_LIVE_PUBLISHABLE_KEY }}" >> .env
+          echo "REACT_APP_STRIPE_LIVE_PRICE_ID=${{ secrets.REACT_APP_STRIPE_LIVE_PRICE_ID }}" >> .env
+          echo "REACT_APP_STRIPE_LIVE_YEARLY_PRICE_ID=${{ secrets.REACT_APP_STRIPE_LIVE_YEARLY_PRICE_ID }}" >> .env
 
       # Step 5: Build the app
       - name: Build the app

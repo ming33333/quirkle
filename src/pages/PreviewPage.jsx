@@ -106,7 +106,6 @@ export default function PreviewPage({ user }) {
   const [showBulkPaste, setShowBulkPaste] = useState(false);
   const [bulkInput, setBulkInput] = useState("");
   const [addingBulk, setAddingBulk] = useState(false);
-  const [showPasteExample, setShowPasteExample] = useState(false);
   const [exampleCopied, setExampleCopied] = useState(false);
 
   useEffect(() => {
@@ -292,15 +291,9 @@ export default function PreviewPage({ user }) {
 
   const closeBulkPaste = () => {
     setShowBulkPaste(false);
-    setShowPasteExample(false);
     setExampleCopied(false);
     setBulkInput("");
     setAddError("");
-  };
-
-  const closePasteExample = () => {
-    setShowPasteExample(false);
-    setExampleCopied(false);
   };
 
   const copyPasteExample = async () => {
@@ -318,11 +311,6 @@ export default function PreviewPage({ user }) {
       document.body.removeChild(field);
     }
     setExampleCopied(true);
-  };
-
-  const insertPasteExample = () => {
-    setBulkInput(PASTE_EXAMPLE_TEXT);
-    closePasteExample();
   };
 
   const addBulkQuestions = async () => {
@@ -702,19 +690,26 @@ export default function PreviewPage({ user }) {
             Copy two columns from a spreadsheet (question, then answer). One
             pair per line, tab-separated — the same as before.
           </p>
-          <button
-            className="preview-bulk__example"
-            onClick={() => setShowPasteExample(true)}
-            type="button"
-          >
-            <small>Example</small>
-            {PASTE_EXAMPLE.slice(0, 2).map((row) => (
-              <span className="preview-bulk__example-row" key={row.question}>
-                <em>{row.question}</em>
-                <em>{row.answer}</em>
-              </span>
-            ))}
-          </button>
+          <div className="preview-bulk__example">
+            <div className="preview-bulk__example-head">
+              <small>Example</small>
+              <button
+                className="button button--paper button--small"
+                onClick={copyPasteExample}
+                type="button"
+              >
+                {exampleCopied ? "Copied" : "Copy here"}
+              </button>
+            </div>
+            <textarea
+              aria-label="Example questions to copy"
+              className="preview-bulk__example-copy"
+              onFocus={(event) => event.currentTarget.select()}
+              readOnly
+              rows={3}
+              value={PASTE_EXAMPLE_TEXT}
+            />
+          </div>
           <textarea
             aria-label="Bulk questions"
             onChange={(event) => setBulkInput(event.target.value)}
@@ -878,70 +873,6 @@ export default function PreviewPage({ user }) {
             ))}
           </ol>
         </>
-      )}
-
-      {showPasteExample && (
-        <div
-          className="dialog-backdrop"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) closePasteExample();
-          }}
-        >
-          <div
-            aria-labelledby="paste-example-title"
-            className="new-deck-dialog paste-example-dialog"
-            role="dialog"
-          >
-            <p className="eyebrow">Paste format</p>
-            <h2 id="paste-example-title">Copy this example</h2>
-            <p className="paste-example-dialog__lede">
-              Two columns: question, then answer. Copy from a spreadsheet the
-              same way, or copy this sample and paste it into the field.
-            </p>
-            <div className="paste-example-sheet" tabIndex={0}>
-              <div className="paste-example-sheet__head">
-                <span>Question</span>
-                <span>Answer</span>
-              </div>
-              {PASTE_EXAMPLE.map((row) => (
-                <div className="paste-example-sheet__row" key={row.question}>
-                  <span>{row.question}</span>
-                  <span>{row.answer}</span>
-                </div>
-              ))}
-            </div>
-            <textarea
-              aria-label="Copyable example"
-              className="paste-example-dialog__copy"
-              onFocus={(event) => event.currentTarget.select()}
-              readOnly
-              value={PASTE_EXAMPLE_TEXT}
-            />
-            <div>
-              <button
-                className="button button--paper"
-                onClick={closePasteExample}
-                type="button"
-              >
-                Close
-              </button>
-              <button
-                className="button button--paper"
-                onClick={insertPasteExample}
-                type="button"
-              >
-                Insert into field
-              </button>
-              <button
-                className="button button--ink"
-                onClick={copyPasteExample}
-                type="button"
-              >
-                {exampleCopied ? "Copied" : "Copy example"}
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </main>
   );

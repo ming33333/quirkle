@@ -296,6 +296,9 @@ export default function LandingPage({ user }) {
             </span>
           )}
         </div>
+        <Link className="text-link" to="/spaced-repetition">
+          What is spaced repetition?
+        </Link>
       </section>
 
       <footer className="landing-about">
