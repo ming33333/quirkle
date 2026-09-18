@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { getCardResult, isCardDue, RESULT_LABELS, updateCardText } from "../utils/decks";
+import { getCardResult, isCardDue, RESULT_LABELS, updateCardText, deleteCardFromDeck } from "../utils/decks";
 
 const SAVE_DELAY_MS = 650;
 
@@ -16,15 +16,19 @@ export default function PreviewCard({
   deckId,
   showTags,
   onUpdate,
+  onDelete,
   autoFocus = false,
 }) {
   const [question, setQuestion] = useState(card.question || "");
   const [answer, setAnswer] = useState(card.answer || "");
   const [status, setStatus] = useState("idle");
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const questionRef = useRef(null);
   const answerRef = useRef(null);
   const timerRef = useRef(null);
   const inFlightRef = useRef(false);
+  const removedRef = useRef(false);
   const savedRef = useRef({
     question: card.question || "",
     answer: card.answer || "",
@@ -37,6 +41,7 @@ export default function PreviewCard({
   const due = isCardDue(card);
 
   const persist = useCallback(async () => {
+    if (removedRef.current) return;
     const pending = draftRef.current;
     const alreadySaved = savedRef.current;
     if (
@@ -125,6 +130,7 @@ export default function PreviewCard({
     return () => {
       window.removeEventListener("beforeunload", onLeave);
       clearTimeout(timerRef.current);
+      if (removedRef.current) return;
       const draft = draftRef.current;
       const saved = savedRef.current;
       if (draft.question === saved.question && draft.answer === saved.answer) {
@@ -135,6 +141,23 @@ export default function PreviewCard({
         .catch((saveError) => console.error("Error saving card:", saveError));
     };
   }, [card.id, deckId, email, onUpdate, persist]);
+
+  const deleteCard = async () => {
+    if (deleting) return;
+    clearTimeout(timerRef.current);
+    removedRef.current = true;
+    setDeleting(true);
+    try {
+      await deleteCardFromDeck(email, deckId, card.id);
+      onDelete?.(card.id);
+    } catch (deleteError) {
+      console.error("Error deleting card:", deleteError);
+      removedRef.current = false;
+      setDeleting(false);
+      setConfirmDelete(false);
+      setStatus("error");
+    }
+  };
 
   const statusLabel =
     status === "saving"
@@ -151,16 +174,47 @@ export default function PreviewCard({
         {String(index + 1).padStart(2, "0")}
       </span>
       <div className="preview-item__body">
-        <label className="preview-item__field">
+        <div className="preview-item__field">
           <span className="preview-item__field-head">
             <small>Question</small>
-            {statusLabel ? (
-              <em
-                className={`preview-item__save preview-item__save--${status}`}
-              >
-                {statusLabel}
-              </em>
-            ) : null}
+            <span className="preview-item__actions">
+              {statusLabel ? (
+                <em
+                  className={`preview-item__save preview-item__save--${status}`}
+                >
+                  {statusLabel}
+                </em>
+              ) : null}
+              {confirmDelete ? (
+                <>
+                  <button
+                    className="preview-item__delete-cancel"
+                    disabled={deleting}
+                    onClick={() => setConfirmDelete(false)}
+                    type="button"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="preview-item__delete preview-item__delete--confirm"
+                    disabled={deleting}
+                    onClick={deleteCard}
+                    type="button"
+                  >
+                    {deleting ? "Deleting…" : "Delete question"}
+                  </button>
+                </>
+              ) : (
+                <button
+                  className="preview-item__delete"
+                  disabled={deleting}
+                  onClick={() => setConfirmDelete(true)}
+                  type="button"
+                >
+                  Delete
+                </button>
+              )}
+            </span>
           </span>
           <textarea
             aria-label={`Question ${index + 1}`}
@@ -174,7 +228,7 @@ export default function PreviewCard({
             spellCheck
             value={question}
           />
-        </label>
+        </div>
         <label className="preview-item__field">
           <small>Answer</small>
           <textarea

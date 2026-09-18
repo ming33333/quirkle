@@ -2492,6 +2492,41 @@ button.progress-stat {
   gap: 12px;
 }
 
+.preview-item__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.preview-item__delete,
+.preview-item__delete-cancel {
+  padding: 0;
+  color: var(--ink-soft);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.preview-item__delete:hover,
+.preview-item__delete--confirm {
+  color: var(--vermilion);
+}
+
+.preview-item__delete-cancel:hover {
+  color: var(--ink);
+}
+
+.preview-item__delete:disabled,
+.preview-item__delete-cancel:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .preview-item__field-head small {
   margin-bottom: 6px;
 }

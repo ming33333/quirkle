@@ -4,12 +4,10 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 #todo 
 
-- copy here
-- fix subscription 
-- animaiton bug showing answer to early
+
 - make email auto setup email draft
 - change email for quirkle specific it support
-- needs review button now working.... sometimes a lag
+
 
 
 ## DEPLOY TO SITE

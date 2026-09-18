@@ -294,6 +294,7 @@ export default function StudyPage({ user }) {
 
       <button
         className={`study-card${flipped ? " study-card--flipped" : ""}`}
+        key={card.id}
         onClick={() => setFlipped((value) => !value)}
         type="button"
       >

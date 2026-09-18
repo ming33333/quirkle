@@ -1,5 +1,6 @@
 import {
   collection,
+  deleteField,
   doc,
   getDoc,
   getDocs,
@@ -356,6 +357,18 @@ export const updateCardText = async (email, deckId, cardId, { question, answer }
   await updateDoc(doc(db, "users", email, "quizCollection", deckId), {
     [`questions.${key}.question`]: String(question ?? ""),
     [`questions.${key}.answer`]: String(answer ?? ""),
+    lastAccessed: new Date().toISOString(),
+  });
+};
+
+export const deleteCardFromDeck = async (email, deckId, cardId) => {
+  if (!email || !deckId || cardId == null || cardId === "") {
+    throw new Error("Missing deck or card information.");
+  }
+
+  const key = String(cardId);
+  await updateDoc(doc(db, "users", email, "quizCollection", deckId), {
+    [`questions.${key}`]: deleteField(),
     lastAccessed: new Date().toISOString(),
   });
 };

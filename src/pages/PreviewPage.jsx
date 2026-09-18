@@ -261,6 +261,17 @@ export default function PreviewPage({ user }) {
     });
   }, []);
 
+  const handleCardDelete = useCallback((cardId) => {
+    setDeck((current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        cards: current.cards.filter((card) => card.id !== cardId),
+      };
+    });
+    setFocusedCardId((current) => (current === cardId ? "" : current));
+  }, []);
+
   const atQuestionLimit = cards.length >= MAX_QUESTIONS_PER_DECK;
   const bulkPreview = useMemo(() => parseBulkQuestions(bulkInput), [bulkInput]);
   const bulkRoom = Math.max(0, MAX_QUESTIONS_PER_DECK - cards.length);
@@ -857,6 +868,7 @@ export default function PreviewPage({ user }) {
         <>
           <p className="preview-list__hint">
             Click a question or answer to edit. Changes save automatically.
+            Delete removes a card from this deck.
           </p>
           <ol className="preview-list">
             {filteredCards.map((card, cardIndex) => (
@@ -867,6 +879,7 @@ export default function PreviewPage({ user }) {
                 email={email}
                 index={cardIndex}
                 key={card.id || cardIndex}
+                onDelete={handleCardDelete}
                 onUpdate={handleCardTextUpdate}
                 showTags={showTags}
               />
