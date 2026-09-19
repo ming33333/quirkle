@@ -227,7 +227,7 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
 
     const session = await getStripe().checkout.sessions.create(sessionParams);
 
-    res.json({ sessionId: session.id });
+    res.json({ sessionId: session.id, url: session.url });
   } catch (error) {
     console.error('Error creating checkout session:', error);
     const message =

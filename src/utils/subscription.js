@@ -81,6 +81,45 @@ const emptyDetails = {
   interval: null,
 };
 
+const DETAILS_TTL_MS = 2 * 60 * 1000;
+const detailsByEmail = new Map();
+const inflightByEmail = new Map();
+
+const rememberDetails = (email, details) => {
+  if (!email) return;
+  detailsByEmail.set(email, { details, at: Date.now() });
+};
+
+export const invalidateSubscriptionDetails = (email) => {
+  if (email) {
+    detailsByEmail.delete(email);
+    inflightByEmail.delete(email);
+    return;
+  }
+  detailsByEmail.clear();
+  inflightByEmail.clear();
+};
+
+export const peekSubscriptionDetails = (email, { allowStale = false } = {}) => {
+  const entry = detailsByEmail.get(email);
+  if (!entry?.details) return null;
+  if (!allowStale && Date.now() - entry.at > DETAILS_TTL_MS) return null;
+  return entry.details;
+};
+
+const fetchStripeDetails = async (email) => {
+  const response = await fetch(
+    `${getCloudFunctionsBaseUrl()}/getSubscriptionDetails`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    },
+  );
+  if (!response.ok) return null;
+  return response.json();
+};
+
 const stripeConfirmedPaid = (details) =>
   isSubscribed(details?.status) &&
   Boolean(details?.interval || details?.nextRenewalAt);
@@ -112,30 +151,39 @@ export const getSubscriptionStatus = async (email) => {
   }
 };
 
-export const getSubscriptionDetails = async (email) => {
+export const getSubscriptionDetails = async (email, { force = false } = {}) => {
   if (!email) return { ...emptyDetails };
 
-  const firestoreStatus = await getSubscriptionStatus(email);
+  if (!force) {
+    const cached = peekSubscriptionDetails(email);
+    if (cached) return cached;
+    const inflight = inflightByEmail.get(email);
+    if (inflight) return inflight;
+  }
 
-  try {
-    const response = await fetch(
-      `${getCloudFunctionsBaseUrl()}/getSubscriptionDetails`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      },
-    );
-
-    if (!response.ok) {
-      return { ...emptyDetails, status: firestoreStatus };
+  const request = (async () => {
+    try {
+      const [firestoreStatus, stripeData] = await Promise.all([
+        getSubscriptionStatus(email),
+        fetchStripeDetails(email),
+      ]);
+      if (!stripeData) return { ...emptyDetails, status: firestoreStatus };
+      return detailsFromStripe(stripeData, firestoreStatus);
+    } catch (error) {
+      console.error("Error getting subscription details:", error);
+      return { ...emptyDetails, status: await getSubscriptionStatus(email) };
     }
+  })();
 
-    const data = await response.json();
-    return detailsFromStripe(data, firestoreStatus);
-  } catch (error) {
-    console.error("Error getting subscription details:", error);
-    return { ...emptyDetails, status: firestoreStatus };
+  inflightByEmail.set(email, request);
+  try {
+    const details = await request;
+    rememberDetails(email, details);
+    return details;
+  } finally {
+    if (inflightByEmail.get(email) === request) {
+      inflightByEmail.delete(email);
+    }
   }
 };
 
@@ -165,7 +213,15 @@ export const cancelSubscriptionAtPeriodEnd = async (email) => {
     throw new Error(await parseFunctionError(response));
   }
 
-  return response.json();
+  const result = await response.json();
+  const previous = peekSubscriptionDetails(email, { allowStale: true });
+  rememberDetails(email, {
+    status: result.status || "subscribed",
+    nextRenewalAt: result.nextRenewalAt || previous?.nextRenewalAt || null,
+    cancelAtPeriodEnd: true,
+    interval: result.interval || previous?.interval || null,
+  });
+  return result;
 };
 
 export const listUsersWithPlans = async () => {
@@ -202,8 +258,10 @@ export const setPlanToFree = async (email) => {
 
   // Write both casings so the admin list (doc id) and Stripe-normalized path stay in sync.
   await markFreeInFirestore(exact);
+  invalidateSubscriptionDetails(exact);
   if (exact !== normalized) {
     await markFreeInFirestore(normalized);
+    invalidateSubscriptionDetails(normalized);
   }
 
   let response;
@@ -279,6 +337,29 @@ const getStripe = () => {
   return stripePromise;
 };
 
+const warmupCheckoutFunction = () => {
+  void fetch(`${getCloudFunctionsBaseUrl()}/createCheckoutSession`, {
+    method: "OPTIONS",
+  }).catch(() => {});
+};
+
+export const prefetchCheckout = (email) => {
+  warmupCheckoutFunction();
+  try {
+    void getStripe();
+  } catch {
+    // Publishable key may be missing in local setups.
+  }
+  if (email) void ensureUserDoc(email);
+};
+
+export const prefetchSubscriptionDetails = (email) => {
+  if (!email) return;
+  void getSubscriptionDetails(email).then((details) => {
+    if (!isSubscribed(details.status)) prefetchCheckout(email);
+  });
+};
+
 export const startCheckout = async (email, { interval = "month" } = {}) => {
   if (!email) throw new Error("You must be signed in to subscribe.");
   const yearly = String(interval).toLowerCase() === "year";
@@ -295,11 +376,11 @@ export const startCheckout = async (email, { interval = "month" } = {}) => {
     );
   }
 
-  await ensureUserDoc(email);
+  prefetchCheckout(email);
 
-  const response = await fetch(
-    `${getCloudFunctionsBaseUrl()}/createCheckoutSession`,
-    {
+  const [, response, stripe] = await Promise.all([
+    ensureUserDoc(email),
+    fetch(`${getCloudFunctionsBaseUrl()}/createCheckoutSession`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -310,16 +391,21 @@ export const startCheckout = async (email, { interval = "month" } = {}) => {
         ),
         cancelUrl: appHashUrl("/subscription-cancel"),
       }),
-    },
-  );
+    }),
+    getStripe().catch(() => null),
+  ]);
 
   if (!response.ok) {
     throw new Error(await parseFunctionError(response));
   }
 
-  const { sessionId } = await response.json();
-  const stripe = await getStripe();
+  const { sessionId, url } = await response.json();
+  if (url) {
+    window.location.assign(url);
+    return;
+  }
   if (!stripe) throw new Error("Could not load Stripe.");
+  if (!sessionId) throw new Error("Missing Stripe checkout session.");
   const { error } = await stripe.redirectToCheckout({ sessionId });
   if (error) throw error;
 };
@@ -342,6 +428,7 @@ export const confirmCheckoutSession = async (email, sessionId) => {
     throw new Error(await parseFunctionError(response));
   }
 
+  invalidateSubscriptionDetails(email);
   return response.json();
 };
 

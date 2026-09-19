@@ -5,6 +5,7 @@ import SpacedRepetitionPlay, {
   SR_CYCLE_MS,
 } from "../components/SpacedRepetitionPlay.jsx";
 import { isAdmin } from "../utils/admins";
+import { prefetchSubscriptionDetails } from "../utils/subscription";
 
 const WELCOME_MS = 5500;
 
@@ -32,8 +33,8 @@ function WelcomeScene() {
       <p className="hero-story__hello">Welcome to Quirkle</p>
       <p className="hero-story__note">Dedicated to spaced repetition.</p>
       <p className="hero-story__explain">
-        Cards come back when they’re due — just as they start to fade — so
-        each review sticks and you study less as you remember more.
+        Cards come back when they’re due — just as they start to fade — so each
+        review sticks and you study less as you remember more.
       </p>
     </div>
   );
@@ -122,12 +123,17 @@ export default function LandingPage({ user }) {
               )}
               <Link
                 className="button button--paper button--small"
+                onFocus={() => prefetchSubscriptionDetails(user.email)}
+                onMouseEnter={() => prefetchSubscriptionDetails(user.email)}
                 to="/profile"
                 state={{ background: location }}
               >
                 Profile
               </Link>
-              <Link className="button button--ink button--small" to="/dashboard">
+              <Link
+                className="button button--ink button--small"
+                to="/dashboard"
+              >
                 Open dashboard
               </Link>
             </>
@@ -180,8 +186,8 @@ export default function LandingPage({ user }) {
         </p>
         <p>
           Feature requests or support:{" "}
-          <a className="text-link" href="mailto:luckysoftwaretexas@gmail.com">
-            luckysoftwaretexas@gmail.com
+          <a className="text-link" href="mailto:quirkle.it.support@gmail.com">
+            quirkle.it.support@gmail.com
           </a>
         </p>
       </footer>

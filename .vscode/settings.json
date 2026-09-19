@@ -3,10 +3,7 @@
         "**/.git/objects/**": true,
         "**/.git/subtree-cache/**": true,
         "**/.hg/store/**": true,
-        "**/.dart_tool": true,
-        "**/.git/**": true,
-        "**/node_modules/**": true,
-        "**/.vscode/**": true
+        "**/node_modules/**": true
     },
     "eslint.enable": true,
     "eslint.validate": [

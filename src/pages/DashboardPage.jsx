@@ -8,6 +8,7 @@ import {
   canCreateDeck,
   FREE_PLAN_MAX_DECKS,
   getVerifiedSubscriptionStatus,
+  prefetchSubscriptionDetails,
 } from "../utils/subscription";
 
 export default function DashboardPage({ user }) {
@@ -109,7 +110,13 @@ export default function DashboardPage({ user }) {
           <Link className="text-link" to="/">
             Home
           </Link>
-          <Link className="text-link" to="/profile" state={{ background: location }}>
+          <Link
+            className="text-link"
+            onFocus={() => prefetchSubscriptionDetails(email)}
+            onMouseEnter={() => prefetchSubscriptionDetails(email)}
+            to="/profile"
+            state={{ background: location }}
+          >
             Profile
           </Link>
           <button
@@ -141,7 +148,13 @@ export default function DashboardPage({ user }) {
           <p className="dashboard__error">
             {error}{" "}
             {atDeckLimit && (
-              <Link className="text-link" to="/profile" state={{ background: location }}>
+              <Link
+                className="text-link"
+                onFocus={() => prefetchSubscriptionDetails(email)}
+                onMouseEnter={() => prefetchSubscriptionDetails(email)}
+                to="/profile"
+                state={{ background: location }}
+              >
                 Open profile
               </Link>
             )}

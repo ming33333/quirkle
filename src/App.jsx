@@ -27,6 +27,7 @@ import {
   useImpersonation,
 } from "./context/ImpersonationContext.jsx";
 import { auth, logPageView } from "./utils/firebase";
+import { prefetchSubscriptionDetails } from "./utils/subscription";
 
 const PROFILE_BACKGROUND = {
   pathname: "/dashboard",
@@ -47,6 +48,10 @@ function AppRoutes({ user }) {
   useEffect(() => {
     logPageView(`${location.pathname}${location.search}`);
   }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    prefetchSubscriptionDetails(viewUser?.email);
+  }, [viewUser?.email]);
   const routesLocation = profileOpen
     ? profileBackground || PROFILE_BACKGROUND
     : location;

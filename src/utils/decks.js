@@ -71,7 +71,7 @@ const normalizeQuestions = (questions) => {
     }));
 };
 
-const DEFAULT_LEVEL_DAYS = { 1: 1, 2: 3, 3: 7, 4: 14 };
+const DEFAULT_LEVEL_DAYS = { 1: 2, 2: 4, 3: 8, 4: 16 };
 
 const getLevelSchedule = async () => {
   try {

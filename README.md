@@ -4,13 +4,22 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 #todo 
 
-//~~copy here~~
-//- fix subscription 
-//- animaiton bug showing answer to early
+
+Final tasks before more marketing (and do SEO?)
+- new email
+
+
+...after that run analytics
+
 - make email auto setup email draft
 - change email for quirkle specific it support
-//- add delete button on cards
+- big feature have 5 type of buckets fast (max 1 day), medium(1 week), long term 
 
+super fast 1 hour (5mins,15,30,1)
+fast 1 day (1 hour,4, 12, 1 day)
+1 week (1 days, 2 day, 4 days, 7 days)
+1 month(2, 8, 16, 30 days)
+1 year(1 month, 3 month 6 month, 1 year)
 
 ## DEPLOY TO SITE
 

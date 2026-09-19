@@ -7,7 +7,9 @@ import {
   MAX_QUESTIONS_PER_DECK,
   MONTHLY_PRICE_USD,
   openCustomerPortal,
+  peekSubscriptionDetails,
   planLabel,
+  prefetchCheckout,
   startCheckout,
   YEARLY_BILLED_MONTHLY_USD,
   YEARLY_PRICE_USD,
@@ -28,11 +30,14 @@ const formatRenewalDate = (iso) => {
 export default function ProfilePage({ onClose, user }) {
   const email = user?.email || "";
   const panelRef = useRef(null);
-  const [status, setStatus] = useState("free");
-  const [nextRenewalAt, setNextRenewalAt] = useState(null);
-  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
-  const [planInterval, setPlanInterval] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const cached = peekSubscriptionDetails(email, { allowStale: true });
+  const [status, setStatus] = useState(cached?.status || "free");
+  const [nextRenewalAt, setNextRenewalAt] = useState(cached?.nextRenewalAt || null);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(
+    Boolean(cached?.cancelAtPeriodEnd),
+  );
+  const [planInterval, setPlanInterval] = useState(cached?.interval || null);
+  const [loading, setLoading] = useState(!cached);
   const [working, setWorking] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -40,24 +45,36 @@ export default function ProfilePage({ onClose, user }) {
   useEffect(() => {
     let cancelled = false;
 
+    const applyDetails = (details) => {
+      setStatus(details.status || "free");
+      setNextRenewalAt(details.nextRenewalAt || null);
+      setCancelAtPeriodEnd(Boolean(details.cancelAtPeriodEnd));
+      setPlanInterval(details.interval || null);
+    };
+
     const load = async () => {
       if (!email) {
         setLoading(false);
         return;
       }
-      setLoading(true);
+      const warm = peekSubscriptionDetails(email, { allowStale: true });
+      if (warm) {
+        applyDetails(warm);
+        setLoading(false);
+      } else {
+        setLoading(true);
+      }
       setError("");
       try {
-        const details = await getSubscriptionDetails(email);
+        const details = await getSubscriptionDetails(email, {
+          force: Boolean(warm) && !peekSubscriptionDetails(email),
+        });
         if (!cancelled) {
-          setStatus(details.status || "free");
-          setNextRenewalAt(details.nextRenewalAt || null);
-          setCancelAtPeriodEnd(Boolean(details.cancelAtPeriodEnd));
-          setPlanInterval(details.interval || null);
+          applyDetails(details);
         }
       } catch (loadError) {
         console.error("Error loading profile:", loadError);
-        if (!cancelled) setError("Could not load your plan.");
+        if (!cancelled && !warm) setError("Could not load your plan.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -88,6 +105,11 @@ export default function ProfilePage({ onClose, user }) {
   const subscribed = isSubscribed(status);
   const impersonating = Boolean(user?.isImpersonating);
   const renewalLabel = formatRenewalDate(nextRenewalAt);
+
+  useEffect(() => {
+    if (!email || loading || impersonating || subscribed) return undefined;
+    prefetchCheckout(email);
+  }, [email, impersonating, loading, subscribed]);
 
   const handleSubscribe = async (planInterval = "year") => {
     if (working) return;
@@ -246,6 +268,8 @@ export default function ProfilePage({ onClose, user }) {
                     className="button button--ink button--full"
                     disabled={working}
                     onClick={() => handleSubscribe("year")}
+                    onFocus={() => prefetchCheckout(email)}
+                    onMouseEnter={() => prefetchCheckout(email)}
                     type="button"
                   >
                     {working ? "Redirecting…" : "Subscribe yearly"}
@@ -254,6 +278,8 @@ export default function ProfilePage({ onClose, user }) {
                     className="button button--paper button--full"
                     disabled={working}
                     onClick={() => handleSubscribe("month")}
+                    onFocus={() => prefetchCheckout(email)}
+                    onMouseEnter={() => prefetchCheckout(email)}
                     type="button"
                   >
                     {working
