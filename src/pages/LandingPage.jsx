@@ -1,82 +1,67 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Brand from "../components/Brand.jsx";
-import SpacedRepetitionPlay, {
-  SR_CYCLE_MS,
-} from "../components/SpacedRepetitionPlay.jsx";
+import SpacedRepetitionPlay from "../components/SpacedRepetitionPlay.jsx";
 import { isAdmin } from "../utils/admins";
-import { prefetchSubscriptionDetails } from "../utils/subscription";
+import {
+  MAX_QUESTIONS_PER_DECK,
+  MONTHLY_PRICE_USD,
+  freePlanDeckLabel,
+  prefetchSubscriptionDetails,
+  YEARLY_PRICE_USD,
+  YEARLY_SAVINGS_PERCENT,
+} from "../utils/subscription";
 
-const WELCOME_MS = 5500;
+const STEPS = [
+  {
+    n: "01",
+    title: "Write the cards",
+    body: "Type them, or paste a spreadsheet.",
+  },
+  {
+    n: "02",
+    title: "Study what’s due",
+    body: "Only fading cards come back.",
+  },
+  {
+    n: "03",
+    title: "Right climbs. Wrong returns.",
+    body: "Hits wait longer. Misses come sooner.",
+  },
+];
 
-function usePrefersReducedMotion() {
-  const [reduced, setReduced] = useState(() =>
-    typeof window !== "undefined"
-      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      : false,
-  );
+const scrollToId = (id) => {
+  document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+};
 
-  useEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const onChange = () => setReduced(media.matches);
-    media.addEventListener("change", onChange);
-    return () => media.removeEventListener("change", onChange);
-  }, []);
-
-  return reduced;
-}
-
-function WelcomeScene() {
+function SignInCta({ className, children }) {
   return (
-    <div className="hero-story__scene hero-story__scene--welcome is-on">
-      <span className="hero-story__seal" aria-hidden="true" />
-      <p className="hero-story__hello">Welcome to Quirkle</p>
-      <p className="hero-story__note">Dedicated to spaced repetition.</p>
-      <p className="hero-story__explain">
-        Cards come back when they’re due — just as they start to fade — so each
-        review sticks and you study less as you remember more.
-      </p>
-    </div>
+    <span className="nav-tip">
+      <Link className={className} to="/login">
+        {children}
+      </Link>
+      <em className="nav-tip__msg" role="tooltip">
+        You’ll sign in with Google first.
+      </em>
+    </span>
   );
 }
 
-function HeroStory() {
-  const reduceMotion = usePrefersReducedMotion();
-  const [scene, setScene] = useState("welcome");
-
-  useEffect(() => {
-    if (reduceMotion) return undefined;
-    const wait = scene === "welcome" ? WELCOME_MS : SR_CYCLE_MS;
-    const next = scene === "welcome" ? "sr" : "welcome";
-    const timer = window.setTimeout(() => setScene(next), wait);
-    return () => window.clearTimeout(timer);
-  }, [scene, reduceMotion]);
-
-  if (reduceMotion) {
+function PrimaryCta({ user, children }) {
+  if (user) {
     return (
-      <div
-        className="hero-story hero-story--static"
-        aria-label="Welcome to Quirkle. Dedicated to spaced repetition: cards come back when they are due so each review sticks."
-      >
-        <WelcomeScene />
-        <SpacedRepetitionPlay />
-      </div>
+      <Link className="button button--vermilion" to="/dashboard">
+        {children}
+        <span aria-hidden="true">→</span>
+      </Link>
     );
   }
 
   return (
-    <div
-      className="hero-story"
-      aria-label="Welcome to Quirkle. Dedicated to spaced repetition: cards come back when they are due so each review sticks."
-    >
-      {scene === "welcome" ? (
-        <WelcomeScene />
-      ) : (
-        <div className="hero-story__scene hero-story__scene--sr is-on">
-          <SpacedRepetitionPlay />
-        </div>
-      )}
-    </div>
+    <SignInCta className="button button--vermilion">
+      {children}
+      <span aria-hidden="true">→</span>
+    </SignInCta>
   );
 }
 
@@ -105,6 +90,10 @@ export default function LandingPage({ user }) {
       cancelled = true;
     };
   }, [user]);
+
+  const subscribeTo = user
+    ? { pathname: "/profile", state: { background: location } }
+    : "/login";
 
   return (
     <main className="landing">
@@ -138,41 +127,162 @@ export default function LandingPage({ user }) {
               </Link>
             </>
           ) : (
-            <span className="nav-tip">
-              <Link className="button button--ink button--small" to="/login">
-                Begin writing
-              </Link>
-              <em className="nav-tip__msg" role="tooltip">
-                You’ll sign in first.
-              </em>
-            </span>
+            <>
+              <button
+                className="text-link text-link--button"
+                onClick={() => scrollToId("pricing")}
+                type="button"
+              >
+                Pricing
+              </button>
+              <SignInCta className="button button--ink button--small">
+                Sign in
+              </SignInCta>
+            </>
           )}
         </div>
       </nav>
 
       <section className="hero">
-        <HeroStory />
+        <h1>
+          <span>Study less.</span>
+          <span>Remember more.</span>
+        </h1>
+        <p className="hero__lede">
+          Quirkle uses spaced repetition, so a card only comes back when you’re
+          about to forget it. Write once. Review what’s due. Close the notebook.{" "}
+          <button
+            className="hero__how text-link text-link--button"
+            onClick={() => scrollToId("how")}
+            type="button"
+          >
+            Yeah, but how?
+          </button>
+        </p>
         <div className="hero__actions">
-          {user ? (
-            <Link className="button button--vermilion" to="/dashboard">
-              Continue
-              <span aria-hidden="true">→</span>
+          <PrimaryCta user={user}>
+            {user ? "Open your decks" : "Start a free deck"}
+          </PrimaryCta>
+        </div>
+      </section>
+
+      <section className="landing-band" id="how">
+        <header className="landing-copy">
+          <p className="eyebrow">How it works</p>
+          <h2>Three steps. Then you’re done for the day.</h2>
+        </header>
+        <ol className="landing-steps">
+          {STEPS.map((step) => (
+            <li key={step.n}>
+              <span>{step.n}</span>
+              <strong>{step.title}</strong>
+              <p>{step.body}</p>
+            </li>
+          ))}
+        </ol>
+        <SpacedRepetitionPlay />
+        <p className="landing-band__more">
+          <Link className="text-link" to="/spaced-repetition">
+            Watch the buckets in detail
+          </Link>
+        </p>
+      </section>
+
+      <section className="landing-copy landing-copy--narrow">
+        <p className="eyebrow">Why this, why now</p>
+        <h2>Cramming feels like studying. It isn’t.</h2>
+        <p>
+          Most apps become another feed — streaks, leaderboards, a dozen buttons.
+          You re-read the whole pile, including what you already know. It feels
+          productive. Then it evaporates overnight.
+        </p>
+        <p>
+          The forgetting starts as soon as you close the book. Quirkle is built
+          for that moment: a quiet notebook that only asks for the cards that
+          are about to fade.
+        </p>
+      </section>
+
+      <section className="landing-copy">
+        <p className="eyebrow">Can I trust this?</p>
+        <h2>Built by someone who wanted a quiet notebook.</h2>
+        <blockquote className="landing-quote">
+          <p>
+            I looked for a place to write flashcards and actually review them —
+            spaced, simple, without a feed or a streak leaderboard. I couldn’t
+            find one that stayed out of the way, so I made Quirkle.
+          </p>
+          <cite>
+            <Link className="text-link" to="/lucky-software">
+              Lucky Software
             </Link>
-          ) : (
-            <span className="nav-tip">
-              <Link className="button button--vermilion" to="/login">
-                Begin writing
+          </cite>
+        </blockquote>
+        <ul className="landing-facts">
+          <li>No feed, no streak leaderboard, no extra chrome.</li>
+          <li>You only study what’s due — right climbs, wrong returns sooner.</li>
+          <li>
+            Free for {freePlanDeckLabel}. Sign in with Google. No credit card to
+            start.
+          </li>
+        </ul>
+      </section>
+
+      <section className="landing-band" id="pricing">
+        <header className="landing-copy">
+          <p className="eyebrow">Can I afford it?</p>
+          <h2>Start free. Subscribe when one deck isn’t enough.</h2>
+          <p>
+            Every deck is capped at {MAX_QUESTIONS_PER_DECK} questions — free or
+            subscribed.
+          </p>
+        </header>
+        <div className="landing-plans">
+          <article className="landing-plan">
+            <p className="eyebrow">Free</p>
+            <p className="landing-plan__price">$0</p>
+            <p className="landing-plan__note">
+              {freePlanDeckLabel}, full spaced repetition.
+            </p>
+            <PrimaryCta user={user}>
+              {user ? "Open your decks" : "Start free"}
+            </PrimaryCta>
+          </article>
+          <article className="landing-plan landing-plan--paid">
+            <p className="eyebrow">Subscribed</p>
+            <p className="landing-plan__price">
+              ${YEARLY_PRICE_USD}
+              <small>/year</small>
+            </p>
+            <p className="landing-plan__note">
+              Unlimited decks. Save {YEARLY_SAVINGS_PERCENT}% vs ${MONTHLY_PRICE_USD}
+              /month.
+            </p>
+            {user ? (
+              <Link className="button button--ink" to={subscribeTo}>
+                Manage plan
                 <span aria-hidden="true">→</span>
               </Link>
-              <em className="nav-tip__msg" role="tooltip">
-                You’ll sign in first.
-              </em>
-            </span>
-          )}
+            ) : (
+              <SignInCta className="button button--ink">
+                Subscribe
+                <span aria-hidden="true">→</span>
+              </SignInCta>
+            )}
+          </article>
         </div>
-        <Link className="text-link" to="/spaced-repetition">
-          What is spaced repetition?
-        </Link>
+      </section>
+
+      <section className="landing-close">
+        <p className="eyebrow">Do I need this now?</p>
+        <h2>What you learned today is already fading.</h2>
+        <p>
+          Write the cards while the material is still warm. The schedule does
+          the rest.
+        </p>
+        <PrimaryCta user={user}>
+          {user ? "Continue studying" : "Start a free deck"}
+        </PrimaryCta>
       </section>
 
       <footer className="landing-about">

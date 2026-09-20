@@ -6,7 +6,7 @@ import { auth } from "../utils/firebase";
 import { createDeckForUser, fetchDecksForUser } from "../utils/decks";
 import {
   canCreateDeck,
-  FREE_PLAN_MAX_DECKS,
+  freePlanDeckLabel,
   getVerifiedSubscriptionStatus,
   prefetchSubscriptionDetails,
 } from "../utils/subscription";
@@ -69,7 +69,7 @@ export default function DashboardPage({ user }) {
     if (!title || !email || creating) return;
     if (!canCreateDeck(planStatus, decks.length)) {
       setError(
-        `Free accounts can keep ${FREE_PLAN_MAX_DECKS} decks. Subscribe to add more.`,
+        `Free accounts can keep ${freePlanDeckLabel}. Subscribe to add more.`,
       );
       return;
     }
@@ -94,7 +94,7 @@ export default function DashboardPage({ user }) {
   const openCreate = () => {
     if (atDeckLimit) {
       setError(
-        `Free accounts can keep ${FREE_PLAN_MAX_DECKS} decks. Subscribe to add more.`,
+        `Free accounts can keep ${freePlanDeckLabel}. Subscribe to add more.`,
       );
       return;
     }

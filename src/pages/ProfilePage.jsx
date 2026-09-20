@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  FREE_PLAN_MAX_DECKS,
   cancelSubscriptionAtPeriodEnd,
+  freePlanDeckLabel,
   getSubscriptionDetails,
   isSubscribed,
   MAX_QUESTIONS_PER_DECK,
@@ -213,7 +213,7 @@ export default function ProfilePage({ onClose, user }) {
               ) : null}
               {!subscribed && (
                 <p className="profile__muted">
-                  Free accounts can keep {FREE_PLAN_MAX_DECKS} decks. Subscribed
+                  Free accounts can keep {freePlanDeckLabel}. Subscribed
                   accounts can make as many decks as they need.
                 </p>
               )}

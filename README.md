@@ -5,15 +5,13 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 #todo 
 
 
-Final tasks before more marketing (and do SEO?)
-- new email
-
+- start marketing Final tasks before more marketing (and do SEO?)
+- add solo entrenparn intake for feature or bug report
 
 ...after that run analytics
 
-- make email auto setup email draft
-- change email for quirkle specific it support
-- big feature have 5 type of buckets fast (max 1 day), medium(1 week), long term 
+
+- big feature for later? have 5 type of buckets fast (max 1 day), medium(1 week), long term 
 
 super fast 1 hour (5mins,15,30,1)
 fast 1 day (1 hour,4, 12, 1 day)
@@ -197,7 +195,7 @@ Keep **Test mode ON** in the Stripe Dashboard when `LOCAL_TESTING=true`. Turn it
   - Sign in → **Profile** → **Subscribe monthly** or **Subscribe yearly**
   - Pay with test card `4242 4242 4242 4242` (any future expiry, any CVC)
   - In Firestore, `users/{email}/userSetting/settings` → `"subscription status"` should become `subscribed`
-  - Free: creating a 7th deck is blocked
+  - Free: creating a 2nd deck is blocked
   - Subscribed: unlimited decks; still 200 questions per deck
   - **Manage billing** opens the Stripe Customer Portal
   - Subscribed Profile shows **Renews on …** (or **Ends on …** if canceled at period end), from Stripe

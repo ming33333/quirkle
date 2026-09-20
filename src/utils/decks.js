@@ -11,7 +11,7 @@ import { db } from "./firebase";
 import {
   assertQuestionLimit,
   canCreateDeck,
-  FREE_PLAN_MAX_DECKS,
+  freePlanDeckLabel,
   getVerifiedSubscriptionStatus,
   MAX_QUESTIONS_PER_DECK,
 } from "./subscription";
@@ -528,7 +528,7 @@ export const createDeckForUser = async (email, title) => {
   ]);
   if (!canCreateDeck(status, existingDecks.length)) {
     throw new Error(
-      `Free accounts can keep ${FREE_PLAN_MAX_DECKS} decks. Subscribe to add more.`,
+      `Free accounts can keep ${freePlanDeckLabel}. Subscribe to add more.`,
     );
   }
   assertQuestionLimit(0);
