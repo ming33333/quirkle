@@ -5,6 +5,7 @@ import {
   addCardsToDeck,
   ALL_RESULTS,
   countCardsByBucket,
+  DECK_TITLE_MAX_LENGTH,
   fetchDeckById,
   filterCardsForTest,
   getCardResult,
@@ -13,10 +14,23 @@ import {
   parseBulkQuestions,
   RESULT_LABELS,
   touchDeckLastAccessed,
+  updateDeckTitle,
   wasTestedToday,
 } from "../utils/decks";
+import {
+  addGuestCard,
+  addGuestCards,
+  claimGuestDeck,
+  deleteGuestCard,
+  hasGuestDeckSession,
+  loadGuestDeck,
+  updateGuestCardText,
+  updateGuestDeckTitle,
+} from "../utils/guestDeck";
 import { buildStudyInsights } from "../utils/studyInsights";
 import DueTimeline from "../components/DueTimeline.jsx";
+import GuestSampleBanner from "../components/GuestSampleBanner.jsx";
+import PencilButton from "../components/PencilButton.jsx";
 import PreviewCard from "../components/PreviewCard.jsx";
 
 const ALL_BUCKETS = [1, 2, 3, 4];
@@ -81,9 +95,9 @@ function BucketMixBar({ buckets, total }) {
   );
 }
 
-export default function PreviewPage({ user }) {
+export default function PreviewPage({ user, guest = false }) {
   const { deckId: encodedDeckId } = useParams();
-  const deckId = decodeURIComponent(encodedDeckId || "");
+  const deckId = guest ? "sample" : decodeURIComponent(encodedDeckId || "");
   const navigate = useNavigate();
   const email = user?.email;
 
@@ -107,11 +121,55 @@ export default function PreviewPage({ user }) {
   const [bulkInput, setBulkInput] = useState("");
   const [addingBulk, setAddingBulk] = useState(false);
   const [exampleCopied, setExampleCopied] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState("");
+  const [savingTitle, setSavingTitle] = useState(false);
+  const [titleError, setTitleError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
 
     const loadDeck = async () => {
+      if (guest && email) {
+        if (!hasGuestDeckSession()) {
+          navigate("/dashboard", { replace: true });
+          return;
+        }
+        setLoading(true);
+        setError("");
+        try {
+          const result = await claimGuestDeck(email);
+          if (cancelled) return;
+          if (result.skipped) {
+            navigate("/dashboard", { replace: true });
+            return;
+          }
+          navigate(`/preview/${encodeURIComponent(result.deckId)}`, {
+            replace: true,
+          });
+        } catch (claimError) {
+          console.error("Error saving sample deck:", claimError);
+          if (!cancelled) {
+            setError(claimError.message || "Could not save that notebook.");
+            setLoading(false);
+          }
+        }
+        return;
+      }
+
+      if (guest) {
+        const nextDeck = loadGuestDeck();
+        setDeck(nextDeck);
+        const alreadyToday = wasTestedToday(nextDeck.lastTestedAt);
+        setTestedToday(alreadyToday);
+        setUnansweredOnly(alreadyToday);
+        setBuckets(ALL_BUCKETS);
+        setResults(ALL_RESULTS);
+        setError("");
+        setLoading(false);
+        return;
+      }
+
       if (!email || !deckId) {
         setLoading(false);
         setError("Deck not found.");
@@ -147,7 +205,14 @@ export default function PreviewPage({ user }) {
     return () => {
       cancelled = true;
     };
-  }, [deckId, email]);
+  }, [deckId, email, guest, navigate]);
+
+  useEffect(() => {
+    setEditingTitle(false);
+    setTitleDraft("");
+    setTitleError("");
+    setSavingTitle(false);
+  }, [deckId, guest]);
 
   useEffect(() => {
     if (!exampleCopied) return undefined;
@@ -212,6 +277,51 @@ export default function PreviewPage({ user }) {
     setDueFilter("all");
   };
 
+  const startEditingTitle = () => {
+    setTitleDraft(deck?.title || "");
+    setTitleError("");
+    setEditingTitle(true);
+  };
+
+  const cancelEditingTitle = () => {
+    if (savingTitle) return;
+    setEditingTitle(false);
+    setTitleDraft("");
+    setTitleError("");
+  };
+
+  const saveDeckTitle = async (event) => {
+    event.preventDefault();
+    const nextTitle = titleDraft.trim();
+    if (!nextTitle || savingTitle) return;
+    if (nextTitle === (deck?.title || "").trim()) {
+      setEditingTitle(false);
+      setTitleError("");
+      return;
+    }
+
+    setSavingTitle(true);
+    setTitleError("");
+    try {
+      if (guest) {
+        if (!deck) return;
+        setDeck(updateGuestDeckTitle(deck, nextTitle));
+      } else {
+        const saved = await updateDeckTitle(email, deckId, nextTitle);
+        setDeck((current) =>
+          current ? { ...current, title: saved } : current,
+        );
+      }
+      setEditingTitle(false);
+      setTitleDraft("");
+    } catch (saveError) {
+      console.error("Error saving deck title:", saveError);
+      setTitleError(saveError.message || "Could not save that title.");
+    } finally {
+      setSavingTitle(false);
+    }
+  };
+
   const applyDueFilter = (value) => {
     setDueFilter(value);
     setShowFilters(true);
@@ -246,31 +356,45 @@ export default function PreviewPage({ user }) {
     params.set("results", results.join(","));
     if (unansweredOnly) params.set("due", "1");
     if (shuffleCards) params.set("shuffle", "1");
-    navigate(`/study/${encodeURIComponent(deckId)}/run?${params.toString()}`);
+    navigate(
+      guest
+        ? `/try/run?${params.toString()}`
+        : `/study/${encodeURIComponent(deckId)}/run?${params.toString()}`,
+    );
   };
 
-  const handleCardTextUpdate = useCallback((cardId, { question, answer }) => {
-    setDeck((current) => {
-      if (!current) return current;
-      return {
-        ...current,
-        cards: current.cards.map((card) =>
-          card.id === cardId ? { ...card, question, answer } : card,
-        ),
-      };
-    });
-  }, []);
+  const handleCardTextUpdate = useCallback(
+    (cardId, { question, answer }) => {
+      setDeck((current) => {
+        if (!current) return current;
+        if (guest) {
+          return updateGuestCardText(current, cardId, { question, answer });
+        }
+        return {
+          ...current,
+          cards: current.cards.map((card) =>
+            card.id === cardId ? { ...card, question, answer } : card,
+          ),
+        };
+      });
+    },
+    [guest],
+  );
 
-  const handleCardDelete = useCallback((cardId) => {
-    setDeck((current) => {
-      if (!current) return current;
-      return {
-        ...current,
-        cards: current.cards.filter((card) => card.id !== cardId),
-      };
-    });
-    setFocusedCardId((current) => (current === cardId ? "" : current));
-  }, []);
+  const handleCardDelete = useCallback(
+    (cardId) => {
+      setDeck((current) => {
+        if (!current) return current;
+        if (guest) return deleteGuestCard(current, cardId);
+        return {
+          ...current,
+          cards: current.cards.filter((card) => card.id !== cardId),
+        };
+      });
+      setFocusedCardId((current) => (current === cardId ? "" : current));
+    },
+    [guest],
+  );
 
   const atQuestionLimit = cards.length >= MAX_QUESTIONS_PER_DECK;
   const bulkPreview = useMemo(() => parseBulkQuestions(bulkInput), [bulkInput]);
@@ -279,15 +403,23 @@ export default function PreviewPage({ user }) {
   const bulkWillSkipLimit = bulkPreview.pairs.length - bulkWillAdd;
 
   const addQuestion = async () => {
-    if (!email || !deckId || addingCard || atQuestionLimit) return;
+    if (addingCard || atQuestionLimit) return;
+    if (!guest && (!email || !deckId)) return;
     setAddingCard(true);
     setAddError("");
     try {
-      const card = await addCardToDeck(email, deckId, cards);
-      setDeck((current) => {
-        if (!current) return current;
-        return { ...current, cards: [...current.cards, card] };
-      });
+      let card;
+      if (guest) {
+        const added = addGuestCard(deck);
+        card = added.card;
+        setDeck(added.deck);
+      } else {
+        card = await addCardToDeck(email, deckId, cards);
+        setDeck((current) => {
+          if (!current) return current;
+          return { ...current, cards: [...current.cards, card] };
+        });
+      }
       setBucketFilter("all");
       setResultFilter("all");
       setDueFilter("all");
@@ -325,7 +457,8 @@ export default function PreviewPage({ user }) {
   };
 
   const addBulkQuestions = async () => {
-    if (!email || !deckId || addingBulk || atQuestionLimit) return;
+    if (addingBulk || atQuestionLimit) return;
+    if (!guest && (!email || !deckId)) return;
     const { pairs } = parseBulkQuestions(bulkInput);
     if (!pairs.length) {
       setAddError(
@@ -336,25 +469,23 @@ export default function PreviewPage({ user }) {
     setAddingBulk(true);
     setAddError("");
     try {
-      const { cards: added, truncated } = await addCardsToDeck(
-        email,
-        deckId,
-        cards,
-        pairs,
-      );
+      const added = guest
+        ? addGuestCards(deck, pairs)
+        : await addCardsToDeck(email, deckId, cards, pairs);
       setDeck((current) => {
+        if (guest) return added.deck;
         if (!current) return current;
-        return { ...current, cards: [...current.cards, ...added] };
+        return { ...current, cards: [...current.cards, ...added.cards] };
       });
       setBucketFilter("all");
       setResultFilter("all");
       setDueFilter("all");
-      setFocusedCardId(added[added.length - 1]?.id || "");
+      setFocusedCardId(added.cards[added.cards.length - 1]?.id || "");
       setShowBulkPaste(false);
       setBulkInput("");
-      if (truncated) {
+      if (added.truncated) {
         setAddError(
-          `Added ${added.length}. ${truncated} more would go over the ${MAX_QUESTIONS_PER_DECK} question limit.`,
+          `Added ${added.cards.length}. ${added.truncated} more would go over the ${MAX_QUESTIONS_PER_DECK} question limit.`,
         );
       }
     } catch (addCardError) {
@@ -372,7 +503,9 @@ export default function PreviewPage({ user }) {
           <p className="empty-library__mark" aria-hidden="true">
             loading
           </p>
-          <h2>Opening preview…</h2>
+          <h2>
+            {guest && email ? "Saving your notebook…" : "Opening preview…"}
+          </h2>
         </div>
       </main>
     );
@@ -383,8 +516,8 @@ export default function PreviewPage({ user }) {
       <main className="preview">
         <div className="empty-library">
           <h2>{error || "Deck not found."}</h2>
-          <Link className="button button--ink" to="/dashboard">
-            Back to dashboard
+          <Link className="button button--ink" to={guest ? "/" : "/dashboard"}>
+            {guest ? "Back home" : "Back to dashboard"}
           </Link>
         </div>
       </main>
@@ -395,8 +528,49 @@ export default function PreviewPage({ user }) {
     <main className="preview">
       <header className="preview__top">
         <div>
-          <p className="eyebrow">Deck</p>
-          <h1>{deck.title}</h1>
+          <p className="eyebrow">{guest ? "Sample" : "Deck"}</p>
+          {editingTitle ? (
+            <form className="preview__title-form" onSubmit={saveDeckTitle}>
+              <input
+                aria-label="Deck title"
+                autoComplete="off"
+                autoFocus
+                disabled={savingTitle}
+                maxLength={DECK_TITLE_MAX_LENGTH}
+                onChange={(event) => setTitleDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    event.preventDefault();
+                    cancelEditingTitle();
+                  }
+                }}
+                value={titleDraft}
+              />
+              {titleError && <p className="form-error">{titleError}</p>}
+              <div className="preview__title-actions">
+                <button
+                  className="button button--paper button--small"
+                  disabled={savingTitle}
+                  onClick={cancelEditingTitle}
+                  type="button"
+                >
+                  Cancel
+                </button>
+                <button
+                  className="button button--ink button--small"
+                  disabled={savingTitle || !titleDraft.trim()}
+                  type="submit"
+                >
+                  {savingTitle ? "Saving…" : "Save"}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="preview__title-row">
+              <h1>{deck.title}</h1>
+              <PencilButton onClick={startEditingTitle} />
+            </div>
+          )}
           <p className="preview__count">
             {filtersActive
               ? `${filteredCards.length} of ${cards.length} cards`
@@ -413,12 +587,14 @@ export default function PreviewPage({ user }) {
         </div>
         <button
           className="text-link text-link--button"
-          onClick={() => navigate("/dashboard")}
+          onClick={() => navigate(guest ? "/" : "/dashboard")}
           type="button"
         >
           Back
         </button>
       </header>
+
+      {guest && <GuestSampleBanner />}
 
       {cards.length > 0 && (
         <section className="test-setup" aria-label="Start test">
@@ -867,8 +1043,9 @@ export default function PreviewPage({ user }) {
       ) : (
         <>
           <p className="preview-list__hint">
-            Click a question or answer to edit. Changes save automatically.
-            Delete removes a card from this deck.
+            {guest
+              ? "Click a question or answer to edit. Changes stay on this device until you keep the notebook."
+              : "Click a question or answer to edit. Changes save automatically. Delete removes a card from this deck."}
           </p>
           <ol className="preview-list">
             {filteredCards.map((card, cardIndex) => (
@@ -879,6 +1056,7 @@ export default function PreviewPage({ user }) {
                 email={email}
                 index={cardIndex}
                 key={card.id || cardIndex}
+                localOnly={guest}
                 onDelete={handleCardDelete}
                 onUpdate={handleCardTextUpdate}
                 showTags={showTags}

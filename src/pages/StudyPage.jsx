@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Brand from "../components/Brand.jsx";
+import GuestSampleBanner from "../components/GuestSampleBanner.jsx";
 import {
   ALL_RESULTS,
   fetchDeckById,
@@ -10,6 +11,7 @@ import {
   RESULT_LABELS,
   touchDeckLastAccessed,
 } from "../utils/decks";
+import { loadGuestDeck, recordGuestCardAnswer } from "../utils/guestDeck";
 
 const parseBuckets = (value) => {
   if (!value) return [1, 2, 3, 4];
@@ -29,9 +31,9 @@ const parseResults = (value) => {
   return parsed.length ? ALL_RESULTS.filter((result) => parsed.includes(result)) : ALL_RESULTS;
 };
 
-export default function StudyPage({ user }) {
+export default function StudyPage({ user, guest = false }) {
   const { deckId: encodedDeckId } = useParams();
-  const deckId = decodeURIComponent(encodedDeckId || "");
+  const deckId = guest ? "sample" : decodeURIComponent(encodedDeckId || "");
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const email = user?.email;
@@ -60,6 +62,29 @@ export default function StudyPage({ user }) {
     let cancelled = false;
 
     const loadDeck = async () => {
+      if (guest && email) {
+        navigate("/try", { replace: true });
+        return;
+      }
+
+      if (guest) {
+        const nextDeck = loadGuestDeck();
+        setDeck(nextDeck);
+        setSessionLastTestedLabel(nextDeck.lastTestedLabel || "Never tested");
+        const filtered = filterCardsForTest(nextDeck.cards, {
+          buckets,
+          results,
+          unansweredOnly,
+        });
+        const queued = shuffle ? shuffleCards(filtered) : filtered;
+        setQueueIds(queued.map((card) => card.id));
+        setIndex(0);
+        setFlipped(false);
+        setError("");
+        setLoading(false);
+        return;
+      }
+
       if (!email || !deckId) {
         setLoading(false);
         setError("Deck not found.");
@@ -102,7 +127,7 @@ export default function StudyPage({ user }) {
     return () => {
       cancelled = true;
     };
-  }, [buckets, deckId, email, results, shuffle, unansweredOnly]);
+  }, [buckets, deckId, email, guest, navigate, results, shuffle, unansweredOnly]);
 
   const cards = useMemo(() => {
     if (!deck?.cards) return [];
@@ -122,7 +147,7 @@ export default function StudyPage({ user }) {
     ? Math.round(((index + 1) / cards.length) * 100)
     : 0;
   const isLast = index >= cards.length - 1;
-  const setupPath = `/preview/${encodeURIComponent(deckId)}`;
+  const setupPath = guest ? "/try" : `/preview/${encodeURIComponent(deckId)}`;
 
   const filterLabel = (() => {
     const parts = [];
@@ -148,20 +173,24 @@ export default function StudyPage({ user }) {
   };
 
   const answerCard = async (choice) => {
-    if (!email || !deck || !card || saving) return;
+    if (!deck || !card || saving) return;
+    if (!guest && !email) return;
     setSaving(true);
     setError("");
     try {
-      const updatedCard = await recordCardAnswer(email, deckId, card, choice);
+      const updated = guest
+        ? recordGuestCardAnswer(deck, card, choice)
+        : { card: await recordCardAnswer(email, deckId, card, choice) };
       setDeck((current) => {
+        if (guest) return updated.deck;
         if (!current) return current;
         const nextCards = current.cards.map((item) =>
-          item.id === card.id ? updatedCard : item,
+          item.id === card.id ? updated.card : item,
         );
         return { ...current, cards: nextCards };
       });
       if (isLast) {
-        navigate(`/preview/${encodeURIComponent(deckId)}`);
+        navigate(setupPath);
       } else {
         setIndex((current) => current + 1);
         setFlipped(false);
@@ -221,8 +250,8 @@ export default function StudyPage({ user }) {
       <main className="study">
         <div className="empty-library">
           <h2>{error || "Deck not found."}</h2>
-          <Link className="button button--ink" to="/dashboard">
-            Back to dashboard
+          <Link className="button button--ink" to={guest ? "/" : "/dashboard"}>
+            {guest ? "Back home" : "Back to dashboard"}
           </Link>
         </div>
       </main>
@@ -261,7 +290,7 @@ export default function StudyPage({ user }) {
     <main className="study">
       <header className="study__top">
         <div>
-          <p className="eyebrow">Test mode</p>
+          <p className="eyebrow">{guest ? "Sample test" : "Test mode"}</p>
           <h1>{deck.title}</h1>
           <p className="study__last-test">
             {sessionLastTestedLabel === "Never tested"
@@ -279,6 +308,8 @@ export default function StudyPage({ user }) {
           Options
         </button>
       </header>
+
+      {guest && <GuestSampleBanner />}
 
       <div className="study__progress">
         <span>

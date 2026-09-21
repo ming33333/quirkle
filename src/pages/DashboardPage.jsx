@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Brand from "../components/Brand.jsx";
-import { createDeckForUser, fetchDecksForUser } from "../utils/decks";
+import PencilButton from "../components/PencilButton.jsx";
+import {
+  createDeckForUser,
+  DECK_TITLE_MAX_LENGTH,
+  fetchDecksForUser,
+  updateDeckTitle,
+} from "../utils/decks";
 import {
   canCreateDeck,
   freePlanDeckLabel,
@@ -18,6 +24,9 @@ export default function DashboardPage({ user }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
+  const [renamingDeck, setRenamingDeck] = useState(null);
+  const [renameTitle, setRenameTitle] = useState("");
+  const [renaming, setRenaming] = useState(false);
   const [planStatus, setPlanStatus] = useState("free");
   const firstName =
     user?.displayName?.split(" ")[0] || user?.email?.split("@")[0] || "writer";
@@ -97,7 +106,50 @@ export default function DashboardPage({ user }) {
       return;
     }
     setError("");
+    setRenamingDeck(null);
     setIsCreating(true);
+  };
+
+  const openRename = (deck) => {
+    setIsCreating(false);
+    setError("");
+    setRenamingDeck(deck);
+    setRenameTitle(deck.title || "");
+  };
+
+  const closeRename = () => {
+    if (renaming) return;
+    setRenamingDeck(null);
+    setRenameTitle("");
+    setError("");
+  };
+
+  const saveRenamedDeck = async (event) => {
+    event.preventDefault();
+    const title = renameTitle.trim();
+    if (!title || !email || !renamingDeck || renaming) return;
+    if (title === (renamingDeck.title || "").trim()) {
+      closeRename();
+      return;
+    }
+
+    setRenaming(true);
+    setError("");
+    try {
+      const saved = await updateDeckTitle(email, renamingDeck.id, title);
+      setDecks((current) =>
+        current.map((deck) =>
+          deck.id === renamingDeck.id ? { ...deck, title: saved } : deck,
+        ),
+      );
+      setRenamingDeck(null);
+      setRenameTitle("");
+    } catch (renameError) {
+      console.error("Error renaming deck:", renameError);
+      setError(renameError.message || "Could not save that title.");
+    } finally {
+      setRenaming(false);
+    }
   };
 
   return (
@@ -135,7 +187,7 @@ export default function DashboardPage({ user }) {
           </button>
         </header>
 
-        {error && !isCreating && (
+        {error && !isCreating && !renamingDeck && (
           <p className="dashboard__error">
             {error}{" "}
             {atDeckLimit && (
@@ -182,6 +234,10 @@ export default function DashboardPage({ user }) {
 
                 return (
                   <div className="deck-card" key={deck.id}>
+                    <PencilButton
+                      className="deck-card__pencil"
+                      onClick={() => openRename(deck)}
+                    />
                     <button
                       className="deck-card__hit"
                       onClick={() => navigate(`/preview/${encodedId}`)}
@@ -225,7 +281,7 @@ export default function DashboardPage({ user }) {
               Title
               <input
                 autoFocus
-                maxLength={80}
+                maxLength={DECK_TITLE_MAX_LENGTH}
                 onChange={(event) => setDeckTitle(event.target.value)}
                 placeholder="e.g. Japanese vocabulary"
                 value={deckTitle}
@@ -249,6 +305,48 @@ export default function DashboardPage({ user }) {
                 type="submit"
               >
                 {creating ? "Creating…" : "Create"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {renamingDeck && (
+        <div
+          className="dialog-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeRename();
+          }}
+        >
+          <form className="new-deck-dialog" onSubmit={saveRenamedDeck}>
+            <p className="eyebrow">Edit title</p>
+            <h2>Change this title</h2>
+            <label>
+              Title
+              <input
+                autoFocus
+                disabled={renaming}
+                maxLength={DECK_TITLE_MAX_LENGTH}
+                onChange={(event) => setRenameTitle(event.target.value)}
+                value={renameTitle}
+              />
+            </label>
+            {error && <p className="form-error">{error}</p>}
+            <div>
+              <button
+                className="button button--paper"
+                disabled={renaming}
+                onClick={closeRename}
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                className="button button--ink"
+                disabled={renaming || !renameTitle.trim()}
+                type="submit"
+              >
+                {renaming ? "Saving…" : "Save"}
               </button>
             </div>
           </form>

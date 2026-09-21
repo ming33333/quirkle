@@ -67,7 +67,7 @@ export default function HowToPage({ user }) {
         <div className="howto__actions">
           <Link
             className="button button--vermilion"
-            to={user ? "/dashboard" : "/login"}
+            to={user ? "/dashboard" : "/try"}
           >
             {user ? "Open your decks" : "Begin writing"}
             <span aria-hidden="true">→</span>

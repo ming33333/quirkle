@@ -17,6 +17,27 @@ import {
 } from "./subscription";
 
 const ANSWER_HISTORY_CAP = 40;
+export const DECK_TITLE_MAX_LENGTH = 80;
+
+const normalizeDeckTitle = (title) => String(title ?? "").trim();
+
+export const assertValidDeckTitle = (title) => {
+  const trimmed = normalizeDeckTitle(title);
+  if (!trimmed) {
+    throw new Error("A deck title is required.");
+  }
+  if (trimmed.length > DECK_TITLE_MAX_LENGTH) {
+    throw new Error("That title is too long.");
+  }
+  return trimmed;
+};
+
+const titleTakenByAnotherDeck = (decks, title, exceptId) =>
+  (decks || []).some(
+    (deck) =>
+      deck.id !== exceptId &&
+      (deck.id === title || deck.title === title),
+  );
 
 const countQuestions = (questions) => {
   if (!questions) return 0;
@@ -71,7 +92,7 @@ const normalizeQuestions = (questions) => {
     }));
 };
 
-const DEFAULT_LEVEL_DAYS = { 1: 2, 2: 4, 3: 8, 4: 16 };
+const DEFAULT_LEVEL_DAYS = { 1: 1, 2: 2, 3: 4, 4: 8 };
 
 const getLevelSchedule = async () => {
   try {
@@ -295,18 +316,17 @@ export const touchDeckLastAccessed = async (email, deckId) => {
 };
 
 /**
- * Update a card's bucket/level after a test answer.
- * Right → level + 1 (max 4). Wrong → level - 1 (min 1).
+ * Apply a right/wrong outcome locally. Right → level + 1 (max 4).
+ * Wrong → level - 1 (min 1).
  */
-export const recordCardAnswer = async (email, deckId, card, choice) => {
-  if (!email || !deckId || !card?.id) {
-    throw new Error("Missing deck or card information.");
-  }
-
-  const schedule = await getLevelSchedule();
+export const applyCardAnswer = (
+  card,
+  choice,
+  schedule = DEFAULT_LEVEL_DAYS,
+) => {
   const currentLevel = Math.min(
     4,
-    Math.max(1, parseInt(card.level, 10) || 1),
+    Math.max(1, parseInt(card?.level, 10) || 1),
   );
   const passed = choice === "right";
   const level = passed
@@ -317,26 +337,12 @@ export const recordCardAnswer = async (email, deckId, card, choice) => {
   nextActiveDate.setDate(nextActiveDate.getDate() + days);
   const lastAnswered = new Date().toISOString();
   const activeTime = nextActiveDate.toISOString();
-  const key = String(card.id);
   const historyEntry = {
     at: lastAnswered,
     result: passed ? "right" : "wrong",
     from: currentLevel,
     to: level,
   };
-  const answerHistory = [
-    ...normalizeAnswerHistory(card.answerHistory),
-    historyEntry,
-  ].slice(-ANSWER_HISTORY_CAP);
-
-  await updateDoc(doc(db, "users", email, "quizCollection", deckId), {
-    [`questions.${key}.passed`]: passed,
-    [`questions.${key}.level`]: level,
-    [`questions.${key}.lastAnswered`]: lastAnswered,
-    [`questions.${key}.activeTime`]: activeTime,
-    [`questions.${key}.answerHistory`]: answerHistory,
-    lastAccessed: lastAnswered,
-  });
 
   return {
     ...card,
@@ -344,8 +350,36 @@ export const recordCardAnswer = async (email, deckId, card, choice) => {
     level,
     lastAnswered,
     activeTime,
-    answerHistory,
+    answerHistory: [
+      ...normalizeAnswerHistory(card?.answerHistory),
+      historyEntry,
+    ].slice(-ANSWER_HISTORY_CAP),
   };
+};
+
+/**
+ * Update a card's bucket/level after a test answer.
+ * Right → level + 1 (max 4). Wrong → level - 1 (min 1).
+ */
+export const recordCardAnswer = async (email, deckId, card, choice) => {
+  if (!email || !deckId || !card?.id) {
+    throw new Error("Missing deck or card information.");
+  }
+
+  const schedule = await getLevelSchedule();
+  const updated = applyCardAnswer(card, choice, schedule);
+  const key = String(card.id);
+
+  await updateDoc(doc(db, "users", email, "quizCollection", deckId), {
+    [`questions.${key}.passed`]: updated.passed,
+    [`questions.${key}.level`]: updated.level,
+    [`questions.${key}.lastAnswered`]: updated.lastAnswered,
+    [`questions.${key}.activeTime`]: updated.activeTime,
+    [`questions.${key}.answerHistory`]: updated.answerHistory,
+    lastAccessed: updated.lastAnswered,
+  });
+
+  return updated;
 };
 
 export const updateCardText = async (email, deckId, cardId, { question, answer }) => {
@@ -513,12 +547,35 @@ export const addCardsToDeck = async (
 
 export { assertQuestionLimit, MAX_QUESTIONS_PER_DECK } from "./subscription";
 
+const questionsFromCards = (cards = []) => {
+  const questions = {};
+  cards.forEach((card, index) => {
+    const key = String(
+      card?.id ?? card?.mapIndex ?? card?.originalIndex ?? index,
+    );
+    questions[key] = emptyCardFields(
+      key,
+      String(card?.question ?? ""),
+      String(card?.answer ?? ""),
+    );
+    questions[key].level = Math.min(
+      4,
+      Math.max(1, parseInt(card?.level, 10) || 1),
+    );
+    questions[key].passed = Boolean(card?.passed);
+    questions[key].activeTime = card?.activeTime ?? null;
+    questions[key].lastAnswered = card?.lastAnswered ?? null;
+    questions[key].answerHistory = normalizeAnswerHistory(card?.answerHistory);
+  });
+  return questions;
+};
+
 /**
- * Create a new empty deck in the same collection shape as the legacy app.
+ * Create a new deck in the same collection shape as the legacy app.
  */
-export const createDeckForUser = async (email, title) => {
-  const trimmed = title.trim();
-  if (!email || !trimmed) {
+export const createDeckForUser = async (email, title, { cards } = {}) => {
+  const trimmed = assertValidDeckTitle(title);
+  if (!email) {
     throw new Error("A signed-in user and deck title are required.");
   }
 
@@ -531,7 +588,12 @@ export const createDeckForUser = async (email, title) => {
       `Free accounts can keep ${freePlanDeckLabel}. Subscribe to add more.`,
     );
   }
-  assertQuestionLimit(0);
+  if (titleTakenByAnotherDeck(existingDecks, trimmed)) {
+    throw new Error("A deck with that name already exists.");
+  }
+
+  const questions = questionsFromCards(cards);
+  assertQuestionLimit(countQuestions(questions));
 
   const userRef = doc(db, "users", email);
   const userSnap = await getDoc(userRef);
@@ -548,17 +610,48 @@ export const createDeckForUser = async (email, title) => {
   const lastAccessed = new Date().toISOString();
   await setDoc(quizRef, {
     title: trimmed,
-    questions: {},
+    questions,
     lastAccessed,
   });
 
   return {
     id: trimmed,
     title: trimmed,
-    cards: 0,
+    cards: countQuestions(questions),
     updated: "Just now",
     lastAccessed,
     spacedLearning: null,
-    raw: { title: trimmed, questions: {}, lastAccessed },
+    raw: { title: trimmed, questions, lastAccessed },
   };
+};
+
+/**
+ * Change a deck's display title. The document id stays the same so links
+ * keep working. Callers must persist only when the user clicks Save.
+ */
+export const updateDeckTitle = async (email, deckId, title) => {
+  if (!email || !deckId) {
+    throw new Error("Missing deck information.");
+  }
+
+  const trimmed = assertValidDeckTitle(title);
+  const existingDecks = await fetchDecksForUser(email);
+  const current = existingDecks.find((deck) => deck.id === deckId);
+  if (!current) {
+    throw new Error("That deck could not be found.");
+  }
+  if (titleTakenByAnotherDeck(existingDecks, trimmed, deckId)) {
+    throw new Error("A deck with that name already exists.");
+  }
+
+  if (current.title === trimmed) {
+    return trimmed;
+  }
+
+  await updateDoc(doc(db, "users", email, "quizCollection", deckId), {
+    title: trimmed,
+    lastAccessed: new Date().toISOString(),
+  });
+
+  return trimmed;
 };

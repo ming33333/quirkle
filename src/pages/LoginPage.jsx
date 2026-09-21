@@ -165,6 +165,7 @@ export default function LoginPage({ user }) {
   const navigate = useNavigate();
   const location = useLocation();
   const destination = location.state?.from || "/dashboard";
+  const keepingSample = destination === "/try";
 
   useEffect(() => {
     if (user) navigate(destination, { replace: true });
@@ -189,8 +190,12 @@ export default function LoginPage({ user }) {
 
       <section className="login-panel">
         <Brand />
-        <h1>Sign in</h1>
-        <p>Continue with Google to open your notebook.</p>
+        <h1>{keepingSample ? "Keep this notebook" : "Sign in"}</h1>
+        <p>
+          {keepingSample
+            ? "Continue with Google to save Curious creatures to your account."
+            : "Continue with Google to open your notebook."}
+        </p>
         {error && <p className="form-error">{error}</p>}
         <button
           className="button button--ink button--full"

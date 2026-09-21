@@ -1,4 +1,21 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Noto+Serif+JP:wght@400;500;600&display=swap");
+<!DOCTYPE html>
+<html lang="en"><head>
+    <script type="module">import { injectIntoGlobalHook } from "/@react-refresh";
+injectIntoGlobalHook(window);
+window.$RefreshReg$ = () => {};
+window.$RefreshSig$ = () => (type) => type;</script>
+
+    <script type="module" src="/@vite/client"></script>
+
+    <meta charset="utf-8">
+    <link rel="icon" href="/red_panda.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#263d4a">
+    <meta name="description" content="Study less. Remember more. Quirkle uses spaced repetition, so cards only come back when you’re about to forget them.">
+    <link rel="apple-touch-icon" href="/logo192.png">
+    <link rel="manifest" href="/manifest.json">
+    <title>Quirkle — a flashcard study nook</title>
+  <style type="text/css" data-vite-dev-id="/Users/navapornintharuck/Desktop/Projects/githubPagesSite/quirkle/src/styles/index.css">@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Noto+Serif+JP:wght@400;500;600&display=swap");
 
 :root {
   --paper: #f5f0e6;
@@ -237,7 +254,6 @@ a {
 }
 
 .hero__how {
-  display: inline-block;
   color: var(--vermilion);
   font-family: var(--sans);
   font-size: 15px;
@@ -1125,7 +1141,6 @@ a {
 }
 
 .deck-card {
-  position: relative;
   display: flex;
   min-height: 210px;
   flex-direction: column;
@@ -1181,40 +1196,6 @@ a {
   font-weight: 500;
   line-height: 1.35;
   word-break: break-word;
-}
-
-.pencil-button {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  color: var(--ink-soft);
-  background: transparent;
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.pencil-button:hover,
-.pencil-button:focus-visible {
-  color: var(--ink);
-  background: rgba(38, 61, 74, 0.08);
-}
-
-.pencil-button svg {
-  display: block;
-  width: 16px;
-  height: 16px;
-}
-
-.deck-card__pencil {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 1;
 }
 
 .deck-card--add {
@@ -1546,48 +1527,6 @@ a {
   font-family: var(--serif);
   font-size: clamp(28px, 4vw, 40px);
   font-weight: 500;
-}
-
-.preview__title-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
-}
-
-.preview__title-form {
-  width: min(100%, 560px);
-}
-
-.preview__title-form input {
-  width: 100%;
-  margin: 0;
-  padding: 4px 0 8px;
-  outline: none;
-  color: var(--ink);
-  background: transparent;
-  border: 0;
-  border-bottom: 1px solid var(--line);
-  border-radius: 0;
-  font-family: var(--serif);
-  font-size: clamp(28px, 4vw, 40px);
-  font-weight: 500;
-  line-height: 1.2;
-}
-
-.preview__title-form input:focus {
-  border-bottom-color: var(--indigo);
-}
-
-.preview__title-form .form-error {
-  margin: 10px 0 0;
-}
-
-.preview__title-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 14px;
 }
 
 .guest-banner {
@@ -3832,3 +3771,11 @@ button.progress-stat {
   }
 }
 
+</style><script src="https://js.stripe.com/v3"></script><script src="https://www.googletagmanager.com/gtag/js?l=dataLayer&amp;id=G-8PPFC7BPZL" async=""></script></head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"><main class="landing"><nav class="site-nav"><a class="brand" href="#/" data-discover="true"><span class="brand__seal" aria-hidden="true"><img alt="" src="/red_panda.jpg"></span><span><strong>Quirkle</strong><small>A flashcard study nook</small></span></a><div class="site-nav__actions"><button class="text-link text-link--button" type="button">Pricing</button><span class="nav-tip"><a class="button button--ink button--small" href="#/login" data-discover="true">Sign in</a><em class="nav-tip__msg" role="tooltip">You’ll sign in with Google first.</em></span></div></nav><section class="hero"><h1><span>Study less.</span><span>Remember more.</span></h1><p class="hero__lede">Quirkle uses <a class="hero__how text-link" href="#/spaced-repetition" data-discover="true">spaced repetition</a>, so a card only comes back when you’re about to forget it. Write once. Review what’s due. Close the notebook. <a class="hero__how text-link" href="#/how-to" data-discover="true">Yeah, but how?</a></p><div class="hero__actions"><a class="button button--vermilion" href="#/try" data-discover="true">Start a free deck<span aria-hidden="true">→</span></a></div></section><section class="landing-band" id="how"><header class="landing-copy"><p class="eyebrow">How it works</p><h2>Three steps. Then you’re done for the day.</h2></header><ol class="landing-steps"><li><span>01</span><strong>Write the cards</strong><p>Type them, or paste a spreadsheet.</p></li><li><span>02</span><strong>Study what’s due</strong><p>Only fading cards come back.</p></li><li><span>03</span><strong>Right climbs. Wrong returns.</strong><p>Hits wait longer. Misses come sooner.</p></li></ol><section class="sr-play" aria-label="A card starts in bucket 1, due in two days. Each right answer moves it to the next bucket: 4 days, then 8, then 16. A wrong answer drops it back a bucket."><div class="sr-play__stage"><div class="sr-rack" aria-hidden="true"><div class="sr-bin sr-bin--1"><div class="sr-bin__well"></div><strong>Bucket 1</strong><span>Back in 2 days</span></div><div class="sr-bin sr-bin--2"><div class="sr-bin__well"></div><strong>Bucket 2</strong><span>Back in 4 days</span></div><div class="sr-bin sr-bin--3"><div class="sr-bin__well"></div><strong>Bucket 3</strong><span>Back in 8 days</span></div><div class="sr-bin sr-bin--4"><div class="sr-bin__well"></div><strong>Bucket 4</strong><span>Back in 16 days</span></div><article class="sr-card"><div class="sr-card__flip"><span class="sr-card__face sr-card__face--front"><small>Question</small><p>When is National Donut Day?</p></span><span class="sr-card__face sr-card__face--back"><small>Answer</small><p>The first Friday in June.</p></span></div><span class="sr-card__mark sr-card__mark--right">✓</span><span class="sr-card__mark sr-card__mark--wrong">×</span></article></div></div><div class="sr-captions"><p class="sr-caption sr-caption--1">New cards start in Bucket 1. They come back in 2 days.</p><p class="sr-caption sr-caption--2">Got it right — it moves to Bucket 2, which waits 4 days.</p><p class="sr-caption sr-caption--3">Keep getting it right, and it climbs. Bucket 3 waits 8 days. Bucket 4 waits 16 days.</p><p class="sr-caption sr-caption--4">Miss it, and it drops back a bucket, so it returns sooner.</p></div></section><p class="landing-band__more"><a class="text-link" href="#/how-to" data-discover="true">How to use Quirkle</a><a class="text-link" href="#/spaced-repetition" data-discover="true">Watch the buckets</a></p></section><section class="landing-copy landing-copy--narrow"><p class="eyebrow">Why this, why now</p><h2>Cramming feels like studying. It isn’t.</h2><p>Most apps become another feed — streaks, leaderboards, a dozen buttons. You re-read the whole pile, including what you already know. It feels productive. Then it evaporates overnight.</p><p>The forgetting starts as soon as you close the book. Quirkle is built for that moment: a quiet notebook that only asks for the cards that are about to fade.</p></section><section class="landing-copy"><p class="eyebrow">Can I trust this?</p><h2>Built by someone who wanted a quiet notebook.</h2><blockquote class="landing-quote"><p>I looked for a place to write flashcards and actually review them — spaced, simple, without a feed or a streak leaderboard. I couldn’t find one that stayed out of the way, so I made Quirkle.</p><cite><a class="text-link" href="#/lucky-software" data-discover="true">Lucky Software</a></cite></blockquote><ul class="landing-facts"><li>No feed, no streak leaderboard, no extra chrome.</li><li>You only study what’s due — right climbs, wrong returns sooner.</li><li>Free for 1 deck. Sign in with Google. No credit card to start.</li></ul></section><section class="landing-band" id="pricing"><header class="landing-copy"><p class="eyebrow">Can I afford it?</p><h2>Start free. Subscribe when one deck isn’t enough.</h2></header><div class="landing-plans"><article class="landing-plan"><p class="eyebrow">Free</p><p class="landing-plan__price">$0</p><p class="landing-plan__note">1 deck, full spaced repetition.</p><a class="button button--vermilion" href="#/try" data-discover="true">Start free<span aria-hidden="true">→</span></a></article><article class="landing-plan"><p class="eyebrow">Monthly</p><p class="landing-plan__price">$5<small>/month</small></p><p class="landing-plan__note">Unlimited decks. Cancel anytime.</p><span class="nav-tip"><a class="button button--paper" href="#/login" data-discover="true">Subscribe monthly<span aria-hidden="true">→</span></a><em class="nav-tip__msg" role="tooltip">You’ll sign in with Google first.</em></span></article><article class="landing-plan landing-plan--paid"><p class="eyebrow">Yearly</p><p class="landing-plan__price">$50<small>/year</small></p><p class="landing-plan__note">Unlimited decks. Save 17% vs monthly.</p><span class="nav-tip"><a class="button button--ink" href="#/login" data-discover="true">Subscribe yearly<span aria-hidden="true">→</span></a><em class="nav-tip__msg" role="tooltip">You’ll sign in with Google first.</em></span></article></div></section><section class="landing-close"><p class="eyebrow">Do I need this now?</p><h2>What you learned today is already fading.</h2><p>Write the cards while the material is still warm. The schedule does the rest.</p><a class="button button--vermilion" href="#/try" data-discover="true">Start a free deck<span aria-hidden="true">→</span></a></section><footer class="landing-about"><p class="eyebrow">About</p><p><a class="text-link" href="#/how-to" data-discover="true">How to use</a></p><p>Quirkle is made by <a class="text-link" href="#/lucky-software" data-discover="true">Lucky Software</a>.</p><p>Feature requests or support: <a class="text-link" href="mailto:quirkle.it.support@gmail.com">quirkle.it.support@gmail.com</a></p></footer></main></div>
+    <script type="module" src="/src/index.jsx?t=1789963666884"></script>
+  
+
+<iframe name="__privateStripeMetricsController8530" frameborder="0" allowtransparency="true" scrolling="no" role="presentation" allow="payment *" src="https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=http%3A%2F%2Flocalhost%3A3000%2F%23%2F&amp;title=Quirkle%20%E2%80%94%20a%20flashcard%20study%20nook&amp;referrer=&amp;muid=NA&amp;sid=NA&amp;version=6&amp;preview=false&amp;__shared_params__[version]=v3" aria-hidden="true" tabindex="-1" style="border-width: medium !important; border-style: none !important; border-color: currentcolor !important; border-image: none !important; margin: 0px !important; padding: 0px !important; width: 1px !important; min-width: 100% !important; overflow: hidden !important; display: block !important; visibility: hidden !important; position: fixed !important; height: 1px !important; pointer-events: none !important; user-select: none !important;"></iframe></body></html>

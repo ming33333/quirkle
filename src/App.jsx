@@ -76,9 +76,17 @@ function AppRoutes({ user }) {
         <Route path="/lucky-software" element={<LuckySoftwarePage />} />
         <Route
           path="/spaced-repetition"
-          element={<SpacedRepetitionPage />}
+          element={<SpacedRepetitionPage user={user} />}
         />
         <Route path="/login" element={<LoginPage user={user} />} />
+        <Route
+          path="/try"
+          element={<PreviewPage guest user={user} />}
+        />
+        <Route
+          path="/try/run"
+          element={<StudyPage guest user={user} />}
+        />
         <Route
           path="/dashboard"
           element={

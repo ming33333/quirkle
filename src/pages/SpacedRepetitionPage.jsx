@@ -4,7 +4,7 @@ import SpacedRepetitionPlay, {
   SR_BUCKETS,
 } from "../components/SpacedRepetitionPlay.jsx";
 
-export default function SpacedRepetitionPage() {
+export default function SpacedRepetitionPage({ user }) {
   return (
     <main className="sr-page">
       <nav className="site-nav">
@@ -48,8 +48,8 @@ export default function SpacedRepetitionPage() {
       </p>
 
       <div className="sr-actions">
-        <Link className="button button--vermilion" to="/login">
-          Begin writing
+        <Link className="button button--vermilion" to={user ? "/dashboard" : "/try"}>
+          {user ? "Open your decks" : "Begin writing"}
           <span aria-hidden="true">→</span>
         </Link>
         <Link className="text-link" to="/">

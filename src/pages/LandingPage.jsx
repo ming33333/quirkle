@@ -75,10 +75,10 @@ function PrimaryCta({ user, children }) {
   }
 
   return (
-    <SignInCta className="button button--vermilion">
+    <Link className="button button--vermilion" to="/try">
       {children}
       <span aria-hidden="true">→</span>
-    </SignInCta>
+    </Link>
   );
 }
 
@@ -166,8 +166,12 @@ export default function LandingPage({ user }) {
           <span>Remember more.</span>
         </h1>
         <p className="hero__lede">
-          Quirkle uses spaced repetition, so a card only comes back when you’re
-          about to forget it.           Write once. Review what’s due. Close the notebook.{" "}
+          Quirkle uses{" "}
+          <Link className="hero__how text-link" to="/spaced-repetition">
+            {"spaced repetition"}
+          </Link>
+          , so a card only comes back when you’re about to forget it. Write
+          once. Review what’s due. Close the notebook.{" "}
           <Link className="hero__how text-link" to="/how-to">
             Yeah, but how?
           </Link>

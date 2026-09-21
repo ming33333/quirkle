@@ -18,6 +18,7 @@ export default function PreviewCard({
   onUpdate,
   onDelete,
   autoFocus = false,
+  localOnly = false,
 }) {
   const [question, setQuestion] = useState(card.question || "");
   const [answer, setAnswer] = useState(card.answer || "");
@@ -64,7 +65,9 @@ export default function PreviewCard({
           setStatus("saved");
           return;
         }
-        await updateCardText(email, deckId, card.id, draft);
+        if (!localOnly) {
+          await updateCardText(email, deckId, card.id, draft);
+        }
         savedRef.current = {
           question: draft.question,
           answer: draft.answer,
@@ -77,7 +80,7 @@ export default function PreviewCard({
     } finally {
       inFlightRef.current = false;
     }
-  }, [card.id, deckId, email, onUpdate]);
+  }, [card.id, deckId, email, localOnly, onUpdate]);
 
   const scheduleSave = useCallback(() => {
     clearTimeout(timerRef.current);
@@ -136,11 +139,15 @@ export default function PreviewCard({
       if (draft.question === saved.question && draft.answer === saved.answer) {
         return;
       }
+      if (localOnly) {
+        onUpdate?.(card.id, draft);
+        return;
+      }
       updateCardText(email, deckId, card.id, draft)
         .then(() => onUpdate?.(card.id, draft))
         .catch((saveError) => console.error("Error saving card:", saveError));
     };
-  }, [card.id, deckId, email, onUpdate, persist]);
+  }, [card.id, deckId, email, localOnly, onUpdate, persist]);
 
   const deleteCard = async () => {
     if (deleting) return;
@@ -148,7 +155,9 @@ export default function PreviewCard({
     removedRef.current = true;
     setDeleting(true);
     try {
-      await deleteCardFromDeck(email, deckId, card.id);
+      if (!localOnly) {
+        await deleteCardFromDeck(email, deckId, card.id);
+      }
       onDelete?.(card.id);
     } catch (deleteError) {
       console.error("Error deleting card:", deleteError);

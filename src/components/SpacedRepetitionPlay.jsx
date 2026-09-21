@@ -1,8 +1,8 @@
 export const SR_BUCKETS = [
-  { n: 1, wait: "2 days", hint: "just learning" },
-  { n: 2, wait: "4 days", hint: "getting familiar" },
-  { n: 3, wait: "8 days", hint: "starting to stick" },
-  { n: 4, wait: "16 days", hint: "resting" },
+  { n: 1, wait: "1 day", hint: "just learning" },
+  { n: 2, wait: "2 days", hint: "getting familiar" },
+  { n: 3, wait: "4 days", hint: "starting to stick" },
+  { n: 4, wait: "8 days", hint: "resting" },
 ];
 
 export const SR_CYCLE_MS = 24000;
@@ -11,7 +11,7 @@ export default function SpacedRepetitionPlay() {
   return (
     <section
       className="sr-play"
-      aria-label="A card starts in bucket 1, due in two days. Each right answer moves it to the next bucket: 4 days, then 8, then 16. A wrong answer drops it back a bucket."
+      aria-label="A card starts in bucket 1, due in one day. Each right answer moves it to the next bucket: 2 days, then 4, then 8. A wrong answer drops it back a bucket."
     >
       <div className="sr-play__stage">
         <div className="sr-rack" aria-hidden="true">
@@ -42,14 +42,14 @@ export default function SpacedRepetitionPlay() {
 
       <div className="sr-captions">
         <p className="sr-caption sr-caption--1">
-          New cards start in Bucket 1. They come back in 2 days.
+          New cards start in Bucket 1. They come back in 1 day.
         </p>
         <p className="sr-caption sr-caption--2">
-          Got it right — it moves to Bucket 2, which waits 4 days.
+          Got it right — it moves to Bucket 2, which waits 2 days.
         </p>
         <p className="sr-caption sr-caption--3">
-          Keep getting it right, and it climbs. Bucket 3 waits 8 days.
-          Bucket 4 waits 16 days.
+          Keep getting it right, and it climbs. Bucket 3 waits 4 days.
+          Bucket 4 waits 8 days.
         </p>
         <p className="sr-caption sr-caption--4">
           Miss it, and it drops back a bucket, so it returns sooner.
