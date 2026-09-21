@@ -188,6 +188,20 @@ export default function LandingPage({ user }) {
           <p className="eyebrow">How it works</p>
           <h2>Three steps. Then you’re done for the day.</h2>
         </header>
+        <figure className="landing-demo">
+          <video
+            className="landing-demo__video"
+            controls
+            playsInline
+            preload="metadata"
+            src="/quirkle-demo.mp4"
+          >
+            A short demo of pasting cards into a deck and studying what’s due.
+          </video>
+          <figcaption className="landing-demo__title">
+            Paste the cards, then study what’s due.
+          </figcaption>
+        </figure>
         <ol className="landing-steps">
           {STEPS.map((step) => (
             <li key={step.n}>
