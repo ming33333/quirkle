@@ -9,9 +9,14 @@ export default function SpacedRepetitionPage() {
     <main className="sr-page">
       <nav className="site-nav">
         <Brand />
-        <Link className="text-link" to="/">
-          Home
-        </Link>
+        <div className="site-nav__actions">
+          <Link className="text-link text-link--nav-keep" to="/how-to">
+            How to
+          </Link>
+          <Link className="text-link text-link--nav-keep" to="/">
+            Home
+          </Link>
+        </div>
       </nav>
 
       <header className="sr-head">

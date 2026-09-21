@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { signOut } from "firebase/auth";
+import { auth } from "../utils/firebase";
 import {
   cancelSubscriptionAtPeriodEnd,
   freePlanDeckLabel,
   getSubscriptionDetails,
   isSubscribed,
-  MAX_QUESTIONS_PER_DECK,
   MONTHLY_PRICE_USD,
   openCustomerPortal,
   peekSubscriptionDetails,
@@ -39,6 +40,7 @@ export default function ProfilePage({ onClose, user }) {
   const [planInterval, setPlanInterval] = useState(cached?.interval || null);
   const [loading, setLoading] = useState(!cached);
   const [working, setWorking] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -139,6 +141,20 @@ export default function ProfilePage({ onClose, user }) {
     }
   };
 
+  const handleSignOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    setError("");
+    setMessage("");
+    try {
+      await signOut(auth);
+    } catch (signOutError) {
+      console.error("Sign out error:", signOutError);
+      setError(signOutError.message || "Could not sign out.");
+      setSigningOut(false);
+    }
+  };
+
   const handleCancelSubscription = async () => {
     if (working || cancelAtPeriodEnd) return;
     const confirmed = window.confirm(
@@ -217,9 +233,6 @@ export default function ProfilePage({ onClose, user }) {
                   accounts can make as many decks as they need.
                 </p>
               )}
-              <p className="profile__note">
-                Every deck is limited to {MAX_QUESTIONS_PER_DECK} questions.
-              </p>
               {error && <p className="profile__error">{error}</p>}
               {message && <p className="profile__message">{message}</p>}
               {impersonating ? (
@@ -291,6 +304,17 @@ export default function ProfilePage({ onClose, user }) {
             </>
           )}
         </section>
+
+        <div className="profile__session">
+          <button
+            className="button button--paper"
+            disabled={signingOut}
+            onClick={handleSignOut}
+            type="button"
+          >
+            {signingOut ? "Signing out…" : "Sign out"}
+          </button>
+        </div>
       </div>
     </div>
   );

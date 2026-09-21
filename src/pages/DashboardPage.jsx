@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { signOut } from "firebase/auth";
 import Brand from "../components/Brand.jsx";
-import { auth } from "../utils/firebase";
 import { createDeckForUser, fetchDecksForUser } from "../utils/decks";
 import {
   canCreateDeck,
@@ -119,13 +117,6 @@ export default function DashboardPage({ user }) {
           >
             Profile
           </Link>
-          <button
-            className="text-link text-link--button"
-            onClick={() => signOut(auth)}
-            type="button"
-          >
-            Sign out
-          </button>
         </div>
       </header>
 

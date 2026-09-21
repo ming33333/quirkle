@@ -33,7 +33,7 @@ export default function SubscriptionSuccessPage({ user }) {
         await confirmCheckoutSession(email, sessionId);
         if (!cancelled) {
           setConfirmed(true);
-          setMessage("Billing is set. You can make as many decks as you need (still 200 questions per deck).");
+          setMessage("Billing is set. You can make as many decks as you need.");
         }
       } catch (confirmError) {
         console.error("Error confirming checkout:", confirmError);

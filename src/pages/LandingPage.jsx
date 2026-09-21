@@ -4,7 +4,6 @@ import Brand from "../components/Brand.jsx";
 import SpacedRepetitionPlay from "../components/SpacedRepetitionPlay.jsx";
 import { isAdmin } from "../utils/admins";
 import {
-  MAX_QUESTIONS_PER_DECK,
   MONTHLY_PRICE_USD,
   freePlanDeckLabel,
   prefetchSubscriptionDetails,
@@ -44,6 +43,24 @@ function SignInCta({ className, children }) {
         You’ll sign in with Google first.
       </em>
     </span>
+  );
+}
+
+function PlanCta({ user, subscribeTo, className, children }) {
+  if (user) {
+    return (
+      <Link className={className} to={subscribeTo}>
+        {children}
+        <span aria-hidden="true">→</span>
+      </Link>
+    );
+  }
+
+  return (
+    <SignInCta className={className}>
+      {children}
+      <span aria-hidden="true">→</span>
+    </SignInCta>
   );
 }
 
@@ -150,14 +167,10 @@ export default function LandingPage({ user }) {
         </h1>
         <p className="hero__lede">
           Quirkle uses spaced repetition, so a card only comes back when you’re
-          about to forget it. Write once. Review what’s due. Close the notebook.{" "}
-          <button
-            className="hero__how text-link text-link--button"
-            onClick={() => scrollToId("how")}
-            type="button"
-          >
+          about to forget it.           Write once. Review what’s due. Close the notebook.{" "}
+          <Link className="hero__how text-link" to="/how-to">
             Yeah, but how?
-          </button>
+          </Link>
         </p>
         <div className="hero__actions">
           <PrimaryCta user={user}>
@@ -182,8 +195,11 @@ export default function LandingPage({ user }) {
         </ol>
         <SpacedRepetitionPlay />
         <p className="landing-band__more">
+          <Link className="text-link" to="/how-to">
+            How to use Quirkle
+          </Link>
           <Link className="text-link" to="/spaced-repetition">
-            Watch the buckets in detail
+            Watch the buckets
           </Link>
         </p>
       </section>
@@ -232,10 +248,6 @@ export default function LandingPage({ user }) {
         <header className="landing-copy">
           <p className="eyebrow">Can I afford it?</p>
           <h2>Start free. Subscribe when one deck isn’t enough.</h2>
-          <p>
-            Every deck is capped at {MAX_QUESTIONS_PER_DECK} questions — free or
-            subscribed.
-          </p>
         </header>
         <div className="landing-plans">
           <article className="landing-plan">
@@ -248,27 +260,37 @@ export default function LandingPage({ user }) {
               {user ? "Open your decks" : "Start free"}
             </PrimaryCta>
           </article>
+          <article className="landing-plan">
+            <p className="eyebrow">Monthly</p>
+            <p className="landing-plan__price">
+              ${MONTHLY_PRICE_USD}
+              <small>/month</small>
+            </p>
+            <p className="landing-plan__note">Unlimited decks. Cancel anytime.</p>
+            <PlanCta
+              className="button button--paper"
+              subscribeTo={subscribeTo}
+              user={user}
+            >
+              Subscribe monthly
+            </PlanCta>
+          </article>
           <article className="landing-plan landing-plan--paid">
-            <p className="eyebrow">Subscribed</p>
+            <p className="eyebrow">Yearly</p>
             <p className="landing-plan__price">
               ${YEARLY_PRICE_USD}
               <small>/year</small>
             </p>
             <p className="landing-plan__note">
-              Unlimited decks. Save {YEARLY_SAVINGS_PERCENT}% vs ${MONTHLY_PRICE_USD}
-              /month.
+              Unlimited decks. Save {YEARLY_SAVINGS_PERCENT}% vs monthly.
             </p>
-            {user ? (
-              <Link className="button button--ink" to={subscribeTo}>
-                Manage plan
-                <span aria-hidden="true">→</span>
-              </Link>
-            ) : (
-              <SignInCta className="button button--ink">
-                Subscribe
-                <span aria-hidden="true">→</span>
-              </SignInCta>
-            )}
+            <PlanCta
+              className="button button--ink"
+              subscribeTo={subscribeTo}
+              user={user}
+            >
+              Subscribe yearly
+            </PlanCta>
           </article>
         </div>
       </section>
@@ -287,6 +309,11 @@ export default function LandingPage({ user }) {
 
       <footer className="landing-about">
         <p className="eyebrow">About</p>
+        <p>
+          <Link className="text-link" to="/how-to">
+            How to use
+          </Link>
+        </p>
         <p>
           Quirkle is made by{" "}
           <Link className="text-link" to="/lucky-software">

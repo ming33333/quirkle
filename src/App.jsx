@@ -14,6 +14,7 @@ import ImpersonationBanner from "./components/ImpersonationBanner.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
+import HowToPage from "./pages/HowToPage.jsx";
 import LuckySoftwarePage from "./pages/LuckySoftwarePage.jsx";
 import SpacedRepetitionPage from "./pages/SpacedRepetitionPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
@@ -71,6 +72,7 @@ function AppRoutes({ user }) {
       <ImpersonationBanner />
       <Routes location={routesLocation}>
         <Route path="/" element={<LandingPage user={user} />} />
+        <Route path="/how-to" element={<HowToPage user={user} />} />
         <Route path="/lucky-software" element={<LuckySoftwarePage />} />
         <Route
           path="/spaced-repetition"
