@@ -23,9 +23,10 @@ export default function SpacedRepetitionPage({ user }) {
         <p className="eyebrow">How it works</p>
         <h1>Spaced repetition</h1>
         <p className="sr-head__lede">
-          Every card lives in a bucket. Get it right, and it moves to the next
-          one — which waits longer before it comes back. Miss it, and it drops
-          back, so you’ll see it sooner.
+          Quirkle’s spaced repetition is the Leitner system. Every card lives
+          in a bucket. Get it right, and it moves to the next one — which waits
+          longer before it comes back. Miss it, and it drops back one bucket,
+          so you’ll see it sooner.
         </p>
       </header>
 
@@ -42,9 +43,10 @@ export default function SpacedRepetitionPage({ user }) {
       </ol>
 
       <p className="sr-note">
-        You only study what’s due. Right moves the card up a bucket. Wrong
-        moves it down. That’s the whole technique: review at the edge of
-        forgetting, then get on with your day.
+        You only study what’s due. Right moves the card up a bucket. A miss
+        steps it back one. The boxes are Sebastian Leitner’s method from the
+        1970s: known cards wait longer. Review at the edge of forgetting,
+        then get on with your day.
       </p>
 
       <div className="sr-actions">

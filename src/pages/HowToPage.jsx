@@ -19,7 +19,7 @@ const STEPS = [
   {
     n: "03",
     title: "Study what’s due",
-    body: "You only see cards that are fading. Right sends a card further out. Wrong brings it back sooner.",
+    body: "You only see cards that are fading. Right sends a card further out. Wrong steps it back one bucket. Those buckets are the Leitner system.",
   },
   {
     n: "04",
@@ -59,7 +59,7 @@ export default function HowToPage({ user }) {
           Free accounts can keep {freePlanDeckLabel}. Subscribe if you need more
           notebooks.{" "}
           <Link className="text-link" to="/spaced-repetition">
-            Watch how the buckets work
+            Watch how the Leitner buckets work
           </Link>
           .
         </p>

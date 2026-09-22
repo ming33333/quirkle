@@ -392,7 +392,7 @@ export default function StudyPage({ user, guest = false }) {
       </div>
 
       <p className="study__hint">
-        Right moves up a bucket · wrong moves down · Space flips
+        Leitner boxes · right moves up · wrong moves down · Space flips
       </p>
     </main>
   );

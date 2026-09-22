@@ -170,8 +170,9 @@ export default function LandingPage({ user }) {
           <Link className="hero__how text-link" to="/spaced-repetition">
             {"spaced repetition"}
           </Link>
-          , so a card only comes back when you’re about to forget it. Write
-          once. Review what’s due. Close the notebook.{" "}
+          {" "}
+          — the Leitner system — so a card only comes back when you’re about
+          to forget it. Write once. Review what’s due. Close the notebook.{" "}
           <Link className="hero__how text-link" to="/how-to">
             Yeah, but how?
           </Link>
@@ -217,7 +218,7 @@ export default function LandingPage({ user }) {
             How to use Quirkle
           </Link>
           <Link className="text-link" to="/spaced-repetition">
-            Watch the buckets
+            Watch the Leitner buckets
           </Link>
         </p>
       </section>
@@ -254,7 +255,10 @@ export default function LandingPage({ user }) {
         </blockquote>
         <ul className="landing-facts">
           <li>No feed, no streak leaderboard, no extra chrome.</li>
-          <li>You only study what’s due — right climbs, wrong returns sooner.</li>
+          <li>
+            Leitner boxes: you only study what’s due. Right climbs, wrong
+            returns sooner.
+          </li>
           <li>
             Free for {freePlanDeckLabel}. Sign in with Google. No credit card to
             start.
