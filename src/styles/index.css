@@ -633,6 +633,21 @@ a {
   gap: 22px;
 }
 
+.howto__sheet h2 {
+  margin: 8px 0 12px;
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.howto-related {
+  display: grid;
+  gap: 10px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
 .hero__actions {
   display: flex;
   flex-wrap: wrap;

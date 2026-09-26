@@ -59,12 +59,9 @@ const getPublishableKey = () => {
   return env("REACT_APP_STRIPE_LIVE_PUBLISHABLE_KEY") || "";
 };
 
-const appHashUrl = (hashPath) => {
-  const origin = `${window.location.origin}${window.location.pathname}`.replace(
-    /\/$/,
-    "",
-  );
-  return `${origin}/#${hashPath}`;
+const appUrl = (path) => {
+  const route = path.startsWith("/") ? path : `/${path}`;
+  return `${window.location.origin}${route}`;
 };
 
 export const isSubscribed = (status) => {
@@ -388,10 +385,10 @@ export const startCheckout = async (email, { interval = "month" } = {}) => {
       body: JSON.stringify({
         email,
         priceId,
-        successUrl: appHashUrl(
+        successUrl: appUrl(
           "/subscription-success?session_id={CHECKOUT_SESSION_ID}",
         ),
-        cancelUrl: appHashUrl("/subscription-cancel"),
+        cancelUrl: appUrl("/subscription-cancel"),
       }),
     }),
     getStripe().catch(() => null),
@@ -444,7 +441,7 @@ export const openCustomerPortal = async (email) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         email,
-        returnUrl: appHashUrl("/profile"),
+        returnUrl: appUrl("/profile"),
       }),
     },
   );

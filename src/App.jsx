@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  HashRouter,
+  BrowserRouter,
   Navigate,
   Route,
   Routes,
@@ -17,6 +17,10 @@ import LandingPage from "./pages/LandingPage.jsx";
 import HowToPage from "./pages/HowToPage.jsx";
 import LuckySoftwarePage from "./pages/LuckySoftwarePage.jsx";
 import SpacedRepetitionPage from "./pages/SpacedRepetitionPage.jsx";
+import StudyTopicPage from "./pages/StudyTopicPage.jsx";
+import StudyTopicsIndexPage from "./pages/StudyTopicsIndexPage.jsx";
+import LearnLanguagePage from "./pages/LearnLanguagePage.jsx";
+import LearnLanguagesIndexPage from "./pages/LearnLanguagesIndexPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import StudyPage from "./pages/StudyPage.jsx";
 import PreviewPage from "./pages/PreviewPage.jsx";
@@ -77,6 +81,16 @@ function AppRoutes({ user }) {
         <Route
           path="/spaced-repetition"
           element={<SpacedRepetitionPage user={user} />}
+        />
+        <Route path="/how-to-study" element={<StudyTopicsIndexPage />} />
+        <Route
+          path="/how-to-study/:slug"
+          element={<StudyTopicPage user={user} />}
+        />
+        <Route path="/how-to-learn" element={<LearnLanguagesIndexPage />} />
+        <Route
+          path="/how-to-learn/:slug"
+          element={<LearnLanguagePage user={user} />}
         />
         <Route path="/login" element={<LoginPage user={user} />} />
         <Route
@@ -180,9 +194,9 @@ export default function App() {
 
   return (
     <ImpersonationProvider user={user}>
-      <HashRouter>
+      <BrowserRouter>
         <AppRoutes user={user} />
-      </HashRouter>
+      </BrowserRouter>
     </ImpersonationProvider>
   );
 }
