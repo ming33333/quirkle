@@ -22,8 +22,8 @@ export default function LearnLanguagesIndexPage() {
         <p className="eyebrow">Languages</p>
         <h1>How to learn a language fast</h1>
         <p className="howto__lede">
-          Pick a language. Each page is the words and phrases to put on cards,
-          a sample deck, and a review schedule. Speaking comes from using them.
+          Pick a language. Each page is the words and phrases to put on cards, a
+          sample deck, and a review schedule. Speaking comes from using them.
           The cards keep them from slipping.
         </p>
 
@@ -32,7 +32,10 @@ export default function LearnLanguagesIndexPage() {
             <li key={language.slug}>
               <span>{language.fieldLabel}</span>
               <strong>
-                <Link className="text-link" to={`/how-to-learn/${language.slug}`}>
+                <Link
+                  className="text-link"
+                  to={`/how-to-learn/${language.slug}`}
+                >
                   {language.headline}
                 </Link>
               </strong>
@@ -42,6 +45,9 @@ export default function LearnLanguagesIndexPage() {
         </ol>
 
         <div className="howto__actions">
+          <Link className="text-link" to="/how-to-learn/ai">
+            How to learn AI
+          </Link>
           <Link className="text-link" to="/how-to-study">
             Study guides
           </Link>

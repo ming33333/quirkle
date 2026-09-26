@@ -35,7 +35,7 @@ export default function StudyTopicsIndexPage() {
                   className="text-link"
                   to={`/how-to-study/${topic.slug}`}
                 >
-                  How to study for {topic.title}
+                  {topic.headline ?? `How to study for ${topic.title}`}
                 </Link>
               </strong>
               <p>{topic.lede}</p>
@@ -46,6 +46,39 @@ export default function StudyTopicsIndexPage() {
         <div className="howto__actions">
           <Link className="text-link" to="/how-to-learn">
             Learn a language
+          </Link>
+          <Link className="text-link" to="/gemstones">
+            Gemstones
+          </Link>
+          <Link className="text-link" to="/star-signs-dates">
+            Star signs dates
+          </Link>
+          <Link className="text-link" to="/statistics">
+            Statistics questions
+          </Link>
+          <Link className="text-link" to="/economics">
+            Economics questions
+          </Link>
+          <Link className="text-link" to="/physics">
+            Physics questions
+          </Link>
+          <Link className="text-link" to="/computing">
+            Computing questions
+          </Link>
+          <Link className="text-link" to="/grammar">
+            Grammar questions
+          </Link>
+          <Link className="text-link" to="/business">
+            Business questions
+          </Link>
+          <Link className="text-link" to="/geography">
+            Geography questions
+          </Link>
+          <Link className="text-link" to="/health">
+            Health questions
+          </Link>
+          <Link className="text-link" to="/nature">
+            Nature questions
           </Link>
           <Link className="text-link" to="/">
             Back to Quirkle

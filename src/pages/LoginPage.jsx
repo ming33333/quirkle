@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { peekGuestDeck } from "../utils/guestDeck";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import Brand from "../components/Brand.jsx";
 import { auth } from "../utils/firebase";
@@ -166,6 +167,7 @@ export default function LoginPage({ user }) {
   const location = useLocation();
   const destination = location.state?.from || "/dashboard";
   const keepingSample = destination === "/try";
+  const sampleTitle = keepingSample ? peekGuestDeck()?.title : "";
 
   useEffect(() => {
     if (user) navigate(destination, { replace: true });
@@ -193,7 +195,7 @@ export default function LoginPage({ user }) {
         <h1>{keepingSample ? "Keep this notebook" : "Sign in"}</h1>
         <p>
           {keepingSample
-            ? "Continue with Google to save Curious creatures to your account."
+            ? `Continue with Google to save ${sampleTitle || "this deck"} to your account.`
             : "Continue with Google to open your notebook."}
         </p>
         {error && <p className="form-error">{error}</p>}

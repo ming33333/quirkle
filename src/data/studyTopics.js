@@ -151,6 +151,108 @@ export const STUDY_TOPICS = [
       },
     ],
   },
+  {
+    slug: "project-management-professional-certification",
+    fieldLabel: "PMP",
+    title: "the project management professional certification",
+    headline: "Project management professional certification",
+    description:
+      "Project management professional certification: what the PMP exam tests, the facts to put on flashcards, a sample deck, and a spaced review schedule.",
+    lede: "The Project Management Professional certification is PMI’s credential for people who already lead projects. The exam is a set of situations. The deck is the terms that those situations keep using.",
+    tests:
+      "The exam follows PMI’s content outline, in three domains: People, Process, and Business Environment. About half the questions assume a predictive plan. About half assume agile or a hybrid of the two. You are not reciting a textbook chapter.",
+    cardRule:
+      "One definition or one number per card. A scenario is not a card until you can name the idea it is testing. Leave product names and course brands off the card.",
+    schedule:
+      "Start with the domains, the split between predictive and agile, and the pairs people swap: risk and issue, CPI and SPI. A card you know comes back in 1 day, then 2, then 4, then 8. Miss it and it returns sooner. When nothing in the deck is due, stop for the day.",
+    cards: [
+      {
+        question: "Who issues the Project Management Professional certification?",
+        answer: "PMI, the Project Management Institute.",
+      },
+      {
+        question: "What are the three PMP exam domains, and their rough weights?",
+        answer: "People about 42 percent, Process about 50 percent, Business Environment about 8 percent.",
+      },
+      {
+        question: "How is the exam split between ways of working?",
+        answer: "About half predictive, and about half agile or hybrid.",
+      },
+      {
+        question: "How many questions are on the exam, and how long do you have?",
+        answer: "180 questions, and 230 minutes.",
+      },
+      {
+        question: "What is a project?",
+        answer: "Temporary work that creates a unique product, service, or result.",
+      },
+      {
+        question: "What is the difference between a risk and an issue?",
+        answer: "A risk might happen later. An issue is happening now.",
+      },
+      {
+        question: "What does a cost performance index above 1 mean?",
+        answer: "CPI is earned value divided by actual cost. Above 1 means under budget.",
+      },
+      {
+        question: "What does a schedule performance index above 1 mean?",
+        answer: "SPI is earned value divided by planned value. Above 1 means ahead of schedule.",
+      },
+    ],
+  },
+  {
+    slug: "lean-six-sigma-black-belt",
+    fieldLabel: "Lean Six Sigma",
+    title: "the lean six sigma black belt",
+    headline: "Lean six sigma black belt",
+    description:
+      "Lean six sigma black belt: DMAIC, the wastes, and the capability numbers to put on flashcards, plus a sample deck and a spaced review schedule.",
+    lede: "A black belt leads improvement projects and coaches the belts under them. Several groups issue the certificate. The ideas they test are the same: remove waste, then reduce variation.",
+    tests:
+      "Lean is the waste. Six Sigma is the variation. Projects that fix an existing process follow DMAIC: Define, Measure, Analyze, Improve, Control. A new process uses DMADV instead. Black belt questions go past the definitions into which tool fits the problem.",
+    cardRule:
+      "One term or one formula per card. Do not put a whole fishbone diagram on a card. If a number has a condition, such as the 1.5 sigma shift, the condition is part of the answer.",
+    schedule:
+      "Start with DMAIC, the wastes, and the difference between a green belt and a black belt. A card you know comes back in 1 day, then 2, then 4, then 8. Miss it and it returns sooner. When nothing in the deck is due, stop for the day.",
+    cards: [
+      {
+        question: "What does DMAIC stand for?",
+        answer: "Define, Measure, Analyze, Improve, Control.",
+      },
+      {
+        question: "What is the difference between lean and six sigma?",
+        answer: "Lean removes waste. Six Sigma reduces variation.",
+      },
+      {
+        question: "What does a black belt do that a green belt usually does not?",
+        answer: "Lead larger, cross-functional projects and coach green belts.",
+      },
+      {
+        question: "What are the seven classic wastes?",
+        answer:
+          "Overproduction, waiting, transport, overprocessing, inventory, motion, and defects.",
+      },
+      {
+        question: "What is 3.4 defects per million opportunities?",
+        answer:
+          "The usual six sigma figure, and it includes the 1.5 sigma shift. Without that shift, six sigma is far fewer defects.",
+      },
+      {
+        question: "What is poka-yoke?",
+        answer: "Mistake-proofing. Design the step so the error is hard to make.",
+      },
+      {
+        question: "What does a Cpk below 1 mean?",
+        answer:
+          "The process is not capable. The nearest spec limit is closer than 3 standard deviations from the mean.",
+      },
+      {
+        question: "When do you use DMADV instead of DMAIC?",
+        answer:
+          "When you are designing a new process or product, not repairing one that already runs.",
+      },
+    ],
+  },
 ];
 
 export function studyTopicBySlug(slug) {

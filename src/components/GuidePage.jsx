@@ -1,5 +1,6 @@
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import Brand from "./Brand.jsx";
+import { seedGuestDeck } from "../utils/guestDeck";
 import { usePageMeta } from "../utils/pageMeta.js";
 
 export default function GuidePage({
@@ -10,6 +11,7 @@ export default function GuidePage({
   indexLabel,
   related = [],
 }) {
+  const navigate = useNavigate();
   const headline =
     topic?.headline ?? (topic ? `How to study for ${topic.title}` : "");
 
@@ -19,6 +21,11 @@ export default function GuidePage({
   );
 
   if (!topic) return <Navigate to={fallback} replace />;
+
+  const studyThisDeck = () => {
+    seedGuestDeck({ title: headline, cards: topic.cards });
+    navigate("/try");
+  };
 
   return (
     <main className="howto">
@@ -37,10 +44,26 @@ export default function GuidePage({
         <h2>{topic.testsHeading ?? "What this tests"}</h2>
         <p>{topic.tests}</p>
 
-        <h2>What belongs on a card</h2>
-        <p>{topic.cardRule}</p>
+        <h2>Why this fades</h2>
+        <p>
+          Reading “{headline}” once feels like knowing it. It isn’t. The
+          details start leaving as soon as you close the page. A reread walks
+          you through the lines you already have and the lines you don’t, in
+          the same pass.
+        </p>
+
+        <h2>Why a card holds it</h2>
+        <p>
+          One fact per card. A card you know comes back in 1 day, then 2, then
+          4, then 8. Miss it and it returns sooner. You only see what is
+          fading. When nothing is due, you stop. {topic.cardRule}
+        </p>
 
         <h2>A sample deck</h2>
+        <p>
+          These cards are this page, already split. Study them. Sign in with
+          Google and the notebook is yours.
+        </p>
         <ol className="howto-steps">
           {topic.cards.map((card, index) => (
             <li key={card.question}>
@@ -51,6 +74,25 @@ export default function GuidePage({
           ))}
         </ol>
 
+        <div className="howto__actions">
+          <button
+            className="button button--vermilion"
+            onClick={studyThisDeck}
+            type="button"
+          >
+            {user ? "Save this deck" : "Study this deck"}
+            <span aria-hidden="true">→</span>
+          </button>
+          <Link className="text-link" to={indexPath}>
+            {indexLabel}
+          </Link>
+        </div>
+        <p>
+          {user
+            ? "This saves a notebook in your account."
+            : "Edit it, run a test, then sign in with Google when you want to keep it."}
+        </p>
+
         <h2>Review schedule</h2>
         <p>{topic.schedule}</p>
         <p>
@@ -58,19 +100,6 @@ export default function GuidePage({
             Watch the Leitner buckets
           </Link>
         </p>
-
-        <div className="howto__actions">
-          <Link
-            className="button button--vermilion"
-            to={user ? "/dashboard" : "/try"}
-          >
-            {user ? "Open your decks" : "Begin writing"}
-            <span aria-hidden="true">→</span>
-          </Link>
-          <Link className="text-link" to={indexPath}>
-            {indexLabel}
-          </Link>
-        </div>
 
         {related.length > 0 && (
           <>

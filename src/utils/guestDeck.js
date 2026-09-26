@@ -3,6 +3,7 @@ import {
   applyCardAnswer,
   assertValidDeckTitle,
   createDeckForUser,
+  DECK_TITLE_MAX_LENGTH,
   fetchDecksForUser,
   formatLastTestedLabel,
   MAX_QUESTIONS_PER_DECK,
@@ -60,6 +61,35 @@ export const clearGuestDeck = () => {
 export const peekGuestDeck = () => readStorage();
 
 export const hasGuestDeckSession = () => Boolean(peekGuestDeck());
+
+const fitDeckTitle = (title) => {
+  const trimmed = String(title ?? "").replace(/\s+/g, " ").trim();
+  if (trimmed.length <= DECK_TITLE_MAX_LENGTH) {
+    return assertValidDeckTitle(trimmed);
+  }
+  const cut = trimmed.slice(0, DECK_TITLE_MAX_LENGTH);
+  const lastSpace = cut.lastIndexOf(" ");
+  const fitted = (lastSpace > 40 ? cut.slice(0, lastSpace) : cut).trim();
+  return assertValidDeckTitle(fitted);
+};
+
+export const seedGuestDeck = ({ title, cards }) => {
+  const safeTitle = fitDeckTitle(title);
+  const nextCards = (cards || [])
+    .slice(0, MAX_QUESTIONS_PER_DECK)
+    .map((card, index) =>
+      emptyLocalCard(String(index), card.question, card.answer),
+    );
+  return saveGuestDeck({
+    id: safeTitle,
+    title: safeTitle,
+    cards: nextCards,
+    lastAccessed: new Date().toISOString(),
+    lastTestedAt: null,
+    lastTestedLabel: "Never tested",
+    spacedLearning: null,
+  });
+};
 
 export const loadGuestDeck = () => {
   const stored = peekGuestDeck();
