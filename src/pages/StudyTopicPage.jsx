@@ -12,6 +12,13 @@ export default function StudyTopicPage({ user }) {
     }),
   );
 
+  if (topic?.slug === "spanish-flashcards") {
+    related.unshift(
+      { href: "/learn/spanish", label: "How to learn Spanish" },
+      { href: "/how-to-learn/spanish", label: "How to learn Spanish fast" },
+    );
+  }
+
   if (topic) {
     related.push({
       href: "/how-to-learn",

@@ -71,6 +71,12 @@ export default function StudyTopicsIndexPage() {
           <Link className="text-link" to="/business">
             Business questions
           </Link>
+          <Link className="text-link" to="/fun-facts">
+            Fun facts
+          </Link>
+          <Link className="text-link" to="/trivia">
+            Trivia
+          </Link>
           <Link className="text-link" to="/geography">
             Geography questions
           </Link>

@@ -253,6 +253,328 @@ export const STUDY_TOPICS = [
       },
     ],
   },
+  {
+    slug: "improve-memory",
+    fieldLabel: "Memory",
+    title: "memory",
+    headline: "How to improve memory",
+    description:
+      "How to improve memory: recall the fact, wait, then recall it again. The same answer covers “improve memory.” A sample deck and a spaced review schedule.",
+    lede: "A memory gets stronger when you try to pull the fact back out, then meet it again after a gap. Rereading feels smoother and leaves less behind. People who search “improve memory” are asking this same question.",
+    testsHeading: "What actually helps",
+    tests:
+      "Trying to recall a fact before you look at the answer stores it better than reading it again. A gap between reviews makes you fetch it when it is starting to fade. Sleep after you learn gives it time to stay. Divided attention at the moment you learn leaves a weak trace. A study habit is not a treatment. If everyday memory is getting worse, that is a medical question.",
+    cardRule:
+      "One fact per card. The question should be specific enough that one sentence answers it. “Remember this chapter” has nothing to retrieve.",
+    schedule:
+      "Start with the sample cards, then add a fact you missed today. A card you know comes back in 1 day, then 2, then 4, then 8. Miss it and it returns sooner. When nothing in the deck is due, stop for the day.",
+    cards: [
+      {
+        question: "What strengthens a fact more than rereading it?",
+        answer: "Trying to recall it before you look at the answer.",
+      },
+      {
+        question: "What does a gap between reviews do?",
+        answer: "It makes you retrieve the fact when it is starting to fade.",
+      },
+      {
+        question: "What does cramming leave you with?",
+        answer: "A short bump, then a steep drop.",
+      },
+      {
+        question: "What has to happen before a fact can be stored?",
+        answer:
+          "You have to notice it. Divided attention at that moment leaves a weak trace.",
+      },
+      {
+        question: "What does sleep do for something you just learned?",
+        answer: "It helps keep it. A short night after studying leaves less of it.",
+      },
+      {
+        question: "How many facts belong on one card?",
+        answer: "One.",
+      },
+      {
+        question: "Does highlighting a page store the fact?",
+        answer: "No. The mark is not a retrieval.",
+      },
+      {
+        question: "Is a study habit a treatment for memory loss?",
+        answer:
+          "No. Worsening everyday memory is a medical question.",
+      },
+    ],
+  },
+  {
+    slug: "free-quizlet-alternative",
+    fieldLabel: "Flashcards",
+    title: "a free Quizlet alternative",
+    headline: "Free Quizlet alternative",
+    description:
+      "A free Quizlet alternative for your own cards: one deck, up to 200 cards, and a spaced review schedule. A second deck is the paid plan.",
+    lede: "A free Quizlet alternative is a place to write your own cards and review the ones that are fading. Quirkle’s free plan is one deck, up to 200 cards, with the full schedule. You sign in with Google. A second deck is the paid plan.",
+    testsHeading: "What the free plan includes",
+    tests:
+      "The free deck uses the same review as a paid one. A card you know comes back in 1 day, then 2, then 4, then 8. A miss comes back sooner. You can type the cards or paste two spreadsheet columns, question then answer. This is your notebook. It is not a library of other people’s sets. More than one deck is $5 a month or $50 a year.",
+    cardRule:
+      "One fact per card, in your own words. A pasted row is still one question and one answer. Two hundred cards is the size of a notebook, not a dump of a whole course.",
+    schedule:
+      "Start with the sample cards, then replace them with the facts you need. A card you know comes back in 1 day, then 2, then 4, then 8. Miss it and it returns sooner. When nothing in the deck is due, stop for the day.",
+    cards: [
+      {
+        question: "What does the free plan include?",
+        answer: "One deck, up to 200 cards, and the full review schedule.",
+      },
+      {
+        question: "Do you need a credit card to start?",
+        answer: "No. You sign in with Google.",
+      },
+      {
+        question: "When does a card you know come back?",
+        answer: "In 1 day, then 2, then 4, then 8.",
+      },
+      {
+        question: "When does a missed card come back?",
+        answer: "Sooner. It moves back a step.",
+      },
+      {
+        question: "How do you add a lot of cards at once?",
+        answer: "Paste two columns: question, then answer, one pair per line.",
+      },
+      {
+        question: "Is this a library of other people’s study sets?",
+        answer: "No. You write the cards.",
+      },
+      {
+        question: "What does a second deck cost?",
+        answer: "$5 a month, or $50 a year.",
+      },
+      {
+        question: "How many cards can one deck hold?",
+        answer: "200.",
+      },
+    ],
+  },
+  {
+    slug: "flashcards-online",
+    fieldLabel: "Flashcards",
+    title: "flashcards online",
+    headline: "Flashcards online",
+    description:
+      "Flashcards online: a deck in the browser, one fact per card, and a review schedule. The free plan is one deck of up to 200 cards.",
+    lede: "Flashcards online are a deck you open in the browser. Write one fact on a card. A card you know waits. A card you miss comes back sooner. When nothing is due, you stop.",
+    testsHeading: "How a deck in the browser works",
+    tests:
+      "There is nothing to install. You sign in with Google and the deck stays on the account. You can type the cards or paste two spreadsheet columns, question then answer. The free plan is one deck of up to 200 cards, and it uses the full schedule: 1 day, then 2, then 4, then 8. A second deck is $5 a month or $50 a year. These are your cards. The site does not hand you someone else’s set.",
+    cardRule:
+      "One fact per card. If the answer takes a paragraph, it is two cards. A pasted row is still one question and one answer.",
+    schedule:
+      "Start with the sample cards, then replace them with the facts you need this week. A card you know comes back in 1 day, then 2, then 4, then 8. Miss it and it returns sooner. When nothing in the deck is due, stop for the day.",
+    cards: [
+      {
+        question: "Where do you open the deck?",
+        answer: "In the browser. There is nothing to install.",
+      },
+      {
+        question: "What keeps the deck on your account?",
+        answer: "A Google sign-in. The free deck does not need a credit card.",
+      },
+      {
+        question: "When does a card you knew today come back?",
+        answer: "In 1 day, then 2, then 4, then 8.",
+      },
+      {
+        question: "When does a missed card come back?",
+        answer: "Sooner. It moves back a step.",
+      },
+      {
+        question: "What do you do when nothing is due?",
+        answer: "Stop for the day.",
+      },
+      {
+        question: "How do you add many cards at once?",
+        answer: "Paste two columns: question, then answer, one pair per line.",
+      },
+      {
+        question: "What does the free plan include?",
+        answer: "One deck of up to 200 cards, with the full schedule.",
+      },
+      {
+        question: "Whose cards are these?",
+        answer: "Yours. The site does not hand you someone else’s set.",
+      },
+    ],
+  },
+  {
+    slug: "spanish-flashcards",
+    fieldLabel: "Spanish",
+    title: "Spanish flashcards",
+    headline: "Spanish flashcards",
+    description:
+      "Spanish flashcards: one word or short phrase per card, with the gender on the noun. A sample deck and a spaced review schedule.",
+    lede: "A Spanish flashcard is one word or one short phrase you can say. Put the gender on the noun. Say the answer out loud. A card you only recognize on the page will not come out in a sentence.",
+    testsHeading: "What belongs in the first deck",
+    tests:
+      "Greetings, the questions you ask every day, and a few nouns with el or la. Ser is what something is. Estar is where it is, or how it is right now. Those are two cards, not one paragraph. Tú is the form for someone you know. Usted is the form for a stranger.",
+    cardRule:
+      "One word or one short question per card. A noun includes el or la. A cognate such as hospital still gets a card, because you need to produce it.",
+    schedule:
+      "Start with the sample phrases, then add the next word you needed and did not have. A card you know comes back in 1 day, then 2, then 4, then 8. Miss it and it returns sooner. When nothing in the deck is due, stop for the day.",
+    cards: [
+      { question: "How do you say hello?", answer: "Hola." },
+      { question: "How do you say good night?", answer: "Buenas noches." },
+      { question: "How do you say please?", answer: "Por favor." },
+      { question: "How do you say thank you?", answer: "Gracias." },
+      {
+        question: "How do you say the book, with its article?",
+        answer: "El libro.",
+      },
+      {
+        question: "How do you say the table, with its article?",
+        answer: "La mesa.",
+      },
+      { question: "How do you say I want?", answer: "Quiero." },
+      {
+        question: "What is ser for?",
+        answer: "What something is: identity, origin, and lasting traits.",
+      },
+      {
+        question: "What is estar for?",
+        answer: "Where something is, or how it is right now.",
+      },
+      {
+        question: "When do you use usted?",
+        answer: "With a stranger, or when you want to be formal.",
+      },
+    ],
+  },
+  {
+    slug: "sight-word-flashcards",
+    fieldLabel: "Reading",
+    title: "sight word flashcards",
+    headline: "Sight word flashcards",
+    description:
+      "Sight word flashcards: one common word per card, read out loud. A sample deck from the Dolch list and a spaced review schedule.",
+    lede: "A sight word is a common word you recognize at once, without sounding it out. One word goes on a card. You read it out loud. If you hesitate, that card comes back sooner.",
+    testsHeading: "What to put on the first cards",
+    tests:
+      "Start with words that show up constantly and do not sound the way they look, such as the, said, was, and of. The Dolch list has 220 of these service words, grouped from pre-primer through third grade. Fry’s first 100 are the other usual set, and teachers treat them as about half of ordinary writing. Add the next word only after the ones in the deck are instant.",
+    cardRule:
+      "One word per card. The answer is the word said aloud, plus a short phrase so it has a meaning. Do not put a row of ten words on one card.",
+    schedule:
+      "Start with the sample words. A word you read at once comes back in 1 day, then 2, then 4, then 8. A hesitation brings it back sooner. When nothing in the deck is due, stop for the day.",
+    cards: [
+      {
+        question: "What is a sight word?",
+        answer: "A common word you recognize at once, without sounding it out.",
+      },
+      {
+        question: "How many words are on the Dolch service list?",
+        answer: "220, grouped from pre-primer through third grade.",
+      },
+      {
+        question: "Read this word: the",
+        answer: "the. As in “the dog.”",
+      },
+      {
+        question: "Read this word: said",
+        answer: "said. As in “she said hello.”",
+      },
+      {
+        question: "Read this word: was",
+        answer: "was. As in “it was cold.”",
+      },
+      {
+        question: "Read this word: of",
+        answer: "of. As in “a cup of milk.”",
+      },
+      {
+        question: "Read this word: they",
+        answer: "they. As in “they went home.”",
+      },
+      {
+        question: "What happens when you hesitate on a word?",
+        answer: "That card comes back sooner.",
+      },
+    ],
+  },
+  {
+    slug: "math-flashcards",
+    fieldLabel: "Math",
+    title: "math flashcards",
+    headline: "Math flashcards",
+    description:
+      "Math flashcards: one fact per card, such as an area rule or a fraction. A sample deck and a spaced review schedule.",
+    lede: "A math flashcard is one fact you can say. The area of a rectangle, the degrees in a triangle, or what 1/2 equals. Say the answer before you flip the card. A formula you only recognize is not one you can use.",
+    testsHeading: "What belongs on a first card",
+    tests:
+      "A definition, a conversion, or one line of a formula. Multiplication and division share a step and go left to right. Addition and subtraction do the same. A whole worksheet is not a card. Times tables have their own deck.",
+    cardRule:
+      "One fact per card. If the answer is a formula, the question names the shape or the case. Do not stack ten facts on the back.",
+    schedule:
+      "Start with the sample facts, then add the one you missed in today’s work. A card you know comes back in 1 day, then 2, then 4, then 8. Miss it and it returns sooner. When nothing in the deck is due, stop for the day.",
+    cards: [
+      {
+        question: "What is the area of a rectangle?",
+        answer: "Length times width.",
+      },
+      {
+        question: "What is the perimeter of a rectangle?",
+        answer: "Two times the sum of the length and the width.",
+      },
+      {
+        question: "How many degrees are in a triangle?",
+        answer: "180.",
+      },
+      {
+        question: "How many degrees are in a right angle?",
+        answer: "90.",
+      },
+      {
+        question: "What is 1/2 as a decimal and a percent?",
+        answer: "0.5, and 50%.",
+      },
+      {
+        question: "What is the order of operations?",
+        answer:
+          "Parentheses, then exponents, then multiplication and division from left to right, then addition and subtraction from left to right.",
+      },
+      {
+        question: "What is a prime number?",
+        answer: "A whole number greater than 1 whose only factors are 1 and itself.",
+      },
+      {
+        question: "Which even number is prime?",
+        answer: "2. It is the only one.",
+      },
+    ],
+  },
+  {
+    slug: "multiplication-flashcards",
+    fieldLabel: "Math",
+    title: "multiplication flashcards",
+    headline: "Multiplication flashcards",
+    description:
+      "Multiplication flashcards: one product per card. A sample deck of the facts people miss, and a spaced review schedule.",
+    lede: "A multiplication flashcard is one product. Ask 7 × 8 and answer 56. The facts that feel slow are the ones that belong in the deck. A table you can sing is not the same as a product you can give cold.",
+    testsHeading: "What to practice",
+    tests:
+      "One product per card, including both directions. 7 × 8 and 8 × 7 are the same 56, and each still gets a card if one of them hesitates. Start with the facts you miss, not with a poster of every fact from 1 to 12.",
+    cardRule:
+      "The question is one multiplication. The answer is the product, nothing else. A card that lists a whole row is not a card yet.",
+    schedule:
+      "Start with the sample products, then add the next one you hesitated on. A product you know comes back in 1 day, then 2, then 4, then 8. Miss it and it returns sooner. When nothing in the deck is due, stop for the day.",
+    cards: [
+      { question: "What is 6 × 7?", answer: "42." },
+      { question: "What is 7 × 8?", answer: "56." },
+      { question: "What is 8 × 7?", answer: "56." },
+      { question: "What is 9 × 6?", answer: "54." },
+      { question: "What is 8 × 9?", answer: "72." },
+      { question: "What is 4 × 7?", answer: "28." },
+      { question: "What is 12 × 11?", answer: "132." },
+      { question: "What is 9 × 9?", answer: "81." },
+    ],
+  },
 ];
 
 export function studyTopicBySlug(slug) {

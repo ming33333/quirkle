@@ -9,8 +9,8 @@ export const ECONOMICS = [
     fieldLabel: "Economics",
     headline: "What is economics",
     description:
-      "What is economics: how people choose when they cannot have everything, a sample deck, and a spaced review schedule.",
-    lede: "Economics is the study of how people choose when they cannot have everything they want. Scarcity forces the choice. The cost of the choice is whatever you give up to make it.",
+      "What is economics, and what is economics with a question mark: how people choose when they cannot have everything. A sample deck and a spaced review schedule.",
+    lede: "Economics is the study of how people choose when they cannot have everything they want. Scarcity forces the choice. The cost of the choice is whatever you give up to make it. “What is economics?” is this same question.",
     testsHeading: "The short answer",
     tests:
       "Microeconomics looks at households and firms. Macroeconomics looks at the whole economy: output, prices, and jobs. A positive statement says what is. A normative statement says what ought to be. Economics is not a list of stock tips.",

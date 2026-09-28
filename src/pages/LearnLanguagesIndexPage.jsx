@@ -45,6 +45,9 @@ export default function LearnLanguagesIndexPage() {
         </ol>
 
         <div className="howto__actions">
+          <Link className="text-link" to="/learn">
+            How to learn a language
+          </Link>
           <Link className="text-link" to="/how-to-learn/ai">
             How to learn AI
           </Link>

@@ -13,6 +13,10 @@ export default function LearnLanguagePage({ user }) {
   );
 
   if (topic) {
+    related.unshift({
+      href: `/learn/${topic.slug}`,
+      label: topic.headline.replace(/ fast$/, ""),
+    });
     related.push({
       href: "/how-to-study/medical-school",
       label: "How to study for medical school",

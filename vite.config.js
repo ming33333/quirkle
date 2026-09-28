@@ -23,7 +23,19 @@ import { WORK } from "./src/data/work.js";
 import { PHYSICS } from "./src/data/physics.js";
 import { STATISTICS } from "./src/data/statistics.js";
 import { LANGUAGES } from "./src/data/languages.js";
+import { LANGUAGE_COURSES } from "./src/data/languageCourses.js";
 import { STUDY_TOPICS } from "./src/data/studyTopics.js";
+import { FUN_FACT_ANIMALS } from "./src/data/funFactsAnimals.js";
+import { FUN_FACT_COUNTRIES } from "./src/data/funFactsCountries.js";
+import { FUN_FACT_COUNTRY_CAPITALS } from "./src/data/funFactsCountryCapitals.js";
+import { FUN_FACT_GENERAL } from "./src/data/funFactsGeneral.js";
+import { FUN_FACT_PLANETS } from "./src/data/funFactsPlanets.js";
+import { FUN_FACT_US_CAPITALS } from "./src/data/funFactsUsCapitals.js";
+import { TRIVIA_CELEBRITIES } from "./src/data/triviaCelebrities.js";
+import { TRIVIA_HOLIDAYS } from "./src/data/triviaHolidays.js";
+import { TRIVIA_MOVIES } from "./src/data/triviaMovies.js";
+import { TRIVIA_SPORTS } from "./src/data/triviaSports.js";
+import { TRIVIA_TOPICS } from "./src/data/triviaTopics.js";
 
 function publishCrawlableRoutes() {
   return {
@@ -43,6 +55,8 @@ function publishCrawlableRoutes() {
         "how-to-learn",
         "how-to-learn/ai",
         ...LANGUAGES.map((language) => `how-to-learn/${language.slug}`),
+        "learn",
+        ...LANGUAGE_COURSES.map((language) => `learn/${language.slug}`),
         "gemstones",
         ...GEMSTONES.map((stone) => `gemstones/${stone.slug}`),
         "star-signs-dates",
@@ -58,6 +72,32 @@ function publishCrawlableRoutes() {
         ...GRAMMAR.map((item) => `grammar/${item.slug}`),
         "business",
         ...BUSINESS.map((item) => `business/${item.slug}`),
+        "fun-facts",
+        ...FUN_FACT_GENERAL.map((item) => `fun-facts/${item.slug}`),
+        "fun-facts/planets",
+        ...FUN_FACT_PLANETS.map((item) => `fun-facts/planets/${item.slug}`),
+        "fun-facts/countries",
+        ...FUN_FACT_COUNTRIES.map((item) => `fun-facts/countries/${item.slug}`),
+        "fun-facts/country-capitals",
+        ...FUN_FACT_COUNTRY_CAPITALS.map(
+          (item) => `fun-facts/country-capitals/${item.slug}`,
+        ),
+        "fun-facts/us-state-capitals",
+        ...FUN_FACT_US_CAPITALS.map(
+          (item) => `fun-facts/us-state-capitals/${item.slug}`,
+        ),
+        "fun-facts/animals",
+        ...FUN_FACT_ANIMALS.map((item) => `fun-facts/animals/${item.slug}`),
+        "trivia",
+        "trivia/celebrities",
+        ...TRIVIA_CELEBRITIES.map((item) => `trivia/celebrities/${item.slug}`),
+        "trivia/holidays",
+        ...TRIVIA_HOLIDAYS.map((item) => `trivia/holidays/${item.slug}`),
+        "trivia/movies",
+        ...TRIVIA_MOVIES.map((item) => `trivia/movies/${item.slug}`),
+        "trivia/sports",
+        ...TRIVIA_SPORTS.map((item) => `trivia/sports/${item.slug}`),
+        ...TRIVIA_TOPICS.map((item) => `trivia/${item.slug}`),
         "geography",
         ...GEOGRAPHY.map((item) => `geography/${item.slug}`),
         "history",
