@@ -6,6 +6,8 @@ Allow: /how-to-study
 Allow: /how-to-study/
 Allow: /how-to-learn
 Allow: /how-to-learn/
+Allow: /learn
+Allow: /learn/
 Allow: /gemstones
 Allow: /gemstones/
 Allow: /star-signs-dates
@@ -21,6 +23,10 @@ Allow: /grammar
 Allow: /grammar/
 Allow: /business
 Allow: /business/
+Allow: /fun-facts
+Allow: /fun-facts/
+Allow: /trivia
+Allow: /trivia/
 Allow: /geography
 Allow: /geography/
 Allow: /history
