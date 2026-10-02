@@ -311,7 +311,7 @@ export default function LandingPage({ user }) {
       <section className="landing-band" id="pricing">
         <header className="landing-copy">
           <p className="eyebrow">Can I afford it?</p>
-          <h2>Start free. Subscribe when one deck isn’t enough.</h2>
+          <h2>Start free. Subscribe when you need more than {freePlanDeckLabel}.</h2>
         </header>
         <div className="landing-plans">
           <article className="landing-plan">

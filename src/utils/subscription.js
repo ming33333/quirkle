@@ -6,7 +6,7 @@ import { db, auth } from "./firebase";
 const USER_SETTING_DOC_ID = "settings";
 const SUBSCRIPTION_FIELD = "subscription status";
 
-export const FREE_PLAN_MAX_DECKS = 1;
+export const FREE_PLAN_MAX_DECKS = 6;
 export const freePlanDeckLabel =
   FREE_PLAN_MAX_DECKS === 1 ? "1 deck" : `${FREE_PLAN_MAX_DECKS} decks`;
 export const MAX_QUESTIONS_PER_DECK = 200;

@@ -311,11 +311,11 @@ export const STUDY_TOPICS = [
     title: "a free Quizlet alternative",
     headline: "Free Quizlet alternative",
     description:
-      "A free Quizlet alternative for your own cards: one deck, up to 200 cards, and a spaced review schedule. A second deck is the paid plan.",
-    lede: "A free Quizlet alternative is a place to write your own cards and review the ones that are fading. Quirkle’s free plan is one deck, up to 200 cards, with the full schedule. You sign in with Google. A second deck is the paid plan.",
+      "A free Quizlet alternative for your own cards: 6 decks, up to 200 cards each, and a spaced review schedule. A deck after that is the paid plan.",
+    lede: "A free Quizlet alternative is a place to write your own cards and review the ones that are fading. Quirkle’s free plan is 6 decks, up to 200 cards each, with the full schedule. You sign in with Google. A deck after that is the paid plan.",
     testsHeading: "What the free plan includes",
     tests:
-      "The free deck uses the same review as a paid one. A card you know comes back in 1 day, then 2, then 4, then 8. A miss comes back sooner. You can type the cards or paste two spreadsheet columns, question then answer. This is your notebook. It is not a library of other people’s sets. More than one deck is $5 a month or $50 a year.",
+      "A free deck uses the same review as a paid one. A card you know comes back in 1 day, then 2, then 4, then 8. A miss comes back sooner. You can type the cards or paste two spreadsheet columns, question then answer. This is your notebook. It is not a library of other people’s sets. More than 6 decks is $5 a month or $50 a year.",
     cardRule:
       "One fact per card, in your own words. A pasted row is still one question and one answer. Two hundred cards is the size of a notebook, not a dump of a whole course.",
     schedule:
@@ -323,7 +323,7 @@ export const STUDY_TOPICS = [
     cards: [
       {
         question: "What does the free plan include?",
-        answer: "One deck, up to 200 cards, and the full review schedule.",
+        answer: "6 decks, up to 200 cards each, and the full review schedule.",
       },
       {
         question: "Do you need a credit card to start?",
@@ -346,7 +346,7 @@ export const STUDY_TOPICS = [
         answer: "No. You write the cards.",
       },
       {
-        question: "What does a second deck cost?",
+        question: "What does a deck past 6 cost?",
         answer: "$5 a month, or $50 a year.",
       },
       {
@@ -361,11 +361,11 @@ export const STUDY_TOPICS = [
     title: "flashcards online",
     headline: "Flashcards online",
     description:
-      "Flashcards online: a deck in the browser, one fact per card, and a review schedule. The free plan is one deck of up to 200 cards.",
+      "Flashcards online: a deck in the browser, one fact per card, and a review schedule. The free plan is 6 decks of up to 200 cards each.",
     lede: "Flashcards online are a deck you open in the browser. Write one fact on a card. A card you know waits. A card you miss comes back sooner. When nothing is due, you stop.",
     testsHeading: "How a deck in the browser works",
     tests:
-      "There is nothing to install. You sign in with Google and the deck stays on the account. You can type the cards or paste two spreadsheet columns, question then answer. The free plan is one deck of up to 200 cards, and it uses the full schedule: 1 day, then 2, then 4, then 8. A second deck is $5 a month or $50 a year. These are your cards. The site does not hand you someone else’s set.",
+      "There is nothing to install. You sign in with Google and the deck stays on the account. You can type the cards or paste two spreadsheet columns, question then answer. The free plan is 6 decks of up to 200 cards each, and it uses the full schedule: 1 day, then 2, then 4, then 8. A deck after that is $5 a month or $50 a year. These are your cards. The site does not hand you someone else’s set.",
     cardRule:
       "One fact per card. If the answer takes a paragraph, it is two cards. A pasted row is still one question and one answer.",
     schedule:
@@ -397,7 +397,7 @@ export const STUDY_TOPICS = [
       },
       {
         question: "What does the free plan include?",
-        answer: "One deck of up to 200 cards, with the full schedule.",
+        answer: "6 decks of up to 200 cards each, with the full schedule.",
       },
       {
         question: "Whose cards are these?",
