@@ -3,6 +3,12 @@ import { Link, useLocation } from "react-router-dom";
 import Brand from "../components/Brand.jsx";
 import SpacedRepetitionPlay from "../components/SpacedRepetitionPlay.jsx";
 import { isAdmin } from "../utils/admins";
+import { logAnalyticsEvent } from "../utils/firebase";
+import {
+  LANDING_EXPERIMENT,
+  resolveLandingVariant,
+} from "../utils/landingExperiment";
+import { usePageMeta } from "../utils/pageMeta.js";
 import {
   MONTHLY_PRICE_USD,
   freePlanDeckLabel,
@@ -10,6 +16,21 @@ import {
   YEARLY_PRICE_USD,
   YEARLY_SAVINGS_PERCENT,
 } from "../utils/subscription";
+
+const VARIANTS = {
+  a: {
+    title: "Quirkle — a flashcard study nook",
+    description:
+      "Study less. Remember more. Quirkle uses spaced repetition — the Leitner system — so cards only come back when you’re about to forget them.",
+    lines: ["Study less.", "Remember more."],
+  },
+  b: {
+    title: "Quirkle — remember twice as much",
+    description:
+      "Remember twice as much. Study half as long. Quirkle brings a card back when you’re about to forget it.",
+    lines: ["Remember twice as much.", "Study half as long."],
+  },
+};
 
 const STEPS = [
   {
@@ -84,7 +105,27 @@ function PrimaryCta({ user, children }) {
 
 export default function LandingPage({ user }) {
   const location = useLocation();
+  const [{ variant, enrolled }] = useState(resolveLandingVariant);
+  const copy = VARIANTS[variant] || VARIANTS.a;
   const [showAdminTools, setShowAdminTools] = useState(false);
+
+  usePageMeta(copy.title, copy.description);
+
+  useEffect(() => {
+    if (!enrolled) return undefined;
+    const key = "quirkle.experiment_impression";
+    try {
+      if (sessionStorage.getItem(key) === variant) return undefined;
+      sessionStorage.setItem(key, variant);
+    } catch {
+      // Still record the impression if storage is blocked.
+    }
+    void logAnalyticsEvent("experiment_impression", {
+      experiment_id: LANDING_EXPERIMENT,
+      landing_variant: variant,
+    });
+    return undefined;
+  }, [enrolled, variant]);
 
   useEffect(() => {
     let cancelled = false;
@@ -113,7 +154,7 @@ export default function LandingPage({ user }) {
     : "/login";
 
   return (
-    <main className="landing">
+    <main className="landing" data-landing-variant={variant}>
       <nav className="site-nav">
         <Brand />
         <div className="site-nav__actions">
@@ -162,8 +203,9 @@ export default function LandingPage({ user }) {
 
       <section className="hero">
         <h1>
-          <span>Study less.</span>
-          <span>Remember more.</span>
+          {copy.lines.map((line) => (
+            <span key={line}>{line}</span>
+          ))}
         </h1>
         <p className="hero__lede">
           Quirkle uses{" "}

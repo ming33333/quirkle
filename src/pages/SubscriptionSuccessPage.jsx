@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { confirmCheckoutSession } from "../utils/subscription";
+import { logAnalyticsEvent } from "../utils/firebase";
 
 const sessionIdFromLocation = (searchParams) => {
   const fromRouter = searchParams.get("session_id");
@@ -31,6 +32,15 @@ export default function SubscriptionSuccessPage({ user }) {
       }
       try {
         await confirmCheckoutSession(email, sessionId);
+        try {
+          const loggedKey = `quirkle.logged_subscribe.${sessionId}`;
+          if (!sessionStorage.getItem(loggedKey)) {
+            sessionStorage.setItem(loggedKey, "1");
+            void logAnalyticsEvent("subscribe", { transaction_id: sessionId });
+          }
+        } catch {
+          void logAnalyticsEvent("subscribe", { transaction_id: sessionId });
+        }
         if (!cancelled) {
           setConfirmed(true);
           setMessage("Billing is set. You can make as many decks as you need.");

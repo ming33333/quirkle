@@ -1,4 +1,5 @@
 import { loadStripe } from "@stripe/stripe-js";
+import { logAnalyticsEvent } from "./firebase";
 import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
 import { db, auth } from "./firebase";
 
@@ -376,6 +377,7 @@ export const startCheckout = async (email, { interval = "month" } = {}) => {
   }
 
   prefetchCheckout(email);
+  void logAnalyticsEvent("begin_checkout", { plan_interval: yearly ? "year" : "month" });
 
   const [, response, stripe] = await Promise.all([
     ensureUserDoc(email),

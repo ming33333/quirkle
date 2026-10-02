@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { peekGuestDeck } from "../utils/guestDeck";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import {
+  getAdditionalUserInfo,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
 import Brand from "../components/Brand.jsx";
-import { auth } from "../utils/firebase";
+import { auth, logAnalyticsEvent } from "../utils/firebase";
 
 const ANIMAL_FACTS = [
   "Octopuses have three hearts.",
@@ -177,7 +181,11 @@ export default function LoginPage({ user }) {
     setSubmitting(true);
     setError("");
     try {
-      await signInWithPopup(auth, new GoogleAuthProvider());
+      const result = await signInWithPopup(auth, new GoogleAuthProvider());
+      const info = getAdditionalUserInfo(result);
+      void logAnalyticsEvent(info?.isNewUser ? "sign_up" : "login", {
+        method: "google",
+      });
       navigate(destination, { replace: true });
     } catch (authError) {
       setError(readableAuthError(authError));

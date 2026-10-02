@@ -1,4 +1,5 @@
 import { getApps, initializeApp } from "firebase/app";
+import { landingExperimentParams } from "./landingExperiment";
 import { getAnalytics, isSupported, logEvent } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
@@ -30,21 +31,61 @@ const analyticsReady =
         })
         .catch(() => null);
 
+const LANDING_KEY = "quirkle.landing";
+const SESSION_MS = 30 * 60 * 1000;
+
+function currentPath() {
+  if (typeof window === "undefined") return undefined;
+  return `${window.location.pathname}${window.location.search}`;
+}
+
+/** First page of this visit. Later events keep it so GA can compare landing pages. */
+export function landingPage(path) {
+  const next = path || currentPath();
+  if (typeof sessionStorage === "undefined") return next;
+  const now = Date.now();
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(LANDING_KEY) || "null");
+    if (saved?.path && now - saved.at < SESSION_MS) {
+      sessionStorage.setItem(
+        LANDING_KEY,
+        JSON.stringify({ path: saved.path, at: now }),
+      );
+      return String(saved.path).slice(0, 100);
+    }
+    if (!next) return undefined;
+    const pathValue = String(next).slice(0, 100);
+    sessionStorage.setItem(
+      LANDING_KEY,
+      JSON.stringify({ path: pathValue, at: now }),
+    );
+    return pathValue;
+  } catch {
+    return next ? String(next).slice(0, 100) : next;
+  }
+}
+
 export function getFirebaseAnalytics() {
   return analytics;
 }
 
-export async function logAnalyticsEvent(eventName, params) {
+export async function logAnalyticsEvent(eventName, params = {}) {
   const instance = analytics || (await analyticsReady);
   if (!instance) return;
-  logEvent(instance, eventName, params);
+  logEvent(instance, eventName, {
+    landing_page: landingPage(),
+    ...landingExperimentParams(),
+    ...params,
+  });
 }
 
 export function logPageView(path) {
+  const page = path || currentPath();
   void logAnalyticsEvent("page_view", {
-    page_path: path,
+    page_path: page,
     page_title: typeof document !== "undefined" ? document.title : undefined,
     page_location:
       typeof window !== "undefined" ? window.location.href : undefined,
+    landing_page: landingPage(page),
   });
 }

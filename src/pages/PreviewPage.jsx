@@ -32,6 +32,7 @@ import DueTimeline from "../components/DueTimeline.jsx";
 import GuestSampleBanner from "../components/GuestSampleBanner.jsx";
 import PencilButton from "../components/PencilButton.jsx";
 import PreviewCard from "../components/PreviewCard.jsx";
+import { logAnalyticsEvent } from "../utils/firebase";
 
 const ALL_BUCKETS = [1, 2, 3, 4];
 
@@ -100,6 +101,18 @@ export default function PreviewPage({ user, guest = false }) {
   const deckId = guest ? "sample" : decodeURIComponent(encodedDeckId || "");
   const navigate = useNavigate();
   const email = user?.email;
+
+  useEffect(() => {
+    if (!guest) return;
+    try {
+      const key = "quirkle.logged_start_deck";
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+    } catch {
+      // Still record the event if storage is blocked.
+    }
+    void logAnalyticsEvent("start_deck");
+  }, [guest]);
 
   const [deck, setDeck] = useState(null);
   const [loading, setLoading] = useState(true);
