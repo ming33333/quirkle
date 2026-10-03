@@ -8,6 +8,7 @@ import {
 } from "firebase/auth";
 import Brand from "../components/Brand.jsx";
 import { auth, logAnalyticsEvent } from "../utils/firebase";
+import { landingExperimentParams } from "../utils/landingExperiment";
 
 const ANIMAL_FACTS = [
   "Octopuses have three hearts.",
@@ -176,6 +177,20 @@ export default function LoginPage({ user }) {
   useEffect(() => {
     if (user) navigate(destination, { replace: true });
   }, [destination, navigate, user]);
+
+  useEffect(() => {
+    const variant = landingExperimentParams().landing_variant;
+    if (variant !== "original" && variant !== "interactive") return undefined;
+    const key = "quirkle.view_login";
+    try {
+      if (sessionStorage.getItem(key) === variant) return undefined;
+      sessionStorage.setItem(key, variant);
+    } catch {
+      // Still record the visit if storage is blocked.
+    }
+    void logAnalyticsEvent(`view_login_${variant}`);
+    return undefined;
+  }, []);
 
   const signInWithGoogle = async () => {
     setSubmitting(true);

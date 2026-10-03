@@ -18,13 +18,16 @@ import {
   YEARLY_SAVINGS_PERCENT,
 } from "../utils/subscription";
 
+const ORIGINAL = {
+  title: "Quirkle — your cozy study nook",
+  description:
+    "Study less. Remember more. Quirkle uses spaced repetition — the Leitner system — so cards only come back when you’re about to forget them.",
+  lines: ["Study less.", "Remember more."],
+};
+
 const VARIANTS = {
-  a: {
-    title: "Quirkle — your cozy study nook",
-    description:
-      "Study less. Remember more. Quirkle uses spaced repetition — the Leitner system — so cards only come back when you’re about to forget them.",
-    lines: ["Study less.", "Remember more."],
-  },
+  a: ORIGINAL,
+  original: ORIGINAL,
   b: {
     title: "Quirkle — remember twice as much",
     description:
@@ -129,6 +132,10 @@ export default function LandingPage({ user }) {
       // Still record the impression if storage is blocked.
     }
     void logAnalyticsEvent("experiment_impression", {
+      experiment_id: LANDING_EXPERIMENT,
+      landing_variant: variant,
+    });
+    void logAnalyticsEvent(`landing_${variant}`, {
       experiment_id: LANDING_EXPERIMENT,
       landing_variant: variant,
     });
