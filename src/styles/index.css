@@ -229,6 +229,74 @@ a {
   overflow-wrap: break-word;
 }
 
+.hero__desk {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  min-width: 0;
+}
+
+.desk-steam__wisp {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: desk-steam 5.6s ease-in-out infinite;
+}
+
+.desk-steam__wisp--mid {
+  animation-delay: -1.8s;
+}
+
+.desk-steam__wisp--late {
+  animation-delay: -3.7s;
+}
+
+.desk-coffee__ripple {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: desk-coffee-ripple 5.6s ease-in-out infinite;
+}
+
+@keyframes desk-steam {
+  0% {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  22% {
+    opacity: 0.5;
+  }
+  68% {
+    opacity: 0.22;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes desk-coffee-ripple {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  42%,
+  58% {
+    opacity: 0.75;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desk-steam__wisp,
+  .desk-coffee__ripple {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 .hero .eyebrow,
 .hero h1,
 .hero__lede,

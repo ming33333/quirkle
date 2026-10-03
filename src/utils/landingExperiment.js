@@ -27,9 +27,11 @@ function sessionEntryPath() {
   return window.location.pathname;
 }
 
+const PREVIEW_VARIANTS = ["a", "b", "interactive"];
+
 /**
  * People who arrive on / are assigned once and keep that page.
- * ?lp=a or ?lp=b previews a page without entering the test.
+ * ?lp=a, ?lp=b, or ?lp=interactive previews a page without entering the test.
  */
 export function resolveLandingVariant() {
   if (typeof window === "undefined") {
@@ -37,7 +39,7 @@ export function resolveLandingVariant() {
   }
 
   const preview = new URLSearchParams(window.location.search).get("lp");
-  if (preview === "a" || preview === "b") {
+  if (PREVIEW_VARIANTS.includes(preview)) {
     return { variant: preview, enrolled: false };
   }
 

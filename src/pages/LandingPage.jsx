@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Brand from "../components/Brand.jsx";
+import DeskIllustration from "../components/DeskIllustration.jsx";
 import SpacedRepetitionPlay from "../components/SpacedRepetitionPlay.jsx";
 import { isAdmin } from "../utils/admins";
 import { logAnalyticsEvent } from "../utils/firebase";
@@ -29,6 +30,13 @@ const VARIANTS = {
     description:
       "Remember twice as much. Study half as long. Quirkle brings a card back when you’re about to forget it.",
     lines: ["Remember twice as much.", "Study half as long."],
+  },
+  interactive: {
+    title: "Quirkle — a flashcard study nook",
+    description:
+      "Study less. Remember more. Quirkle uses spaced repetition — the Leitner system — so cards only come back when you’re about to forget them.",
+    lines: ["Study less.", "Remember more."],
+    desk: true,
   },
 };
 
@@ -207,6 +215,7 @@ export default function LandingPage({ user }) {
             <span key={line}>{line}</span>
           ))}
         </h1>
+        {copy.desk ? <DeskIllustration /> : null}
         <p className="hero__lede">
           Quirkle uses{" "}
           <Link className="hero__how text-link" to="/spaced-repetition">
