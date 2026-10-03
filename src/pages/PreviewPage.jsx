@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   addCardToDeck,
@@ -32,6 +32,9 @@ import DueTimeline from "../components/DueTimeline.jsx";
 import GuestSampleBanner from "../components/GuestSampleBanner.jsx";
 import PencilButton from "../components/PencilButton.jsx";
 import PreviewCard from "../components/PreviewCard.jsx";
+import SpacedRepetitionPlay, {
+  SR_BUCKETS,
+} from "../components/SpacedRepetitionPlay.jsx";
 import { logAnalyticsEvent } from "../utils/firebase";
 
 const ALL_BUCKETS = [1, 2, 3, 4];
@@ -75,6 +78,173 @@ const PASTE_EXAMPLE = [
 const PASTE_EXAMPLE_TEXT = PASTE_EXAMPLE.map(
   (row) => `${row.question}\t${row.answer}`,
 ).join("\n");
+
+const FILTER_LINE =
+  "This is how you control which questions you see. You might want every question in Bucket 1, or only the ones you last got wrong.";
+
+function FilterDialogue({ onBuckets, onClose }) {
+  const [shown, setShown] = useState(0);
+  const timerRef = useRef(0);
+  const finished = shown >= FILTER_LINE.length;
+
+  useEffect(() => {
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (reduceMotion) {
+      setShown(FILTER_LINE.length);
+      return undefined;
+    }
+
+    let index = 0;
+    const step = () => {
+      index += 1;
+      setShown(index);
+      if (index >= FILTER_LINE.length) return;
+      const char = FILTER_LINE[index - 1];
+      const wait =
+        char === "." || char === "!" || char === "?"
+          ? 480
+          : char === "," || char === ";" || char === ":"
+            ? 260
+            : 36;
+      timerRef.current = window.setTimeout(step, wait);
+    };
+    timerRef.current = window.setTimeout(step, 36);
+    return () => window.clearTimeout(timerRef.current);
+  }, []);
+
+  return (
+    <div className="desk-hi" role="dialog" aria-label="Question filters">
+      <div className="desk-hi__body">
+        <p className="desk-hi__line">
+          <span className="desk-hi__ghost" aria-hidden="true">
+            {FILTER_LINE}
+          </span>
+          <span className="desk-hi__typed" aria-hidden="true">
+            {FILTER_LINE.slice(0, shown)}
+            {finished ? null : <span className="desk-hi__caret" />}
+          </span>
+          <span className="desk-hi__sr">{FILTER_LINE}</span>
+        </p>
+        {finished ? (
+          <button
+            className="desk-hi__try text-link is-on"
+            type="button"
+            onClick={onBuckets}
+          >
+            What are buckets?
+          </button>
+        ) : (
+          <button
+            className="desk-hi__next"
+            type="button"
+            onClick={() => {
+              window.clearTimeout(timerRef.current);
+              setShown(FILTER_LINE.length);
+            }}
+          >
+            Next
+          </button>
+        )}
+      </div>
+      <button
+        className="desk-hi__close"
+        type="button"
+        aria-label="Close"
+        onClick={onClose}
+      >
+        ×
+      </button>
+    </div>
+  );
+}
+
+function SpacedLesson({ onClose }) {
+  useEffect(() => {
+    const onKey = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div className="sr-overlay" role="presentation" onClick={onClose}>
+      <div
+        className="sr-overlay__sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sr-overlay-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button
+          className="sr-overlay__close"
+          type="button"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          ×
+        </button>
+        <p className="eyebrow">How it works</p>
+        <h2 id="sr-overlay-title">Spaced repetition</h2>
+        <p className="sr-overlay__lede">
+          Quirkle’s spaced repetition is the Leitner system. Every card lives
+          in a bucket. Get it right, and it moves to the next one — which waits
+          longer before it comes back. Miss it, and it drops back one bucket,
+          so you’ll see it sooner.
+        </p>
+        <SpacedRepetitionPlay />
+        <ol className="sr-guide sr-overlay__guide">
+          {SR_BUCKETS.map((bucket) => (
+            <li
+              className={`sr-guide__item sr-guide__item--${bucket.n}`}
+              key={bucket.n}
+            >
+              <strong>Bucket {bucket.n}</strong>
+              <span>{bucket.wait}</span>
+              <em>{bucket.hint}</em>
+            </li>
+          ))}
+        </ol>
+        <p className="sr-overlay__note">
+          You only study what’s due. Right moves the card up a bucket. A miss
+          steps it back one.
+        </p>
+        <button
+          className="button button--ink"
+          type="button"
+          onClick={onClose}
+        >
+          Back to the filters
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PasteHint({ onClose }) {
+  return (
+    <div className="desk-hi" role="dialog" aria-label="Bulk upload">
+      <div className="desk-hi__body">
+        <p className="desk-hi__line">
+          This is <strong>bulk upload</strong>, so you don’t have to make every
+          card one at a time. You can also add a single question if you want.
+          When you’re done adding questions, we can get this study party
+          started.
+        </p>
+      </div>
+      <button
+        className="desk-hi__close"
+        type="button"
+        aria-label="Close"
+        onClick={onClose}
+      >
+        ×
+      </button>
+    </div>
+  );
+}
 
 function BucketMixBar({ buckets, total }) {
   if (!total) return null;
@@ -126,6 +296,14 @@ export default function PreviewPage({ user, guest = false }) {
   const [resultFilter, setResultFilter] = useState("all");
   const [dueFilter, setDueFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [showQuestionFilters, setShowQuestionFilters] = useState(false);
+  const [showProgress, setShowProgress] = useState(false);
+  const [showFlashCards, setShowFlashCards] = useState(false);
+  const [echoTarget, setEchoTarget] = useState("filters");
+  const [showPasteHint, setShowPasteHint] = useState(false);
+  const [showSpacedLesson, setShowSpacedLesson] = useState(false);
+  const [showFilterDialogue, setShowFilterDialogue] = useState(false);
+  const filterDialogueSeen = useRef(false);
   const [showTags, setShowTags] = useState(true);
   const [addingCard, setAddingCard] = useState(false);
   const [addError, setAddError] = useState("");
@@ -582,6 +760,16 @@ export default function PreviewPage({ user, guest = false }) {
             <div className="preview__title-row">
               <h1>{deck.title}</h1>
               <PencilButton onClick={startEditingTitle} />
+              {cards.length > 0 && (
+                <button
+                  className="button button--ink preview__start"
+                  disabled={selectedCount === 0}
+                  onClick={startTest}
+                  type="button"
+                >
+                  Start test
+                </button>
+              )}
             </div>
           )}
           <p className="preview__count">
@@ -589,14 +777,14 @@ export default function PreviewPage({ user, guest = false }) {
               ? `${filteredCards.length} of ${cards.length} cards`
               : `${cards.length} ${cards.length === 1 ? "card" : "cards"}`}
           </p>
-          <p className="study__last-test">
-            {deck.lastTestedLabel === "Never tested"
-              ? "You haven’t tested these cards yet."
-              : `Last tested ${String(deck.lastTestedLabel || "").toLowerCase()}.`}
-            {testedToday
-              ? " You’ve already tested today — unanswered cards are selected by default."
-              : ""}
-          </p>
+          {deck.lastTestedLabel !== "Never tested" && (
+            <p className="study__last-test">
+              {`Last tested ${String(deck.lastTestedLabel || "").toLowerCase()}.`}
+              {testedToday
+                ? " You’ve already tested today — unanswered cards are selected by default."
+                : ""}
+            </p>
+          )}
         </div>
         <button
           className="text-link text-link--button"
@@ -611,6 +799,48 @@ export default function PreviewPage({ user, guest = false }) {
 
       {cards.length > 0 && (
         <section className="test-setup" aria-label="Start test">
+          <div className="test-setup__head">
+            <button
+              className="test-setup__toggle"
+              aria-expanded={showQuestionFilters}
+              onClick={() =>
+                setShowQuestionFilters((open) => {
+                  const next = !open;
+                  if (guest && next && !filterDialogueSeen.current) {
+                    filterDialogueSeen.current = true;
+                    setShowFilterDialogue(true);
+                  }
+                  return next;
+                })
+              }
+              type="button"
+            >
+              Question filters
+              <span
+                className={`test-setup__plus${
+                  guest && echoTarget === "filters" && !showQuestionFilters
+                    ? " test-setup__plus--echo"
+                    : ""
+                }`}
+                aria-hidden="true"
+              >
+                {showQuestionFilters ? "–" : "+"}
+              </span>
+            </button>
+            {guest && !showQuestionFilters && (
+              <p className="test-setup__lesson">
+                Open this to choose which cards go in the test.
+              </p>
+            )}
+          </div>
+          {showQuestionFilters && (
+          <>
+          {guest && (
+            <p className="test-setup__lesson">
+              Leave a bucket or a result off to skip those cards. Scope decides
+              what is due, and whether the order is mixed.
+            </p>
+          )}
           <div className="test-setup__block">
             <div className="test-setup__heading">
               <h2>Buckets</h2>
@@ -623,7 +853,9 @@ export default function PreviewPage({ user, guest = false }) {
               </button>
             </div>
             <p className="test-setup__hint">
-              Include only the buckets you want to practice.
+              {guest
+                ? "New cards start in Bucket 1. A right answer moves a card up. A wrong answer moves it down. Turn a bucket off to leave it out."
+                : "Include only the buckets you want to practice."}
             </p>
             <div className="test-setup__buckets" role="group" aria-label="Buckets">
               {ALL_BUCKETS.map((bucket) => {
@@ -661,7 +893,9 @@ export default function PreviewPage({ user, guest = false }) {
               </button>
             </div>
             <p className="test-setup__hint">
-              Filter by how the card went last time.
+              {guest
+                ? "Right, wrong, or never answered. Turn one off to practice only the cards you want."
+                : "Filter by how the card went last time."}
             </p>
             <div
               className="test-setup__buckets test-setup__buckets--results"
@@ -721,34 +955,76 @@ export default function PreviewPage({ user, guest = false }) {
               </span>
             </label>
           </div>
-
-          <div className="test-setup__summary">
-            <p>
-              {selectedCount === 0
-                ? "No cards match these options."
-                : `${selectedCount} ${
-                    selectedCount === 1 ? "card" : "cards"
-                  } ready to test`}
-            </p>
-            <button
-              className="button button--ink"
-              disabled={selectedCount === 0}
-              onClick={startTest}
-              type="button"
-            >
-              Start test
-            </button>
-          </div>
+          </>
+          )}
         </section>
       )}
 
-      {cards.length > 0 && (
-        <section className="progress-panel" aria-label="Study progress">
-          <div className="progress-panel__intro">
-            <h2>Progress</h2>
-            <p>Snapshot of where this deck stands right now.</p>
-          </div>
+      {guest && showFilterDialogue && (
+        <FilterDialogue
+          onBuckets={() => {
+            setShowFilterDialogue(false);
+            setShowSpacedLesson(true);
+          }}
+          onClose={() => {
+            setShowFilterDialogue(false);
+            setEchoTarget((current) =>
+              current === "filters" ? "progress" : current,
+            );
+          }}
+        />
+      )}
 
+      {guest && showPasteHint && (
+        <PasteHint onClose={() => setShowPasteHint(false)} />
+      )}
+
+      {guest && showSpacedLesson && (
+        <SpacedLesson
+          onClose={() => {
+            setShowSpacedLesson(false);
+            setEchoTarget((current) =>
+              current === "filters" ? "progress" : current,
+            );
+          }}
+        />
+      )}
+
+      {cards.length > 0 && (
+        <section className="test-setup progress-panel" aria-label="Study progress">
+          <div className="test-setup__head">
+            <button
+              className="test-setup__toggle"
+              aria-expanded={showProgress}
+              onClick={() =>
+                setShowProgress((open) => {
+                  const next = !open;
+                  if (guest && next && echoTarget === "progress") {
+                    setEchoTarget("cards");
+                  }
+                  return next;
+                })
+              }
+              type="button"
+            >
+              Progress
+              <span
+                className={`test-setup__plus${
+                  guest && echoTarget === "progress" && !showProgress
+                    ? " test-setup__plus--echo"
+                    : ""
+                }`}
+                aria-hidden="true"
+              >
+                {showProgress ? "–" : "+"}
+              </span>
+            </button>
+            <p className="test-setup__lesson">
+              Snapshot of where this deck stands right now.
+            </p>
+          </div>
+          {showProgress && (
+          <>
           <div className="progress-stats">
             <button
               className={`progress-stat${
@@ -800,9 +1076,43 @@ export default function PreviewPage({ user, guest = false }) {
           </div>
 
           <DueTimeline cards={cards} />
+          </>
+          )}
         </section>
       )}
 
+      <section className="test-setup preview-cards" aria-label="Flash cards">
+        <div className="test-setup__head">
+          <button
+            className="test-setup__toggle"
+            aria-expanded={showFlashCards}
+            onClick={() =>
+              setShowFlashCards((open) => {
+                const next = !open;
+                if (guest && next && echoTarget === "cards") {
+                  setEchoTarget("paste");
+                }
+                return next;
+              })
+            }
+            type="button"
+          >
+            Flash cards
+            <span
+              className={`test-setup__plus${
+                guest && echoTarget === "cards" && !showFlashCards
+                  ? " test-setup__plus--echo"
+                  : ""
+              }`}
+              aria-hidden="true"
+            >
+              {showFlashCards ? "–" : "+"}
+            </span>
+          </button>
+          <p className="test-setup__lesson">The cards in this deck.</p>
+        </div>
+      {showFlashCards && (
+      <>
       <div className="preview__toolbar">
         <div className="preview__toolbar-start">
           <button
@@ -854,11 +1164,15 @@ export default function PreviewPage({ user, guest = false }) {
           <button
             className={`preview__filter-toggle${
               showBulkPaste ? " preview__filter-toggle--active" : ""
-            }`}
+            }${guest && echoTarget === "paste" ? " preview__paste--echo" : ""}`}
             disabled={atQuestionLimit}
             onClick={() => {
               setAddError("");
               setShowBulkPaste((open) => !open);
+              if (guest && echoTarget === "paste") {
+                setEchoTarget("done");
+                setShowPasteHint(true);
+              }
             }}
             type="button"
           >
@@ -1078,6 +1392,9 @@ export default function PreviewPage({ user, guest = false }) {
           </ol>
         </>
       )}
+      </>
+      )}
+      </section>
     </main>
   );
 }

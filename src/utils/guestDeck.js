@@ -1,4 +1,9 @@
-import { createSampleDeck, SAMPLE_DECK_TITLE } from "../data/sampleDeck";
+import {
+  createSampleDeck,
+  SAMPLE_CARDS,
+  SAMPLE_DECK_TITLE,
+  sampleActiveTime,
+} from "../data/sampleDeck";
 import {
   applyCardAnswer,
   assertValidDeckTitle,
@@ -91,9 +96,46 @@ export const seedGuestDeck = ({ title, cards }) => {
   });
 };
 
+const sameLocalDay = (left, right) => {
+  const a = new Date(left);
+  const b = new Date(right);
+  if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return false;
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+};
+
+const syncSampleBuckets = (deck) => {
+  if (!deck || deck.title !== SAMPLE_DECK_TITLE) return deck;
+  const levels = new Map(
+    SAMPLE_CARDS.map((card) => [card.question, card.level]),
+  );
+  let changed = false;
+  const cards = (deck.cards || []).map((card) => {
+    const studied =
+      card.lastAnswered || (card.answerHistory || []).length > 0;
+    if (studied) return card;
+    const level = levels.get(card.question);
+    if (!level) return card;
+    const activeTime = sampleActiveTime(level);
+    if (card.level === level && sameLocalDay(card.activeTime, activeTime)) {
+      return card;
+    }
+    changed = true;
+    return { ...card, level, activeTime };
+  });
+  return changed ? { ...deck, cards } : deck;
+};
+
 export const loadGuestDeck = () => {
   const stored = peekGuestDeck();
-  if (stored) return stored;
+  if (stored) {
+    const synced = syncSampleBuckets(stored);
+    if (synced !== stored) return saveGuestDeck(synced);
+    return stored;
+  }
   return saveGuestDeck(createSampleDeck());
 };
 

@@ -1,3 +1,6 @@
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+
 const INK = "#2f373b";
 const PAPER = "#fffcf5";
 const PAPER_DEEP = "#e9e0d1";
@@ -6,6 +9,128 @@ const VERMILION = "#c64b38";
 const VERMILION_DEEP = "#9e3c2d";
 const WATER = "#c5d4d8";
 
+const DIALOGUE_PAGES = [
+  [
+    "Hi, thanks for visiting Quirkle. ",
+    "This is a place to get some studying done. ",
+    "Build some flashcards and start quizzing yourself on them!",
+  ],
+  [
+    "To help studious people like you, we added some tools to make your life easier.",
+  ],
+  [
+    "Like ",
+    { text: "bulk upload", bold: true },
+    " for your flashcards, so you don't have to make them one at a time.",
+  ],
+  [
+    "We also added a learning technique called the Leitner system a  ",
+    { text: "spaced repetition learning method", bold: true },
+    ", so you don't have to keep track of the information you already know.",
+  ],
+];
+
+const pageText = (parts) =>
+  parts.map((part) => (typeof part === "string" ? part : part.text)).join("");
+
+function DialogueText({ parts, count }) {
+  let remaining = count;
+  return parts.map((part, index) => {
+    if (remaining <= 0) return null;
+    const text = typeof part === "string" ? part : part.text;
+    const slice = text.slice(0, remaining);
+    remaining -= slice.length;
+    if (!slice) return null;
+    if (typeof part !== "string" && part.bold) {
+      return <strong key={index}>{slice}</strong>;
+    }
+    return <span key={index}>{slice}</span>;
+  });
+}
+
+const letterDelay = (char) => {
+  if (char === "." || char === "!" || char === "?") return 480;
+  if (char === "," || char === ";" || char === ":") return 260;
+  return 36;
+};
+
+function DeskDialogue({ onClose }) {
+  const [page, setPage] = useState(0);
+  const [shown, setShown] = useState(0);
+  const timerRef = useRef(0);
+  const parts = DIALOGUE_PAGES[page];
+  const line = pageText(parts);
+  const finished = shown >= line.length;
+  const lastPage = page === DIALOGUE_PAGES.length - 1;
+
+  useEffect(() => {
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (reduceMotion) {
+      setShown(line.length);
+      return undefined;
+    }
+
+    let index = 0;
+    setShown(0);
+    const step = () => {
+      index += 1;
+      setShown(index);
+      if (index >= line.length) return;
+      timerRef.current = window.setTimeout(step, letterDelay(line[index - 1]));
+    };
+    timerRef.current = window.setTimeout(step, 36);
+    return () => window.clearTimeout(timerRef.current);
+  }, [line]);
+
+  const advance = () => {
+    if (!finished) {
+      window.clearTimeout(timerRef.current);
+      setShown(line.length);
+      return;
+    }
+    if (!lastPage) {
+      setShown(0);
+      setPage((current) => current + 1);
+    }
+  };
+
+  return (
+    <div className="desk-hi" role="dialog" aria-label="Welcome">
+      <div className="desk-hi__body">
+        <p className="desk-hi__line">
+          <span className="desk-hi__ghost" aria-hidden="true">
+            <DialogueText parts={parts} count={line.length} />
+          </span>
+          <span className="desk-hi__typed" aria-hidden="true">
+            <DialogueText parts={parts} count={shown} />
+            {finished ? null : <span className="desk-hi__caret" />}
+          </span>
+          <span className="desk-hi__sr">{line}</span>
+        </p>
+        {lastPage && finished ? (
+          <Link className="desk-hi__try text-link is-on" to="/try">
+            Try the sample deck
+          </Link>
+        ) : (
+          <button className="desk-hi__next" type="button" onClick={advance}>
+            Next
+          </button>
+        )}
+      </div>
+      <button
+        className="desk-hi__close"
+        type="button"
+        aria-label="Close"
+        onClick={onClose}
+      >
+        ×
+      </button>
+    </div>
+  );
+}
+
 const KEY_ROWS = [
   { count: 14, y: 262, indent: 0 },
   { count: 14, y: 286, indent: 10 },
@@ -13,11 +138,14 @@ const KEY_ROWS = [
 ];
 
 export default function DeskIllustration() {
+  const [noteOpen, setNoteOpen] = useState(false);
+
   return (
+    <>
     <svg
       className="hero__desk"
       viewBox="0 -108 960 648"
-      role="img"
+      role="group"
       aria-label="Top view of a desk with a monitor, keyboard, notebook, and a cup of coffee"
     >
       <rect
@@ -190,6 +318,38 @@ export default function DeskIllustration() {
         opacity="0.55"
       />
       <rect x="708" y="286" width="132" height="16" fill={VERMILION} />
+      <rect
+        className="desk-start__echo"
+        x="727"
+        y="316"
+        width="108"
+        height="48"
+        rx="6"
+        fill="none"
+        stroke={PAPER}
+        strokeWidth="2"
+      />
+      <rect
+        className="desk-start__echo desk-start__echo--late"
+        x="727"
+        y="316"
+        width="108"
+        height="48"
+        rx="6"
+        fill="none"
+        stroke={PAPER}
+        strokeWidth="2"
+      />
+      <foreignObject x="727" y="316" width="108" height="48">
+        <button
+          className="desk-start"
+          type="button"
+          aria-expanded={noteOpen}
+          onClick={() => setNoteOpen((open) => !open)}
+        >
+          start here
+        </button>
+      </foreignObject>
 
       <rect
         x="862"
@@ -254,5 +414,7 @@ export default function DeskIllustration() {
         />
       </g>
     </svg>
+    {noteOpen ? <DeskDialogue onClose={() => setNoteOpen(false)} /> : null}
+    </>
   );
 }

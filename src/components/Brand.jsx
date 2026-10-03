@@ -8,7 +8,7 @@ export default function Brand({ compact = false }) {
       </span>
       <span>
         <strong>Quirkle</strong>
-        {!compact && <small>A flashcard study nook</small>}
+        {!compact && <small>your cozy study nook</small>}
       </span>
     </Link>
   );

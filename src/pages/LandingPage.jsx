@@ -20,7 +20,7 @@ import {
 
 const VARIANTS = {
   a: {
-    title: "Quirkle — a flashcard study nook",
+    title: "Quirkle — your cozy study nook",
     description:
       "Study less. Remember more. Quirkle uses spaced repetition — the Leitner system — so cards only come back when you’re about to forget them.",
     lines: ["Study less.", "Remember more."],
@@ -32,7 +32,7 @@ const VARIANTS = {
     lines: ["Remember twice as much.", "Study half as long."],
   },
   interactive: {
-    title: "Quirkle — a flashcard study nook",
+    title: "Quirkle — your cozy study nook",
     description:
       "Study less. Remember more. Quirkle uses spaced repetition — the Leitner system — so cards only come back when you’re about to forget them.",
     lines: ["Study less.", "Remember more."],
@@ -194,13 +194,15 @@ export default function LandingPage({ user }) {
             </>
           ) : (
             <>
-              <button
-                className="text-link text-link--button"
-                onClick={() => scrollToId("pricing")}
-                type="button"
-              >
-                Pricing
-              </button>
+              {variant !== "interactive" && (
+                <button
+                  className="text-link text-link--button"
+                  onClick={() => scrollToId("pricing")}
+                  type="button"
+                >
+                  Pricing
+                </button>
+              )}
               <SignInCta className="button button--ink button--small">
                 Sign in
               </SignInCta>
@@ -217,163 +219,211 @@ export default function LandingPage({ user }) {
         </h1>
         {copy.desk ? <DeskIllustration /> : null}
         <p className="hero__lede">
-          Quirkle uses{" "}
-          <Link className="hero__how text-link" to="/spaced-repetition">
-            {"spaced repetition"}
-          </Link>
-          {" "}
-          — the Leitner system — so a card only comes back when you’re about
-          to forget it. Write once. Review what’s due. Close the notebook.{" "}
-          <Link className="hero__how text-link" to="/how-to">
-            Yeah, but how?
-          </Link>
-        </p>
-        <div className="hero__actions">
-          <PrimaryCta user={user}>
-            {user ? "Open your decks" : "Start a free deck"}
-          </PrimaryCta>
-        </div>
-      </section>
-
-      <section className="landing-band" id="how">
-        <header className="landing-copy">
-          <p className="eyebrow">How it works</p>
-          <h2>Three steps. Then you’re done for the day.</h2>
-        </header>
-        <figure className="landing-demo">
-          <video
-            className="landing-demo__video"
-            controls
-            playsInline
-            preload="metadata"
-            src="/quirkle-demo.mp4"
+          {copy.desk ? (
+            <>Quirkle is your cozy study nook to make studying easier… </>
+          ) : (
+            <>
+              Quirkle uses{" "}
+              <Link className="hero__how text-link" to="/spaced-repetition">
+                {"spaced repetition"}
+              </Link>{" "}
+              — the Leitner system — so a card only comes back when you’re about
+              to forget it. Write once. Review what’s due. Close the
+              notebook.{" "}
+            </>
+          )}
+          <button
+            className="hero__how text-link"
+            onClick={() => scrollToId("why")}
+            type="button"
           >
-            A short demo of pasting cards into a deck and studying what’s due.
-          </video>
-          <figcaption className="landing-demo__title">
-            Paste the cards, then study what’s due.
-          </figcaption>
-        </figure>
-        <ol className="landing-steps">
-          {STEPS.map((step) => (
-            <li key={step.n}>
-              <span>{step.n}</span>
-              <strong>{step.title}</strong>
-              <p>{step.body}</p>
-            </li>
-          ))}
-        </ol>
-        <SpacedRepetitionPlay />
-        <p className="landing-band__more">
-          <Link className="text-link" to="/how-to">
-            How to use Quirkle
-          </Link>
-          <Link className="text-link" to="/spaced-repetition">
-            Watch the Leitner buckets
-          </Link>
+            Yeah, but how?
+          </button>
         </p>
-      </section>
-
-      <section className="landing-copy landing-copy--narrow">
-        <p className="eyebrow">Why this, why now</p>
-        <h2>Cramming feels like studying. It isn’t.</h2>
-        <p>
-          Most apps become another feed — streaks, leaderboards, a dozen buttons.
-          You re-read the whole pile, including what you already know. It feels
-          productive. Then it evaporates overnight.
-        </p>
-        <p>
-          The forgetting starts as soon as you close the book. Quirkle is built
-          for that moment: a quiet notebook that only asks for the cards that
-          are about to fade.
-        </p>
-      </section>
-
-      <section className="landing-copy">
-        <p className="eyebrow">Can I trust this?</p>
-        <h2>Built by someone who wanted a quiet notebook.</h2>
-        <blockquote className="landing-quote">
-          <p>
-            I looked for a place to write flashcards and actually review them —
-            spaced, simple, without a feed or a streak leaderboard. I couldn’t
-            find one that stayed out of the way, so I made Quirkle.
-          </p>
-          <cite>
-            <Link className="text-link" to="/lucky-software">
-              Lucky Software
-            </Link>
-          </cite>
-        </blockquote>
-        <ul className="landing-facts">
-          <li>No feed, no streak leaderboard, no extra chrome.</li>
-          <li>
-            Leitner boxes: you only study what’s due. Right climbs, wrong
-            returns sooner.
-          </li>
-          <li>
-            Free for {freePlanDeckLabel}. Sign in with Google. No credit card to
-            start.
-          </li>
-        </ul>
-      </section>
-
-      <section className="landing-band" id="pricing">
-        <header className="landing-copy">
-          <p className="eyebrow">Can I afford it?</p>
-          <h2>Start free. Subscribe when you need more than {freePlanDeckLabel}.</h2>
-        </header>
-        <div className="landing-plans">
-          <article className="landing-plan">
-            <p className="eyebrow">Free</p>
-            <p className="landing-plan__price">$0</p>
-            <p className="landing-plan__note">
-              {freePlanDeckLabel}, full spaced repetition.
-            </p>
+        {copy.desk ? null : (
+          <div className="hero__actions">
             <PrimaryCta user={user}>
-              {user ? "Open your decks" : "Start free"}
+              {user ? "Open your decks" : "Start a free deck"}
             </PrimaryCta>
-          </article>
-          <article className="landing-plan">
-            <p className="eyebrow">Monthly</p>
-            <p className="landing-plan__price">
-              ${MONTHLY_PRICE_USD}
-              <small>/month</small>
-            </p>
-            <p className="landing-plan__note">Unlimited decks. Cancel anytime.</p>
-            <PlanCta
-              className="button button--paper"
-              subscribeTo={subscribeTo}
-              user={user}
-            >
-              Subscribe monthly
-            </PlanCta>
-          </article>
-          <article className="landing-plan landing-plan--paid">
-            <p className="eyebrow">Yearly</p>
-            <p className="landing-plan__price">
-              ${YEARLY_PRICE_USD}
-              <small>/year</small>
-            </p>
-            <p className="landing-plan__note">
-              Unlimited decks. Save {YEARLY_SAVINGS_PERCENT}% vs monthly.
-            </p>
-            <PlanCta
-              className="button button--ink"
-              subscribeTo={subscribeTo}
-              user={user}
-            >
-              Subscribe yearly
-            </PlanCta>
-          </article>
-        </div>
+          </div>
+        )}
       </section>
+
+      {variant !== "interactive" && (
+        <section className="landing-band" id="how">
+          <header className="landing-copy">
+            <p className="eyebrow">How it works</p>
+            <h2>Three steps. Then you’re done for the day.</h2>
+          </header>
+          <figure className="landing-demo">
+            <video
+              className="landing-demo__video"
+              controls
+              playsInline
+              preload="metadata"
+              src="/quirkle-demo.mp4"
+            >
+              A short demo of pasting cards into a deck and studying what’s due.
+            </video>
+            <figcaption className="landing-demo__title">
+              Paste the cards, then study what’s due.
+            </figcaption>
+          </figure>
+          <ol className="landing-steps">
+            {STEPS.map((step) => (
+              <li key={step.n}>
+                <span>{step.n}</span>
+                <strong>{step.title}</strong>
+                <p>{step.body}</p>
+              </li>
+            ))}
+          </ol>
+          <SpacedRepetitionPlay />
+          <p className="landing-band__more">
+            <Link className="text-link" to="/how-to">
+              How to use Quirkle
+            </Link>
+            <Link className="text-link" to="/spaced-repetition">
+              Watch the Leitner buckets
+            </Link>
+          </p>
+        </section>
+      )}
+
+      {variant === "interactive" ? (
+        <section className="landing-copy landing-copy--narrow" id="why">
+          <p className="eyebrow">Why this place</p>
+          <h2>Cramming feels like studying. It isn’t.</h2>
+          <p>
+            Quirkle is here so you learn what you need to learn, with tools that
+            make that learning faster. A neat, distraction-free space. It will
+            stay <strong>ad-free</strong> and minimal, so you can get some deep
+            work done.
+          </p>
+          <blockquote className="landing-quote">
+            <p>
+              I tried to study on other sites. They were full of distracting
+              ads, and they kept pushing tools I didn’t need. I wanted a better
+              place to learn, so I built this one.
+            </p>
+            <cite>~ A fellow student</cite>
+          </blockquote>
+        </section>
+      ) : (
+        <>
+          <section className="landing-copy landing-copy--narrow" id="why">
+            <p className="eyebrow">Why this, why now</p>
+            <h2>Cramming feels like studying. It isn’t.</h2>
+            <p>
+              Most apps become another feed — streaks, leaderboards, a dozen
+              buttons. You re-read the whole pile, including what you already
+              know. It feels productive. Then it evaporates overnight.
+            </p>
+            <p>
+              The forgetting starts as soon as you close the book. Quirkle is
+              built for that moment: a quiet notebook that only asks for the
+              cards that are about to fade.
+            </p>
+          </section>
+
+          <section className="landing-copy">
+            <p className="eyebrow">Can I trust this?</p>
+            <h2>Built by someone who wanted a quiet notebook.</h2>
+            <blockquote className="landing-quote">
+              <p>
+                I looked for a place to write flashcards and actually review
+                them — spaced, simple, without a feed or a streak leaderboard. I
+                couldn’t find one that stayed out of the way, so I made Quirkle.
+              </p>
+              <cite>
+                <Link className="text-link" to="/lucky-software">
+                  Lucky Software
+                </Link>
+              </cite>
+            </blockquote>
+            <ul className="landing-facts">
+              <li>No feed, no streak leaderboard, no extra chrome.</li>
+              <li>
+                Leitner boxes: you only study what’s due. Right climbs, wrong
+                returns sooner.
+              </li>
+              <li>
+                Free for {freePlanDeckLabel}. Sign in with Google. No credit
+                card to start.
+              </li>
+            </ul>
+          </section>
+        </>
+      )}
+
+      {variant !== "interactive" && (
+        <section className="landing-band" id="pricing">
+          <header className="landing-copy">
+            <p className="eyebrow">Can I afford it?</p>
+            <h2>
+              Start free. Subscribe when you need more than {freePlanDeckLabel}.
+            </h2>
+          </header>
+          <div className="landing-plans">
+            <article className="landing-plan">
+              <p className="eyebrow">Free</p>
+              <p className="landing-plan__price">$0</p>
+              <p className="landing-plan__note">
+                {freePlanDeckLabel}, full spaced repetition.
+              </p>
+              <PrimaryCta user={user}>
+                {user ? "Open your decks" : "Start free"}
+              </PrimaryCta>
+            </article>
+            <article className="landing-plan">
+              <p className="eyebrow">Monthly</p>
+              <p className="landing-plan__price">
+                ${MONTHLY_PRICE_USD}
+                <small>/month</small>
+              </p>
+              <p className="landing-plan__note">
+                Unlimited decks. Cancel anytime.
+              </p>
+              <PlanCta
+                className="button button--paper"
+                subscribeTo={subscribeTo}
+                user={user}
+              >
+                Subscribe monthly
+              </PlanCta>
+            </article>
+            <article className="landing-plan landing-plan--paid">
+              <p className="eyebrow">Yearly</p>
+              <p className="landing-plan__price">
+                ${YEARLY_PRICE_USD}
+                <small>/year</small>
+              </p>
+              <p className="landing-plan__note">
+                Unlimited decks. Save {YEARLY_SAVINGS_PERCENT}% vs monthly.
+              </p>
+              <PlanCta
+                className="button button--ink"
+                subscribeTo={subscribeTo}
+                user={user}
+              >
+                Subscribe yearly
+              </PlanCta>
+            </article>
+          </div>
+        </section>
+      )}
 
       <section className="landing-close">
         <p className="eyebrow">Do I need this now?</p>
-        <h2>What you learned today is already fading.</h2>
+        <h2>
+          {variant === "interactive"
+            ? "Save the most important resource you have: time."
+            : "What you learned today is already fading."}
+        </h2>
         <p>
-          Write the cards while the material is still warm. The schedule does
-          the rest.
+          {variant === "interactive"
+            ? "You don’t need to study for hours. Let the tools help."
+            : "Write the cards while the material is still warm. The schedule does the rest."}
         </p>
         <PrimaryCta user={user}>
           {user ? "Continue studying" : "Start a free deck"}
