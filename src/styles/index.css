@@ -262,22 +262,21 @@ a {
   pointer-events: none;
   transform-box: fill-box;
   transform-origin: center;
-  animation: desk-start-echo 2.4s ease-out infinite;
+  animation: desk-start-echo 1.6s ease-out infinite;
 }
 
 .desk-start__echo--late {
-  animation-delay: -1.2s;
+  animation-delay: -0.8s;
 }
 
 @keyframes desk-start-echo {
   0% {
-    opacity: 0.55;
+    opacity: 1;
     transform: scale(1);
   }
-  70%,
   100% {
     opacity: 0;
-    transform: scale(1.28);
+    transform: scale(1.75);
   }
 }
 

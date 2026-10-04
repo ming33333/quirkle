@@ -327,7 +327,7 @@ export default function DeskIllustration() {
         rx="6"
         fill="none"
         stroke={PAPER}
-        strokeWidth="2"
+        strokeWidth="3.5"
       />
       <rect
         className="desk-start__echo desk-start__echo--late"
@@ -338,7 +338,7 @@ export default function DeskIllustration() {
         rx="6"
         fill="none"
         stroke={PAPER}
-        strokeWidth="2"
+        strokeWidth="3.5"
       />
       <foreignObject x="727" y="316" width="108" height="48">
         <button
