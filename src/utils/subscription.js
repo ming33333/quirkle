@@ -1,6 +1,13 @@
 import { loadStripe } from "@stripe/stripe-js";
 import { logAnalyticsEvent } from "./firebase";
-import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
+import {
+  collection,
+  collectionGroup,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+} from "firebase/firestore";
 import { db, auth } from "./firebase";
 
 const USER_SETTING_DOC_ID = "settings";
@@ -10,8 +17,8 @@ export const FREE_PLAN_MAX_DECKS = 6;
 export const freePlanDeckLabel =
   FREE_PLAN_MAX_DECKS === 1 ? "1 deck" : `${FREE_PLAN_MAX_DECKS} decks`;
 export const MAX_QUESTIONS_PER_DECK = 200;
-export const MONTHLY_PRICE_USD = 5;
-export const YEARLY_PRICE_USD = 50;
+export const MONTHLY_PRICE_USD = 1;
+export const YEARLY_PRICE_USD = 10;
 export const YEARLY_BILLED_MONTHLY_USD = MONTHLY_PRICE_USD * 12;
 export const YEARLY_SAVINGS_USD = YEARLY_BILLED_MONTHLY_USD - YEARLY_PRICE_USD;
 export const YEARLY_SAVINGS_PERCENT = Math.round(
@@ -65,14 +72,25 @@ const appUrl = (path) => {
   return `${window.location.origin}${route}`;
 };
 
+export const isTester = (status) =>
+  String(status || "").toLowerCase() === "tester";
+
 export const isSubscribed = (status) => {
   const value = String(status || "free").toLowerCase();
-  return value === "subscribed" || value === "basic" || value === "pro";
+  return (
+    value === "subscribed" ||
+    value === "basic" ||
+    value === "pro" ||
+    value === "tester"
+  );
 };
 
 export const isFreePlan = (status) => !isSubscribed(status);
 
-export const planLabel = (status) => (isSubscribed(status) ? "Subscribed" : "Free");
+export const planLabel = (status) => {
+  if (isTester(status)) return "Tester";
+  return isSubscribed(status) ? "Subscribed" : "Free";
+};
 
 const emptyDetails = {
   status: "free",
@@ -122,9 +140,21 @@ const fetchStripeDetails = async (email) => {
 
 const stripeConfirmedPaid = (details) =>
   isSubscribed(details?.status) &&
+  !isTester(details?.status) &&
   Boolean(details?.interval || details?.nextRenewalAt);
 
 const detailsFromStripe = (data, firestoreStatus) => {
+  if (stripeConfirmedPaid(data)) {
+    return {
+      status: data.status,
+      nextRenewalAt: data.nextRenewalAt || null,
+      cancelAtPeriodEnd: Boolean(data.cancelAtPeriodEnd),
+      interval: data.interval || null,
+    };
+  }
+  if (isTester(data?.status) || isTester(firestoreStatus)) {
+    return { ...emptyDetails, status: "tester" };
+  }
   const details = {
     status: data.status || firestoreStatus || "free",
     nextRenewalAt: data.nextRenewalAt || null,
@@ -224,45 +254,76 @@ export const cancelSubscriptionAtPeriodEnd = async (email) => {
   return result;
 };
 
+const countQuestions = (questions) => {
+  if (!questions) return 0;
+  if (Array.isArray(questions)) return questions.length;
+  if (typeof questions !== "object") return 0;
+  return Object.keys(questions).length;
+};
+
+const countDecksAndCardsByUserEmail = async () => {
+  const quizSnapshot = await getDocs(collectionGroup(db, "quizCollection"));
+  const totalsByEmail = new Map();
+  quizSnapshot.forEach((quizDoc) => {
+    const email = quizDoc.ref.parent.parent?.id;
+    if (!email) return;
+    const current = totalsByEmail.get(email) || { deckCount: 0, cardCount: 0 };
+    totalsByEmail.set(email, {
+      deckCount: current.deckCount + 1,
+      cardCount: current.cardCount + countQuestions(quizDoc.data()?.questions),
+    });
+  });
+  return totalsByEmail;
+};
+
 export const listUsersWithPlans = async () => {
-  const snapshot = await getDocs(collection(db, "users"));
+  const [snapshot, totalsByEmail] = await Promise.all([
+    getDocs(collection(db, "users")),
+    countDecksAndCardsByUserEmail(),
+  ]);
   const users = await Promise.all(
     snapshot.docs.map(async (userDoc) => {
       const email = userDoc.id;
       const status = await getSubscriptionStatus(email);
+      const totals = totalsByEmail.get(email) || { deckCount: 0, cardCount: 0 };
       return {
         email,
         status,
         plan: planLabel(status),
+        deckCount: totals.deckCount,
+        cardCount: totals.cardCount,
       };
     }),
   );
   return users.sort((a, b) => a.email.localeCompare(b.email));
 };
 
-export const setPlanToFree = async (email) => {
+const writePlanStatus = async (userId, status) => {
+  await setDoc(
+    doc(db, "users", userId, "userSetting", USER_SETTING_DOC_ID),
+    { [SUBSCRIPTION_FIELD]: status },
+    { merge: true },
+  );
+};
+
+const writePlanStatusBothCasings = async (email, status) => {
   const exact = String(email || "").trim();
   const normalized = exact.toLowerCase();
   if (!normalized) throw new Error("Missing user email.");
+  await writePlanStatus(exact, status);
+  invalidateSubscriptionDetails(exact);
+  if (exact !== normalized) {
+    await writePlanStatus(normalized, status);
+    invalidateSubscriptionDetails(normalized);
+  }
+  return { exact, normalized };
+};
 
+export const setPlanToFree = async (email) => {
   const token = await auth.currentUser?.getIdToken();
   if (!token) throw new Error("You must be signed in.");
 
-  const markFreeInFirestore = async (userId) => {
-    await setDoc(
-      doc(db, "users", userId, "userSetting", USER_SETTING_DOC_ID),
-      { [SUBSCRIPTION_FIELD]: "free" },
-      { merge: true },
-    );
-  };
-
-  // Write both casings so the admin list (doc id) and Stripe-normalized path stay in sync.
-  await markFreeInFirestore(exact);
-  invalidateSubscriptionDetails(exact);
-  if (exact !== normalized) {
-    await markFreeInFirestore(normalized);
-    invalidateSubscriptionDetails(normalized);
-  }
+  const { exact } = await writePlanStatusBothCasings(email, "free");
 
   let response;
   try {
@@ -294,6 +355,56 @@ export const setPlanToFree = async (email) => {
     status: "free",
     stripeCancelled: false,
     warning: `${await parseFunctionError(response)} Plan is Free in the app; Stripe may still be charging.`,
+  };
+};
+
+export const setPlanToTester = async (email) => {
+  const token = await auth.currentUser?.getIdToken();
+  if (!token) throw new Error("You must be signed in.");
+
+  const { exact } = await writePlanStatusBothCasings(email, "tester");
+
+  let response;
+  try {
+    response = await fetch(
+      `${getCloudFunctionsBaseUrl()}/adminCancelSubscription`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ email: exact, status: "tester" }),
+      },
+    );
+  } catch (networkError) {
+    return {
+      status: "tester",
+      stripeCancelled: false,
+      warning:
+        "Tester access is on. Could not reach the server to cancel Stripe billing, so a paid subscription may still renew.",
+    };
+  }
+
+  await writePlanStatusBothCasings(exact, "tester");
+
+  if (response.ok) {
+    const result = await response.json();
+    if (result?.status !== "tester") {
+      return {
+        status: "tester",
+        stripeCancelled: Boolean(result?.stripeCancelled),
+        warning:
+          "Tester access is on. Redeploy functions so a cancelled Stripe subscription does not set this account back to Free.",
+      };
+    }
+    return { ...result, status: "tester" };
+  }
+
+  return {
+    status: "tester",
+    stripeCancelled: false,
+    warning: `${await parseFunctionError(response)} Tester access is on; Stripe may still be charging.`,
   };
 };
 

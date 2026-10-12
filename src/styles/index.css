@@ -3416,8 +3416,21 @@ button.progress-stat {
   border-color: var(--ink);
 }
 
-.admin-list--users strong {
+.admin-list__who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 0;
+}
+
+.admin-list--users .admin-list__who strong {
+  display: inline;
   word-break: break-word;
+}
+
+.admin-list__cards {
+  white-space: nowrap;
 }
 
 .admin-list__actions {
@@ -3436,6 +3449,11 @@ button.progress-stat {
 
 .admin-plan--paid {
   color: #3d6b52;
+  font-weight: 600;
+}
+
+.admin-plan--tester {
+  color: #3d5270;
   font-weight: 600;
 }
 

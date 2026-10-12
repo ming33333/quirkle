@@ -2,9 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useImpersonation } from "../context/ImpersonationContext.jsx";
 import { addAdmin, listAdmins, removeAdmin } from "../utils/admins";
-import { listUsersWithPlans, setPlanToFree } from "../utils/subscription";
+import { listUsersWithPlans, setPlanToFree, setPlanToTester } from "../utils/subscription";
 
 const USER_PAGE_SIZE = 10;
+
+const countLabel = (count, singular, plural) => {
+  const total = Number(count) || 0;
+  return `${total} ${total === 1 ? singular : plural}`;
+};
 
 export default function AdminPage({ user }) {
   const navigate = useNavigate();
@@ -141,13 +146,45 @@ export default function AdminPage({ user }) {
     }
   };
 
+  const handleSetTester = async (targetEmail) => {
+    if (saving) return;
+    const confirmed = window.confirm(
+      `Make ${targetEmail} a tester account? They get full access and are not charged. Any Stripe subscription will be cancelled.`,
+    );
+    if (!confirmed) return;
+    setSaving(true);
+    setError("");
+    setMessage("");
+    try {
+      const result = await setPlanToTester(targetEmail);
+      setUsers((current) =>
+        current.map((row) =>
+          row.email.toLowerCase() === targetEmail.toLowerCase()
+            ? { ...row, status: "tester", plan: "Tester" }
+            : row,
+        ),
+      );
+      setMessage(
+        result?.warning
+          ? `${targetEmail} is a tester. ${result.warning}`
+          : `${targetEmail} is a tester account with full access.`,
+      );
+    } catch (testerError) {
+      setError(testerError.message || "Could not set tester account.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const subscribedCount = users.filter((row) => row.plan === "Subscribed").length;
+  const testerCount = users.filter((row) => row.plan === "Tester").length;
   const filteredUsers = users.filter((row) => {
     const q = userQuery.trim().toLowerCase();
     const matchesQuery = !q || row.email.toLowerCase().includes(q);
     const matchesPlan =
       planFilter === "all" ||
       (planFilter === "subscribed" && row.plan === "Subscribed") ||
+      (planFilter === "tester" && row.plan === "Tester") ||
       (planFilter === "free" && row.plan === "Free");
     return matchesQuery && matchesPlan;
   });
@@ -180,7 +217,7 @@ export default function AdminPage({ user }) {
           <span>
             {usersLoading
               ? "…"
-              : `${users.length} users · ${subscribedCount} subscribed`}
+              : `${users.length} users · ${subscribedCount} subscribed · ${testerCount} testers`}
           </span>
         </div>
         <p className="admin__muted">
@@ -205,6 +242,7 @@ export default function AdminPage({ user }) {
             {[
               { value: "all", label: "All" },
               { value: "subscribed", label: "Subscribed" },
+              { value: "tester", label: "Tester" },
               { value: "free", label: "Free" },
             ].map((option) => (
               <button
@@ -234,17 +272,28 @@ export default function AdminPage({ user }) {
               {visibleUsers.map((row) => (
                 <li key={row.email}>
                   <div>
-                    <strong>{row.email}</strong>
+                    <p className="admin-list__who">
+                      <strong>{row.email}</strong>
+                      <span className="admin-list__cards">
+                        {countLabel(row.deckCount, "deck", "decks")}
+                        {" · "}
+                        {countLabel(row.cardCount, "card", "cards")}
+                      </span>
+                    </p>
                     <span
                       className={`admin-plan${
-                        row.plan === "Subscribed" ? " admin-plan--paid" : ""
+                        row.plan === "Subscribed"
+                          ? " admin-plan--paid"
+                          : row.plan === "Tester"
+                            ? " admin-plan--tester"
+                            : ""
                       }`}
                     >
                       {row.plan}
                     </span>
                   </div>
                   <div className="admin-list__actions">
-                    {row.plan === "Subscribed" ? (
+                    {row.plan !== "Free" ? (
                       <button
                         className="text-link text-link--button"
                         disabled={saving}
@@ -252,6 +301,16 @@ export default function AdminPage({ user }) {
                         type="button"
                       >
                         Set to free
+                      </button>
+                    ) : null}
+                    {row.plan !== "Tester" ? (
+                      <button
+                        className="text-link text-link--button"
+                        disabled={saving}
+                        onClick={() => handleSetTester(row.email)}
+                        type="button"
+                      >
+                        Tester account
                       </button>
                     ) : null}
                     <button

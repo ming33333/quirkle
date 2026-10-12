@@ -6,6 +6,7 @@ import {
   freePlanDeckLabel,
   getSubscriptionDetails,
   isSubscribed,
+  isTester,
   MONTHLY_PRICE_USD,
   openCustomerPortal,
   peekSubscriptionDetails,
@@ -104,6 +105,7 @@ export default function ProfilePage({ onClose, user }) {
     };
   }, [onClose]);
 
+  const tester = isTester(status);
   const subscribed = isSubscribed(status);
   const impersonating = Boolean(user?.isImpersonating);
   const renewalLabel = formatRenewalDate(nextRenewalAt);
@@ -215,16 +217,21 @@ export default function ProfilePage({ onClose, user }) {
           ) : (
             <>
               <p className="profile__plan">{planLabel(status)}</p>
-              {subscribed && planInterval ? (
+              {subscribed && !tester && planInterval ? (
                 <p className="profile__interval">
                   {planInterval === "year" ? "Yearly" : "Monthly"}
                 </p>
               ) : null}
-              {subscribed && renewalLabel ? (
+              {subscribed && !tester && renewalLabel ? (
                 <p className="profile__renewal">
                   {cancelAtPeriodEnd
                     ? `Ends on ${renewalLabel}`
                     : `Renews on ${renewalLabel}`}
+                </p>
+              ) : null}
+              {tester ? (
+                <p className="profile__muted">
+                  Tester account. Full access, and this account is not billed.
                 </p>
               ) : null}
               {!subscribed && (
@@ -239,7 +246,7 @@ export default function ProfilePage({ onClose, user }) {
                 <p className="profile__muted">
                   Stop viewing to manage your own billing.
                 </p>
-              ) : subscribed ? (
+              ) : tester ? null : subscribed ? (
                 <div className="profile__actions">
                   <button
                     className="button button--ink"

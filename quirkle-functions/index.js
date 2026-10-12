@@ -110,6 +110,21 @@ const looksSubscribed = (status) => {
   return value === "subscribed" || value === "basic" || value === "pro";
 };
 
+const isTesterStatus = (status) =>
+  String(status || "").toLowerCase() === "tester";
+
+async function getFirestoreSubscriptionStatus(email) {
+  const normalized = String(email || "").trim().toLowerCase();
+  if (!normalized) return "free";
+  const snap = await getDb()
+    .collection("users")
+    .doc(normalized)
+    .collection("userSetting")
+    .doc(USER_SETTING_DOC_ID)
+    .get();
+  return snap.exists ? snap.data()?.[SUBSCRIPTION_FIELD] || "free" : "free";
+}
+
 const emailFromSubscription = async (subscription) => {
   let email = subscription.metadata?.email || subscription.customer_email;
   if (!email) {
@@ -144,7 +159,11 @@ const findPaidSubscription = async (email, extraCustomerId) => {
 };
 
 const syncPlanFromEmail = async (email, extraCustomerId) => {
+  const current = await getFirestoreSubscriptionStatus(email);
+  if (isTesterStatus(current)) return;
   const withAccess = await findPaidSubscription(email, extraCustomerId);
+  const again = await getFirestoreSubscriptionStatus(email);
+  if (isTesterStatus(again)) return;
   await setSubscriptionStatus(
     email,
     withAccess ? planStatusFromSubscription(withAccess) : "free",
@@ -317,15 +336,16 @@ exports.getSubscriptionDetails = functions.https.onRequest(async (req, res) => {
       return res.status(400).json({ error: "Missing required field: email" });
     }
 
-    const firestoreStatus = await (async () => {
-      const settingsRef = getDb()
-        .collection("users")
-        .doc(email)
-        .collection("userSetting")
-        .doc(USER_SETTING_DOC_ID);
-      const snap = await settingsRef.get();
-      return snap.exists ? snap.data()?.[SUBSCRIPTION_FIELD] || "free" : "free";
-    })();
+    const firestoreStatus = await getFirestoreSubscriptionStatus(email);
+
+    if (isTesterStatus(firestoreStatus)) {
+      return res.json({
+        status: "tester",
+        nextRenewalAt: null,
+        cancelAtPeriodEnd: false,
+        interval: null,
+      });
+    }
 
     const withAccess = await findPaidSubscription(email);
 
@@ -688,9 +708,10 @@ exports.cancelSubscription = functions.https.onRequest(async (req, res) => {
 });
 
 /**
- * Admin: cancel a user's Stripe subscription(s) and set plan to free.
- * POST /adminCancelSubscription { email }
+ * Admin: cancel a user's Stripe subscription(s) and set plan to free or tester.
+ * POST /adminCancelSubscription { email, status?: "free" | "tester" }
  * Authorization: Bearer <Firebase ID token of an admin>
+ * Tester keeps full access and is not billed. Stripe webhooks will not overwrite it.
  */
 exports.adminCancelSubscription = functions.https.onRequest(async (req, res) => {
   applyCors(req, res);
@@ -707,6 +728,15 @@ exports.adminCancelSubscription = functions.https.onRequest(async (req, res) => 
     const email = String(req.body?.email || "").trim();
     if (!email || !email.includes("@")) {
       return res.status(400).json({ error: "Missing user email." });
+    }
+
+    const nextStatus =
+      String(req.body?.status || "free").toLowerCase() === "tester"
+        ? "tester"
+        : "free";
+
+    if (nextStatus === "tester") {
+      await setSubscriptionStatus(email, "tester");
     }
 
     let cancelled = 0;
@@ -727,8 +757,8 @@ exports.adminCancelSubscription = functions.https.onRequest(async (req, res) => 
       }
     }
 
-    await setSubscriptionStatus(email, "free");
-    res.json({ status: "free", stripeCancelled: cancelled });
+    await setSubscriptionStatus(email, nextStatus);
+    res.json({ status: nextStatus, stripeCancelled: cancelled });
   } catch (error) {
     console.error("Error cancelling subscription:", error);
     res.status(error.status || 500).json({ error: error.message });
