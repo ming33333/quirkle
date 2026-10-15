@@ -3,19 +3,14 @@ import { signOut } from "firebase/auth";
 import { auth } from "../utils/firebase";
 import {
   cancelSubscriptionAtPeriodEnd,
-  freePlanDeckLabel,
   getSubscriptionDetails,
   isSubscribed,
   isTester,
-  MONTHLY_PRICE_USD,
+  MAX_DECKS,
   openCustomerPortal,
   peekSubscriptionDetails,
   planLabel,
-  prefetchCheckout,
-  startCheckout,
-  YEARLY_BILLED_MONTHLY_USD,
-  YEARLY_PRICE_USD,
-  YEARLY_SAVINGS_PERCENT,
+  SUPPORT_EMAIL,
 } from "../utils/subscription";
 
 const formatRenewalDate = (iso) => {
@@ -106,28 +101,9 @@ export default function ProfilePage({ onClose, user }) {
   }, [onClose]);
 
   const tester = isTester(status);
-  const subscribed = isSubscribed(status);
+  const subscribed = isSubscribed(status) && !tester;
   const impersonating = Boolean(user?.isImpersonating);
   const renewalLabel = formatRenewalDate(nextRenewalAt);
-
-  useEffect(() => {
-    if (!email || loading || impersonating || subscribed) return undefined;
-    prefetchCheckout(email);
-  }, [email, impersonating, loading, subscribed]);
-
-  const handleSubscribe = async (planInterval = "year") => {
-    if (working) return;
-    setWorking(true);
-    setError("");
-    setMessage("");
-    try {
-      await startCheckout(email, { interval: planInterval });
-    } catch (checkoutError) {
-      console.error("Checkout error:", checkoutError);
-      setError(checkoutError.message || "Could not start checkout.");
-      setWorking(false);
-    }
-  };
 
   const handleManage = async () => {
     if (working) return;
@@ -217,12 +193,12 @@ export default function ProfilePage({ onClose, user }) {
           ) : (
             <>
               <p className="profile__plan">{planLabel(status)}</p>
-              {subscribed && !tester && planInterval ? (
+              {subscribed && planInterval ? (
                 <p className="profile__interval">
                   {planInterval === "year" ? "Yearly" : "Monthly"}
                 </p>
               ) : null}
-              {subscribed && !tester && renewalLabel ? (
+              {subscribed && renewalLabel ? (
                 <p className="profile__renewal">
                   {cancelAtPeriodEnd
                     ? `Ends on ${renewalLabel}`
@@ -234,10 +210,14 @@ export default function ProfilePage({ onClose, user }) {
                   Tester account. Full access, and this account is not billed.
                 </p>
               ) : null}
-              {!subscribed && (
+              {!subscribed && !tester && (
                 <p className="profile__muted">
-                  Free accounts can keep {freePlanDeckLabel}. Subscribed
-                  accounts can make as many decks as they need.
+                  Quirkle is free. An account can keep {MAX_DECKS} decks.
+                  Message{" "}
+                  <a className="text-link" href={`mailto:${SUPPORT_EMAIL}`}>
+                    {SUPPORT_EMAIL}
+                  </a>{" "}
+                  to raise the limit.
                 </p>
               )}
               {error && <p className="profile__error">{error}</p>}
@@ -246,7 +226,7 @@ export default function ProfilePage({ onClose, user }) {
                 <p className="profile__muted">
                   Stop viewing to manage your own billing.
                 </p>
-              ) : tester ? null : subscribed ? (
+              ) : subscribed ? (
                 <div className="profile__actions">
                   <button
                     className="button button--ink"
@@ -272,42 +252,7 @@ export default function ProfilePage({ onClose, user }) {
                     </p>
                   )}
                 </div>
-              ) : (
-                <div className="profile__actions profile__actions--plans">
-                  <div className="profile__offer">
-                    <p className="profile__offer-price">
-                      <span>${YEARLY_PRICE_USD}/year</span>
-                      <s>${YEARLY_BILLED_MONTHLY_USD}/year</s>
-                    </p>
-                    <p className="profile__offer-save">
-                      Save {YEARLY_SAVINGS_PERCENT}% compared to monthly
-                      billing
-                    </p>
-                  </div>
-                  <button
-                    className="button button--ink button--full"
-                    disabled={working}
-                    onClick={() => handleSubscribe("year")}
-                    onFocus={() => prefetchCheckout(email)}
-                    onMouseEnter={() => prefetchCheckout(email)}
-                    type="button"
-                  >
-                    {working ? "Redirecting…" : "Subscribe yearly"}
-                  </button>
-                  <button
-                    className="button button--paper button--full"
-                    disabled={working}
-                    onClick={() => handleSubscribe("month")}
-                    onFocus={() => prefetchCheckout(email)}
-                    onMouseEnter={() => prefetchCheckout(email)}
-                    type="button"
-                  >
-                    {working
-                      ? "Redirecting…"
-                      : `Subscribe monthly · $${MONTHLY_PRICE_USD}`}
-                  </button>
-                </div>
-              )}
+              ) : null}
             </>
           )}
         </section>

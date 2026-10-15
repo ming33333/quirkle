@@ -10,9 +10,9 @@ import {
 } from "../utils/decks";
 import {
   canCreateDeck,
-  freePlanDeckLabel,
-  getVerifiedSubscriptionStatus,
+  MAX_DECKS,
   prefetchSubscriptionDetails,
+  SUPPORT_EMAIL,
 } from "../utils/subscription";
 
 export default function DashboardPage({ user }) {
@@ -27,7 +27,6 @@ export default function DashboardPage({ user }) {
   const [renamingDeck, setRenamingDeck] = useState(null);
   const [renameTitle, setRenameTitle] = useState("");
   const [renaming, setRenaming] = useState(false);
-  const [planStatus, setPlanStatus] = useState("free");
   const firstName =
     user?.displayName?.split(" ")[0] || user?.email?.split("@")[0] || "writer";
   const email = user?.email;
@@ -45,13 +44,9 @@ export default function DashboardPage({ user }) {
       setLoading(true);
       setError("");
       try {
-        const [nextDecks, status] = await Promise.all([
-          fetchDecksForUser(email),
-          getVerifiedSubscriptionStatus(email),
-        ]);
+        const nextDecks = await fetchDecksForUser(email);
         if (!cancelled) {
           setDecks(nextDecks);
-          setPlanStatus(status);
         }
       } catch (loadError) {
         console.error("Error loading decks:", loadError);
@@ -74,9 +69,9 @@ export default function DashboardPage({ user }) {
     event.preventDefault();
     const title = deckTitle.trim();
     if (!title || !email || creating) return;
-    if (!canCreateDeck(planStatus, decks.length)) {
+    if (!canCreateDeck(null, decks.length)) {
       setError(
-        `Free accounts can keep ${freePlanDeckLabel}. Subscribe to add more.`,
+        `An account can keep ${MAX_DECKS} decks. Message ${SUPPORT_EMAIL} to raise the limit.`,
       );
       return;
     }
@@ -96,12 +91,12 @@ export default function DashboardPage({ user }) {
     }
   };
 
-  const atDeckLimit = !canCreateDeck(planStatus, decks.length);
+  const atDeckLimit = !canCreateDeck(null, decks.length);
 
   const openCreate = () => {
     if (atDeckLimit) {
       setError(
-        `Free accounts can keep ${freePlanDeckLabel}. Subscribe to add more.`,
+        `An account can keep ${MAX_DECKS} decks. Message ${SUPPORT_EMAIL} to raise the limit.`,
       );
       return;
     }
@@ -189,17 +184,16 @@ export default function DashboardPage({ user }) {
 
         {error && !isCreating && !renamingDeck && (
           <p className="dashboard__error">
-            {error}{" "}
-            {atDeckLimit && (
-              <Link
-                className="text-link"
-                onFocus={() => prefetchSubscriptionDetails(email)}
-                onMouseEnter={() => prefetchSubscriptionDetails(email)}
-                to="/profile"
-                state={{ background: location }}
-              >
-                Open profile
-              </Link>
+            {atDeckLimit ? (
+              <>
+                An account can keep {MAX_DECKS} decks. Message{" "}
+                <a className="text-link" href={`mailto:${SUPPORT_EMAIL}`}>
+                  {SUPPORT_EMAIL}
+                </a>{" "}
+                to raise the limit.
+              </>
+            ) : (
+              error
             )}
           </p>
         )}

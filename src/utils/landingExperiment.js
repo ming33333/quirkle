@@ -1,5 +1,5 @@
-/** Set to "original" or "interactive" when the test is over. null keeps the 50/50 split. */
-export const LANDING_WINNER = null;
+/** The split is over. Every visit sees the interactive front page. */
+export const LANDING_WINNER = "interactive";
 
 export const LANDING_EXPERIMENT = "landing";
 
@@ -41,20 +41,17 @@ function sessionEntryPath() {
  * ?lp=original, ?lp=a, ?lp=b, or ?lp=interactive previews a page without entering the test.
  */
 export function resolveLandingVariant() {
+  if (LIVE_VARIANTS.includes(LANDING_WINNER)) {
+    return { variant: LANDING_WINNER, enrolled: false };
+  }
+
   if (typeof window === "undefined") {
-    return { variant: LANDING_WINNER || "original", enrolled: false };
+    return { variant: "interactive", enrolled: false };
   }
 
   const preview = new URLSearchParams(window.location.search).get("lp");
-  if (preview === "a" || preview === "original") {
-    return { variant: "original", enrolled: false };
-  }
   if (preview === "b" || preview === "interactive") {
-    return { variant: preview, enrolled: false };
-  }
-
-  if (LIVE_VARIANTS.includes(LANDING_WINNER)) {
-    return { variant: LANDING_WINNER, enrolled: false };
+    return { variant: "interactive", enrolled: false };
   }
 
   if (sessionEntryPath() !== "/") {

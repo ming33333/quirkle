@@ -13,9 +13,12 @@ import { db, auth } from "./firebase";
 const USER_SETTING_DOC_ID = "settings";
 const SUBSCRIPTION_FIELD = "subscription status";
 
-export const FREE_PLAN_MAX_DECKS = 6;
+export const MAX_DECKS = 100;
+export const FREE_PLAN_MAX_DECKS = MAX_DECKS;
 export const freePlanDeckLabel =
-  FREE_PLAN_MAX_DECKS === 1 ? "1 deck" : `${FREE_PLAN_MAX_DECKS} decks`;
+  MAX_DECKS === 1 ? "1 deck" : `${MAX_DECKS} decks`;
+export const SUPPORT_EMAIL = "quirkle.it.support@gmail.com";
+export const deckLimitMessage = `An account can keep ${MAX_DECKS} decks. Message ${SUPPORT_EMAIL} to raise the limit.`;
 export const MAX_QUESTIONS_PER_DECK = 200;
 export const MONTHLY_PRICE_USD = 1;
 export const YEARLY_PRICE_USD = 10;
@@ -416,8 +419,8 @@ export const assertQuestionLimit = (count) => {
   }
 };
 
-export const canCreateDeck = (status, deckCount) =>
-  isSubscribed(status) || deckCount < FREE_PLAN_MAX_DECKS;
+export const canCreateDeck = (_status, deckCount) =>
+  Number(deckCount) < MAX_DECKS;
 
 const parseFunctionError = async (response) => {
   try {

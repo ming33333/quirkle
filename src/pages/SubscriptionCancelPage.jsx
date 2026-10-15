@@ -8,7 +8,7 @@ export default function SubscriptionCancelPage() {
           <p className="eyebrow">Subscription</p>
           <h1>Checkout canceled</h1>
           <p className="profile__lede">
-            Nothing was charged. You can subscribe anytime from your profile.
+            Nothing was charged. Quirkle is free, so there is nothing to subscribe to.
           </p>
         </div>
       </header>

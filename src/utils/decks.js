@@ -11,8 +11,7 @@ import { db } from "./firebase";
 import {
   assertQuestionLimit,
   canCreateDeck,
-  freePlanDeckLabel,
-  getVerifiedSubscriptionStatus,
+  deckLimitMessage,
   MAX_QUESTIONS_PER_DECK,
 } from "./subscription";
 
@@ -579,14 +578,9 @@ export const createDeckForUser = async (email, title, { cards } = {}) => {
     throw new Error("A signed-in user and deck title are required.");
   }
 
-  const [status, existingDecks] = await Promise.all([
-    getVerifiedSubscriptionStatus(email),
-    fetchDecksForUser(email),
-  ]);
-  if (!canCreateDeck(status, existingDecks.length)) {
-    throw new Error(
-      `Free accounts can keep ${freePlanDeckLabel}. Subscribe to add more.`,
-    );
+  const existingDecks = await fetchDecksForUser(email);
+  if (!canCreateDeck(null, existingDecks.length)) {
+    throw new Error(deckLimitMessage);
   }
   if (titleTakenByAnotherDeck(existingDecks, trimmed)) {
     throw new Error("A deck with that name already exists.");

@@ -1,9 +1,6 @@
 import { Link } from "react-router-dom";
 import Brand from "../components/Brand.jsx";
-import {
-  MAX_QUESTIONS_PER_DECK,
-  freePlanDeckLabel,
-} from "../utils/subscription";
+import { MAX_DECKS, MAX_QUESTIONS_PER_DECK, SUPPORT_EMAIL } from "../utils/subscription";
 
 const STEPS = [
   {
@@ -56,8 +53,11 @@ export default function HowToPage({ user }) {
         </ol>
 
         <p>
-          Free accounts can keep {freePlanDeckLabel}. Subscribe if you need more
-          notebooks.{" "}
+          Quirkle is free. An account can keep {MAX_DECKS} decks. Message{" "}
+          <a className="text-link" href={`mailto:${SUPPORT_EMAIL}`}>
+            {SUPPORT_EMAIL}
+          </a>{" "}
+          to raise the limit.{" "}
           <Link className="text-link" to="/spaced-repetition">
             Watch how the Leitner buckets work
           </Link>

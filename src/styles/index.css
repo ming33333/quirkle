@@ -522,6 +522,17 @@ button.hero__how {
   line-height: 1.5;
 }
 
+.landing-badge {
+  display: inline-block;
+  margin-top: 18px;
+}
+
+.landing-badge img {
+  display: block;
+  width: 220px;
+  height: 84px;
+}
+
 .landing-copy,
 .landing-band,
 .landing-about,
