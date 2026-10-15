@@ -1,0 +1,8 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Disallow:
+
+Allow: /how-to-study
+Allow: /how-to-study/
+
+Sitemap: https://quirkle.io/sitemap.xml
