@@ -16,7 +16,7 @@ export default function GuidePage({
     topic?.headline ?? (topic ? `How to study for ${topic.title}` : "");
 
   usePageMeta(
-    topic ? `${headline} — Quirkle` : "Quirkle",
+    topic ? (topic.documentTitle ?? `${headline} — Quirkle`) : "Quirkle",
     topic?.description ?? "",
   );
 
@@ -40,6 +40,16 @@ export default function GuidePage({
         <p className="eyebrow">{topic.fieldLabel}</p>
         <h1>{headline}</h1>
         <p className="howto__lede">{topic.lede}</p>
+        {topic.map && (
+          <figure className="howto__map">
+            <img
+              src={topic.map.src}
+              alt={topic.map.alt}
+              width={topic.map.width}
+              height={topic.map.height}
+            />
+          </figure>
+        )}
 
         <h2>{topic.testsHeading ?? "What this tests"}</h2>
         <p>{topic.tests}</p>

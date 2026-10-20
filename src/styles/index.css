@@ -522,12 +522,13 @@ button.hero__how {
   line-height: 1.5;
 }
 
-.landing-badge {
-  display: inline-block;
-  margin-top: 18px;
+.site-badge {
+  display: flex;
+  justify-content: center;
+  padding: 8px 28px 48px;
 }
 
-.landing-badge img {
+.site-badge img {
   display: block;
   width: 220px;
   height: 84px;
@@ -851,6 +852,16 @@ button.hero__how {
   font-family: var(--serif);
   font-size: 18px;
   line-height: 1.55;
+}
+
+.howto__map {
+  margin: 0 0 28px;
+}
+
+.howto__map img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .howto-steps {

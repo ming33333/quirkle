@@ -55,10 +55,17 @@ export const GEOGRAPHY = [
   {
     slug: "south-america",
     fieldLabel: "South America",
-    headline: "What countries are in South America",
+    headline: "Countries in South America.",
+    documentTitle: "Countries in South America.",
     description:
-      "What countries are in South America: the 12 sovereign states, including Guyana and Suriname. A sample deck and a spaced review schedule.",
-    lede: "South America has 12 sovereign states. People also say “countries in South America,” and it is this same list. French Guiana is on the continent and is part of France, so it is not a 13th country.",
+      "There are 12 countries in South America: Argentina, Bolivia, Brazil, Chile, Colombia, Ecuador, Guyana, Paraguay, Peru, Suriname, Uruguay, and Venezuela.",
+    lede: "There are 12 countries in South America: Argentina, Bolivia, Brazil, Chile, Colombia, Ecuador, Guyana, Paraguay, Peru, Suriname, Uruguay, and Venezuela. French Guiana is on the continent and is part of France, so it is not a 13th country.",
+    map: {
+      src: "/maps/south-america.svg",
+      alt: "Map of the 12 countries in South America",
+      width: 560,
+      height: 680,
+    },
     testsHeading: "The short answer",
     tests:
       "The 12 are Argentina, Bolivia, Brazil, Chile, Colombia, Ecuador, Guyana, Paraguay, Peru, Suriname, Uruguay, and Venezuela. Brazil is the only one whose main language is Portuguese. Guyana’s main language is English. Suriname’s is Dutch. The other nine use Spanish as an official language.",
@@ -66,7 +73,7 @@ export const GEOGRAPHY = [
       "One country or one language fact per card. Do not fold French Guiana into the 12.",
     schedule: schedule("Start with the 12, then the three that are not Spanish-speaking."),
     cards: [
-      card("How many sovereign states are in South America?", "12."),
+      card("How many countries are in South America?", "12."),
       card("Which one has Portuguese as its main language?", "Brazil."),
       card("Which one has English as its main language?", "Guyana."),
       card("Which one has Dutch as its main language?", "Suriname."),

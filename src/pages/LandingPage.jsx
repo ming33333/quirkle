@@ -175,19 +175,6 @@ export default function LandingPage({ user }) {
             {SUPPORT_EMAIL}
           </a>
         </p>
-        <a
-          className="landing-badge"
-          href="https://circlesaasboard.com/startup/quirkle-2c895f"
-          target="_blank"
-          rel="noopener"
-        >
-          <img
-            src="https://circlesaasboard.com/badge.svg"
-            alt="Featured on CircleSaaS"
-            width="220"
-            height="84"
-          />
-        </a>
       </footer>
     </main>
   );

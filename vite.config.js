@@ -125,10 +125,39 @@ function publishCrawlableRoutes() {
         "work",
         ...WORK.map((item) => `work/${item.slug}`),
       ];
+      const escapeHtml = (value) =>
+        String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+
+      const southAmerica = GEOGRAPHY.find((item) => item.slug === "south-america");
+      const southAmericaHtml = southAmerica
+        ? html
+            .toString()
+            .replace(
+              /<title>[\s\S]*?<\/title>/,
+              `<title>${escapeHtml(southAmerica.documentTitle)}</title>`,
+            )
+            .replace(
+              /<meta\n\s+name="description"\n\s+content="[^"]*"\n\s+\/>/,
+              `<meta\n      name="description"\n      content="${escapeHtml(southAmerica.description)}"\n    />`,
+            )
+            .replace(
+              '<div id="root"></div>',
+              `<div id="root"><article><h1>${escapeHtml(southAmerica.headline)}</h1><p>${escapeHtml(southAmerica.lede)}</p><img src="${escapeHtml(southAmerica.map.src)}" alt="${escapeHtml(southAmerica.map.alt)}" width="${southAmerica.map.width}" height="${southAmerica.map.height}"></article></div>`,
+            )
+        : null;
+
       for (const route of routes) {
         const dir = path.join(buildDir, route);
         fs.mkdirSync(dir, { recursive: true });
-        fs.writeFileSync(path.join(dir, "index.html"), html);
+        const page =
+          route === "geography/south-america" && southAmericaHtml
+            ? southAmericaHtml
+            : html;
+        fs.writeFileSync(path.join(dir, "index.html"), page);
       }
     },
   };
